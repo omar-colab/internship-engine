@@ -3,11 +3,13 @@
 roles is the spine; history lives in events so status stays one field.
 """
 import json
+import os
 import sqlite3
 import time
 from pathlib import Path
 
-DATA = Path(__file__).resolve().parent.parent / "data"
+# INTERNSHIP_ENGINE_DATA lets the shared-feed job build in a scratch folder, away from anyone's personal data
+DATA = Path(os.environ.get("INTERNSHIP_ENGINE_DATA") or Path(__file__).resolve().parent.parent / "data")
 SCHEMA = """
 create table if not exists roles (
   id integer primary key,

@@ -8,6 +8,8 @@
   schedule [off]     install / remove the launchd timers
   fill <id> [--dry-run]   open the posting, fill what your profile backs, stop before Submit
   digest             this week in one page (data/digest/) + a notification; Sundays at 18:00 when scheduled
+  boards             share the job boards you've found: writes boards.json
+  feed-build         build the shared daily feed (GitHub Actions runs this)
   token              the key to paste into the browser extension's settings
   serve              dashboard at http://127.0.0.1:8765
 """
@@ -38,6 +40,9 @@ elif cmd == "fill":
 elif cmd == "digest":
     from . import report
     print(report.digest())
+elif cmd in ("boards", "feed-build"):
+    from . import shared
+    out(shared.export_boards() if cmd == "boards" else shared.build_feed())
 elif cmd == "token":
     print(server.token())
 elif cmd == "serve":

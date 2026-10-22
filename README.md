@@ -69,6 +69,13 @@ In Claude Code: `/setup`, and `/rank` to have Claude re-read your top 30 roles a
 Everything personal lives in `data/`, which git ignores. The dashboard and the engine's API listen on
 `127.0.0.1` only. The extension talks to the engine with a key only you have, and web pages never see it.
 
+## The shared feed
+
+Every morning at 6:00 ET, GitHub reads every board in `boards.json` and publishes the postings (company, title,
+location, link; nothing personal) at `site/feed.json` on the website. Your 7:00 run pulls it first, so a new
+install starts with 900+ roles, and only boards not in the feed get polled from your laptop.
+Found boards the feed doesn't have? `uv run python -m engine boards` adds them to `boards.json`; send a pull request.
+
 ## Add a company
 
 Put it in `companies.json` with its careers page URL; the engine detects which job board it uses. Or just

@@ -1,0 +1,473 @@
+{
+ "_note": "Company \u2192 job board, found by the resolver. Shared so every engine starts with them.",
+ "boards": [
+  {
+   "name": "AFL",
+   "ats": "phenom",
+   "origin": "https://careers.aflglobal.com",
+   "locale": "us/en"
+  },
+  {
+   "name": "Albertsons Companies",
+   "ats": "oracle",
+   "host": "eofd.fa.us6.oraclecloud.com",
+   "site": "CX_1001"
+  },
+  {
+   "name": "AllianceBernstein",
+   "ats": "workday",
+   "tenant": "abglobal",
+   "wd": "wd1",
+   "site": "alliancebernsteincareers"
+  },
+  {
+   "name": "American Electric Power",
+   "ats": "workday",
+   "tenant": "aep",
+   "wd": "wd1",
+   "site": "AEPCareerSite"
+  },
+  {
+   "name": "Analytic Partners",
+   "ats": "lever",
+   "token": "analyticpartners"
+  },
+  {
+   "name": "Anduril Industries",
+   "ats": "greenhouse",
+   "token": "andurilindustries"
+  },
+  {
+   "name": "AQR Capital Management",
+   "ats": "greenhouse",
+   "token": "aqr"
+  },
+  {
+   "name": "Associated Wholesale Grocers",
+   "ats": "oracle",
+   "host": "fa-etwq-saasfaprod1.fa.ocs.oraclecloud.com",
+   "site": "CX_1"
+  },
+  {
+   "name": "BerryDunn \u2014 Assurance, Tax and Consulting",
+   "ats": "icims",
+   "host": "careers-berrydunn.icims.com"
+  },
+  {
+   "name": "Booz Allen",
+   "ats": "workday",
+   "tenant": "bah",
+   "wd": "wd1",
+   "site": "BAH_Jobs"
+  },
+  {
+   "name": "Cboe Global Markets",
+   "ats": "phenom",
+   "origin": "https://careers.cboe.com",
+   "locale": "us/en"
+  },
+  {
+   "name": "Cigna",
+   "ats": "workday",
+   "tenant": "cigna",
+   "wd": "wd5",
+   "site": "cignacareers"
+  },
+  {
+   "name": "Cigna Healthcare",
+   "ats": "workday",
+   "tenant": "cigna",
+   "wd": "wd5",
+   "site": "cignacareers"
+  },
+  {
+   "name": "Constellation",
+   "ats": "icims",
+   "host": "careers-constellationenergy.icims.com"
+  },
+  {
+   "name": "Continental Properties",
+   "ats": "ukg",
+   "board": "recruiting2.ultipro.com/CON1051CONPC/JobBoard/4c5261a3-56a0-4867-9d86-1673f2d804c2"
+  },
+  {
+   "name": "Cornerstone Advisors",
+   "ats": "greenhouse",
+   "token": "cornerstone"
+  },
+  {
+   "name": "Crowe",
+   "ats": "phenom",
+   "origin": "https://careers.crowe.com",
+   "locale": "us/en"
+  },
+  {
+   "name": "Dayton Freight Lines, Inc.",
+   "ats": "icims",
+   "host": "careers-daytonfreight.icims.com"
+  },
+  {
+   "name": "ECG Management Consultants",
+   "ats": "icims",
+   "host": "careers-ecgmc.icims.com"
+  },
+  {
+   "name": "Enact Mortgage Insurance",
+   "ats": "workday",
+   "tenant": "gnw",
+   "wd": "wd1",
+   "site": "Enact_MI"
+  },
+  {
+   "name": "Federated Insurance",
+   "ats": "icims",
+   "host": "careers-federatedinsurance.icims.com"
+  },
+  {
+   "name": "Four Hands",
+   "ats": "greenhouse",
+   "token": "fourhands"
+  },
+  {
+   "name": "Genworth",
+   "ats": "workday",
+   "tenant": "gnw",
+   "wd": "wd1",
+   "site": "GNW"
+  },
+  {
+   "name": "Greystar",
+   "ats": "workday",
+   "tenant": "greystar",
+   "wd": "wd1",
+   "site": "External"
+  },
+  {
+   "name": "Guidehouse",
+   "ats": "workday",
+   "tenant": "guidehouse",
+   "wd": "wd1",
+   "site": "External"
+  },
+  {
+   "name": "Health Care Service Corporation",
+   "ats": "workday",
+   "tenant": "hcsc",
+   "wd": "wd1",
+   "site": "HCSC_External"
+  },
+  {
+   "name": "Ibotta",
+   "ats": "ashby",
+   "token": "ibotta"
+  },
+  {
+   "name": "Indiana Farm Bureau Insurance",
+   "ats": "ukg",
+   "board": "recruiting2.ultipro.com/IND1004INDFB/JobBoard/a99b7de8-8c31-4e0a-bb2c-b0af081756f3"
+  },
+  {
+   "name": "Inmar Intelligence",
+   "ats": "workday",
+   "tenant": "inmar",
+   "wd": "wd1",
+   "site": "inmarcareers"
+  },
+  {
+   "name": "Integra FEC",
+   "ats": "greenhouse",
+   "token": "integra"
+  },
+  {
+   "name": "M&T Bank",
+   "ats": "workday",
+   "tenant": "mtb",
+   "wd": "wd5",
+   "site": "MTB"
+  },
+  {
+   "name": "Medpace",
+   "ats": "icims",
+   "host": "uscareers-medpace.icims.com"
+  },
+  {
+   "name": "Merck",
+   "ats": "workday",
+   "tenant": "msd",
+   "wd": "wd5",
+   "site": "SearchJobs"
+  },
+  {
+   "name": "Minerals Technologies Inc.",
+   "ats": "icims",
+   "host": "latinamerica-careers-mineralstech.icims.com"
+  },
+  {
+   "name": "Moderna",
+   "ats": "workday",
+   "tenant": "modernatx",
+   "wd": "wd1",
+   "site": "M_tx"
+  },
+  {
+   "name": "Nasdaq",
+   "ats": "workday",
+   "tenant": "nasdaq",
+   "wd": "wd1",
+   "site": "Global_External_Site"
+  },
+  {
+   "name": "National Laboratory of the Rockies",
+   "ats": "greenhouse",
+   "token": "national"
+  },
+  {
+   "name": "Nintendo",
+   "ats": "greenhouse",
+   "token": "nintendo"
+  },
+  {
+   "name": "Notion",
+   "ats": "ashby",
+   "token": "notion"
+  },
+  {
+   "name": "Oak Ridge Institute for Science and Education",
+   "ats": "ashby",
+   "token": "oak"
+  },
+  {
+   "name": "Optiver",
+   "ats": "greenhouse",
+   "token": "optiver"
+  },
+  {
+   "name": "Otis",
+   "ats": "workday",
+   "tenant": "otis",
+   "wd": "wd504",
+   "site": "REC_Ext_Gateway"
+  },
+  {
+   "name": "Parker Hannifin",
+   "ats": "ashby",
+   "token": "parker"
+  },
+  {
+   "name": "PDT Partners",
+   "ats": "greenhouse",
+   "token": "pdtpartners"
+  },
+  {
+   "name": "Penn State University",
+   "ats": "workday",
+   "tenant": "psu",
+   "wd": "wd1",
+   "site": "PSU_Academic"
+  },
+  {
+   "name": "PepsiCo",
+   "ats": "icims",
+   "host": "pepjobs-pepsico.icims.com"
+  },
+  {
+   "name": "Peraton",
+   "ats": "icims",
+   "host": "careers-peraton.icims.com"
+  },
+  {
+   "name": "Philips",
+   "ats": "phenom",
+   "origin": "https://www.careers.philips.com",
+   "locale": "na/en"
+  },
+  {
+   "name": "Plante Moran",
+   "ats": "workday",
+   "tenant": "plantemoran",
+   "wd": "wd1",
+   "site": "pmexternalcareers"
+  },
+  {
+   "name": "Protiviti",
+   "ats": "workday",
+   "tenant": "roberthalf",
+   "wd": "wd1",
+   "site": "ProtivitiNA"
+  },
+  {
+   "name": "Q2",
+   "ats": "workday",
+   "tenant": "q2ebanking",
+   "wd": "wd5",
+   "site": "Q2"
+  },
+  {
+   "name": "Red Hat",
+   "ats": "workday",
+   "tenant": "redhat",
+   "wd": "wd5",
+   "site": "jobs"
+  },
+  {
+   "name": "RSM US LLP",
+   "ats": "workday",
+   "tenant": "rsm",
+   "wd": "wd1",
+   "site": "RSMCareers"
+  },
+  {
+   "name": "Ryan",
+   "ats": "workday",
+   "tenant": "ryan",
+   "wd": "wd1",
+   "site": "RyanCareers"
+  },
+  {
+   "name": "Sargent & Lundy",
+   "ats": "icims",
+   "host": "international-sargentlundy.icims.com"
+  },
+  {
+   "name": "Selective Insurance",
+   "ats": "ukg",
+   "board": "recruiting.ultipro.com/SEL1000SICOA/JobBoard/b7dc83b5-5d86-4872-8741-1a0d79b0c09d"
+  },
+  {
+   "name": "Seven Research, LLC",
+   "ats": "greenhouse",
+   "token": "sevenresearch"
+  },
+  {
+   "name": "Shield AI",
+   "ats": "lever",
+   "token": "shieldai"
+  },
+  {
+   "name": "South Jersey Industries",
+   "ats": "workday",
+   "tenant": "sjindustries",
+   "wd": "wd1",
+   "site": "SJI"
+  },
+  {
+   "name": "Southern Farm Bureau Life Insurance Company",
+   "ats": "ukg",
+   "board": "recruiting2.ultipro.com/SOU1016SFBLI/JobBoard/2fa912ad-5582-4f66-b72f-04d33db21efe"
+  },
+  {
+   "name": "SouthState Bank",
+   "ats": "phenom",
+   "origin": "https://careers.southstatebank.com",
+   "locale": "us/en"
+  },
+  {
+   "name": "Spectrum",
+   "ats": "greenhouse",
+   "token": "spectrum"
+  },
+  {
+   "name": "Stripe",
+   "ats": "greenhouse",
+   "token": "stripe"
+  },
+  {
+   "name": "Systems Planning & Analysis",
+   "ats": "icims",
+   "host": "careers-spa.icims.com"
+  },
+  {
+   "name": "The Cigna Group",
+   "ats": "workday",
+   "tenant": "cigna",
+   "wd": "wd5",
+   "site": "cignacareers"
+  },
+  {
+   "name": "The Hartford",
+   "ats": "workday",
+   "tenant": "thehartford",
+   "wd": "wd5",
+   "site": "Careers_External"
+  },
+  {
+   "name": "The Nuclear Company",
+   "ats": "greenhouse",
+   "token": "thenuclearcompany"
+  },
+  {
+   "name": "The Toro Company",
+   "ats": "workday",
+   "tenant": "ttc",
+   "wd": "wd1",
+   "site": "AUS1"
+  },
+  {
+   "name": "Toyota Automated Logistics",
+   "ats": "workday",
+   "tenant": "vanderlande",
+   "wd": "wd3",
+   "site": "TALExternalCareers"
+  },
+  {
+   "name": "Toyota North America",
+   "ats": "workday",
+   "tenant": "toyota",
+   "wd": "wd503",
+   "site": "TMNA"
+  },
+  {
+   "name": "TPG",
+   "ats": "greenhouse",
+   "token": "tpgcareers"
+  },
+  {
+   "name": "Travelers",
+   "ats": "workday",
+   "tenant": "travelers",
+   "wd": "wd5",
+   "site": "External"
+  },
+  {
+   "name": "Waymo",
+   "ats": "greenhouse",
+   "token": "waymo"
+  },
+  {
+   "name": "West Monroe",
+   "ats": "greenhouse",
+   "token": "westmonroe4"
+  },
+  {
+   "name": "Wipfli",
+   "ats": "icims",
+   "host": "careers-wipfliindia.icims.com"
+  },
+  {
+   "name": "WisdomTree",
+   "ats": "lever",
+   "token": "wisdomtree"
+  },
+  {
+   "name": "Withum",
+   "ats": "workday",
+   "tenant": "withum",
+   "wd": "wd108",
+   "site": "CR_Career_Site"
+  },
+  {
+   "name": "WSFS Bank",
+   "ats": "workday",
+   "tenant": "wsfsbank",
+   "wd": "wd1",
+   "site": "wsfscareers"
+  },
+  {
+   "name": "Zebra Technologies",
+   "ats": "workday",
+   "tenant": "zebra",
+   "wd": "wd501",
+   "site": "Zebra_careers"
+  }
+ ]
+}
