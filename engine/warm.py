@@ -4,7 +4,8 @@ Contacts come from data/contacts.csv: LinkedIn's own export (Settings → Data p
 of your data → Connections) or any CSV with First Name, Last Name, Company, Position, URL columns.
 
 Drafts follow two rules: under 200 characters (a LinkedIn note without Premium), and built only from
-facts in your profile. Nothing is ever sent — you copy it, or `engine drafts` puts email ones in Gmail Drafts.
+facts in your profile. Nothing is ever sent — you copy it. Only name, company, position and profile link
+are kept from the export; emails and the rest are dropped on read.
 
     uv run python -m engine warm
 """
@@ -29,7 +30,8 @@ def load_contacts(path=CONTACTS) -> list[dict]:
     text = path.read_text(encoding="utf-8-sig")
     start = next((i for i, l in enumerate(text.splitlines()) if l.startswith("First Name")), 0)   # LinkedIn puts notes above the header
     rows = csv.DictReader(io.StringIO("\n".join(text.splitlines()[start:])))
-    return [r for r in rows if r.get("Company")]
+    keep = ("First Name", "Last Name", "Company", "Position", "URL")
+    return [{k: r.get(k) for k in keep} for r in rows if r.get("Company")]
 
 
 def short_title(title: str, location: str = "") -> str:
@@ -60,11 +62,11 @@ def run() -> dict:
     by_company: dict[str, list[dict]] = {}
     for c in contacts:
         by_company.setdefault(company_key(c["Company"]), []).append(c)
-    for c in contacts:                       # everyone in the export lands in People, ready to track
-        con.execute("""insert into contacts (name, company, title, url, email, source) values (?, ?, ?, ?, ?, 'linkedin')
+    con.execute("update contacts set email = null where source = 'linkedin'")     # older imports kept these; nothing uses them
+    for c in contacts:                       # everyone in the export lands in People: name, company, position, profile link only
+        con.execute("""insert into contacts (name, company, title, url, source) values (?, ?, ?, ?, 'linkedin')
                        on conflict(name, company) do update set title = excluded.title, url = excluded.url""",
-                    (f"{c.get('First Name', '')} {c.get('Last Name', '')}".strip(), c.get("Company"), c.get("Position"),
-                     c.get("URL"), c.get("Email Address") or None))
+                    (f"{c.get('First Name', '')} {c.get('Last Name', '')}".strip(), c.get("Company"), c.get("Position"), c.get("URL")))
     flagged = 0
     con.execute("update roles set warm = null, outreach = null where status in ('new', 'queued')")
     for r in [dict(r) for r in con.execute("select * from roles where status in ('new', 'queued') and coalesce(eligible, 1) > 0")]:
@@ -91,11 +93,12 @@ def _selfcheck() -> None:
     long = draft({"First Name": "Alexandria"}, {"company": "X", "title": "A" * 120}, p)
     assert len(long) <= LIMIT, long
     assert company_key("Northwind LLP") == company_key("Northwind") == "northwind"
-    export = "Notes:\nWhen exporting...\n\nFirst Name,Last Name,URL,Email Address,Company,Position,Connected On\nSam,Lee,https://linkedin.com/in/x,,Northwind,Senior Consultant,01 Oct 2026\n"
+    export = "Notes:\nWhen exporting...\n\nFirst Name,Last Name,URL,Email Address,Company,Position,Connected On\nSam,Lee,https://linkedin.com/in/x,sam@northwind.example,Northwind,Senior Consultant,01 Oct 2026\n"
     import pathlib, tempfile
     f = pathlib.Path(tempfile.mkdtemp()) / "c.csv"
     f.write_text(export)
-    assert load_contacts(f)[0]["Position"] == "Senior Consultant"
+    row = load_contacts(f)[0]
+    assert row["Position"] == "Senior Consultant" and "Email Address" not in row and "sam@" not in str(row), row
 
 
 if __name__ == "__main__":

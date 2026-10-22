@@ -3,6 +3,7 @@
     uv run python -m engine digest        # writes data/digest/<date>.md and shows a notification
 """
 import json
+import shutil
 import subprocess
 from datetime import date, datetime, timedelta
 
@@ -62,6 +63,13 @@ def contacts_due(con) -> list[dict]:
     return [dict(r) for r in con.execute("select * from contacts where status = 'messaged' and next_on <= date('now')")]
 
 
+def notify(title: str, text: str) -> None:
+    """macOS notification. Text goes in as an argument, never into the script: company names come from job boards."""
+    if shutil.which("osascript"):
+        subprocess.run(["osascript", "-e", "on run argv", "-e", "display notification (item 1 of argv) with title (item 2 of argv)",
+                        "-e", "end run", text, title], capture_output=True)
+
+
 def new_match_alert() -> int:
     """After the morning run: a notification when roles scoring 5 appeared today."""
     con = db.connect()
@@ -69,8 +77,7 @@ def new_match_alert() -> int:
                           and status = 'new'""").fetchall()
     if rows:
         names = ", ".join(sorted({r["company"] for r in rows})[:3])
-        subprocess.run(["osascript", "-e", f'display notification "{len(rows)} new fit-5 roles: {names}" with title "Internship Engine"'],
-                       capture_output=True)
+        notify("Internship Engine", f"{len(rows)} new fit-5 roles: {names}")
     return len(rows)
 
 
@@ -119,7 +126,7 @@ def digest() -> str:
     (out / f"{date.today().isoformat()}.md").write_text(text)
     db.log_run(con, "digest", applied, new_good, [])
     note = f"{new_good} strong new roles, {applied} sent, {len(replies)} replies" + (f", {len(fu)} follow-ups due" if fu else "")
-    subprocess.run(["osascript", "-e", f'display notification "{note}" with title "Internship Engine: your week"'], capture_output=True)
+    notify("Internship Engine: your week", note)
     return text
 
 
@@ -142,6 +149,15 @@ def _selfcheck() -> None:
     assert funnel(con, "track")["ai-consulting"]["applied"] == 2
     fu = follow_ups(con)
     assert [x["company"] for x in fu] == ["B"] and fu[0]["action"] == "follow_up", fu
+    calls, real = [], (subprocess.run, shutil.which)
+    subprocess.run, shutil.which = (lambda a, **k: calls.append(a)), (lambda n: "/usr/bin/osascript")
+    evil = 'Contoso" with title "x"\ndo shell script "touch /tmp/pwned'
+    notify("Internship Engine", evil)
+    shutil.which = lambda n: None
+    notify("Internship Engine", evil)                        # no osascript (Linux, Windows): quietly nothing
+    subprocess.run, shutil.which = real
+    assert len(calls) == 1 and calls[0][-2:] == [evil, "Internship Engine"], calls
+    assert not any(evil in a for a in calls[0][:-2]), "listing text leaked into AppleScript source"
 
 
 if __name__ == "__main__":

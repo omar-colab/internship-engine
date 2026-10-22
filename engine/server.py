@@ -17,6 +17,11 @@ from . import answers, ats, db, report, score
 WEB = Path(__file__).resolve().parent.parent / "web"
 NEEDS = ("queued", "assessment", "interview", "blocked", "offer")
 TOKEN_FILE = db.DATA / "token"
+MAX_BODY = 1 << 20                      # 1 MB: the biggest real body is a saved posting's description
+
+
+class TooLarge(Exception):
+    pass
 
 
 def token() -> str:
@@ -125,7 +130,7 @@ CONTACT_STATUS = ("to_message", "messaged", "replied", "met", "not_now")
 def save_contact(body: dict) -> dict:
     """Add a person, or move one along: messaged sets a follow-up 5 days out."""
     con = db.connect()
-    f = {k: (str(body[k])[:300] if body.get(k) is not None else None) for k in ("name", "company", "title", "url", "email", "notes")}
+    f = {k: (str(body[k])[:300] if body.get(k) is not None else None) for k in ("name", "company", "title", "url", "notes")}
     status = body.get("status", "to_message")
     if status not in CONTACT_STATUS:
         raise ValueError(f"unknown status {status!r}")
@@ -135,8 +140,8 @@ def save_contact(body: dict) -> dict:
     else:
         if not f["name"]:
             raise ValueError("a contact needs a name")
-        con.execute("insert into contacts (name, company, title, url, email, notes, status, source) values (?, ?, ?, ?, ?, ?, ?, 'manual')",
-                    (f["name"], f["company"], f["title"], f["url"], f["email"], f["notes"], status))
+        con.execute("insert into contacts (name, company, title, url, notes, status, source) values (?, ?, ?, ?, ?, ?, 'manual')",
+                    (f["name"], f["company"], f["title"], f["url"], f["notes"], status))
     con.commit()
     return {"ok": True}
 
@@ -178,6 +183,27 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _hosts(self) -> tuple[str, ...]:
+        port = self.server.server_address[1]
+        return (f"127.0.0.1:{port}", f"localhost:{port}")
+
+    def _host_ok(self) -> bool:
+        """DNS rebinding guard: evil.com re-pointed at 127.0.0.1 still sends Host: evil.com. Checked on every route."""
+        if self.headers.get("Host") in self._hosts():
+            return True
+        self._send(403, b'{"error":"forbidden host"}')
+        return False
+
+    def _same_origin(self) -> bool:
+        o = self.headers.get("Origin")
+        return o is None or o in {f"http://{h}" for h in self._hosts()}
+
+    def _body(self) -> dict:
+        n = int(self.headers.get("Content-Length") or 0)
+        if n > MAX_BODY:
+            raise TooLarge
+        return json.loads(self.rfile.read(n) or b"{}")
+
     def _ext_ok(self) -> bool:
         return hmac.compare_digest(self.headers.get("X-Engine-Token", ""), token())
 
@@ -189,11 +215,15 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
 
     def do_OPTIONS(self):
+        if not self._host_ok():
+            return
         self.send_response(204)
         self._cors()
         self.end_headers()
 
     def do_GET(self):
+        if not self._host_ok():
+            return
         if self.path == "/api/state":
             return self._send(200, json.dumps(state()).encode())
         if m := re.fullmatch(r"/api/resume/(\d+)\.pdf", self.path):
@@ -204,8 +234,13 @@ class Handler(BaseHTTPRequestHandler):
         self._send(404, b'{"error":"not found"}')
 
     def do_POST(self):
+        if not self._host_ok():
+            return
         try:
             self._post()
+        except TooLarge:
+            self.close_connection = True        # the unread body stays on the socket
+            self._send(413, b'{"error":"request too large"}')
         except Exception as e:                  # never drop the connection: say what broke
             self._send(500, json.dumps({"error": f"{type(e).__name__}: {e}"}).encode())
 
@@ -214,7 +249,7 @@ class Handler(BaseHTTPRequestHandler):
             if not self._ext_ok():
                 return self._send(401, b'{"error":"wrong or missing engine token"}')
             if self.path == "/ext/resume":      # the PDF itself, so the extension can attach it like a drag-and-drop
-                body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
+                body = self._body()
                 role = find_role(db.connect(), body.get("url", "")) if body.get("url") else None
                 pdf = WEB.parent / score.load_profile().get("resume_pdf", "data/resume.pdf")
                 if role and (db.DATA / "resumes" / f"{role['id']}.pdf").exists():
@@ -231,7 +266,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.end_headers()
                 return self.wfile.write(data)
             try:
-                body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
+                body = self._body()
                 out = json.dumps(ext_call(self.path, body)).encode()
                 self.send_response(200)
                 self._cors()
@@ -242,16 +277,16 @@ class Handler(BaseHTTPRequestHandler):
             except (ValueError, TypeError, KeyError) as e:
                 return self._send(400, json.dumps({"error": str(e)}).encode())
         if self.path == "/api/contact":
-            if self.headers.get("Origin") not in (None, f"http://{self.headers.get('Host')}"):
+            if not self._same_origin():
                 return self._send(403, b'{"error":"forbidden"}')
-            body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
+            body = self._body()
             try:
                 return self._send(200, json.dumps(save_contact(body)).encode())
             except ValueError as e:
                 return self._send(400, json.dumps({"error": str(e)}).encode())
         m = re.fullmatch(r"/api/role/(\d+)(/prep|/tailor)?", self.path)
         # same-origin only: a page on another site must not be able to change your tracker
-        if not m or self.headers.get("Origin") not in (None, f"http://{self.headers.get('Host')}"):
+        if not m or not self._same_origin():
             return self._send(403, b'{"error":"forbidden"}')
         if m[2] == "/tailor":                   # reorder your resume for this posting; never adds a word
             from . import resume
@@ -264,7 +299,7 @@ class Handler(BaseHTTPRequestHandler):
                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
             return self._send(202, b'{"ok":true}')
         try:
-            body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
+            body = self._body()
             self._send(200, json.dumps(update(int(m[1]), body)).encode())
         except (ValueError, TypeError) as e:
             self._send(400, json.dumps({"error": str(e)}).encode())
@@ -277,3 +312,40 @@ def serve(port: int = 8765) -> None:
     token()
     print(f"Dashboard: http://127.0.0.1:{port}")
     ThreadingHTTPServer(("127.0.0.1", port), Handler).serve_forever()
+
+
+def _selfcheck() -> None:
+    import http.client
+    import threading
+    srv = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    port = srv.server_address[1]
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+
+    def req(method, path, host, body=b"", headers=None):
+        c = http.client.HTTPConnection("127.0.0.1", port, timeout=5)
+        c.putrequest(method, path, skip_host=True)
+        c.putheader("Host", host)
+        for k, v in (headers or {}).items():
+            c.putheader(k, v)
+        if "Content-Length" not in (headers or {}):
+            c.putheader("Content-Length", str(len(body)))
+        c.endheaders(body)
+        return c.getresponse().status
+
+    rebound = "evil.example:%d" % port
+    for method, path in (("GET", "/api/state"), ("GET", "/api/resume/1.pdf"), ("GET", "/"),
+                         ("POST", "/api/contact"), ("POST", "/api/role/1"), ("POST", "/ext/ping"), ("OPTIONS", "/ext/ping")):
+        assert req(method, path, rebound, headers={"Origin": f"http://{rebound}"}) == 403, (method, path)
+    assert req("GET", "/nope", f"127.0.0.1:{port}") == 404                     # right host gets through to routing
+    assert req("GET", "/nope", f"127.0.0.1:{port + 1}") == 403                 # wrong port is a different host
+    assert req("POST", "/api/role/1", f"127.0.0.1:{port}", headers={"Origin": "http://evil.example"}) == 403
+    assert req("POST", "/ext/ping", f"127.0.0.1:{port}") == 401                # token still required
+    big = {"Content-Length": str(MAX_BODY + 1)}                                # refused before a byte of body is read
+    assert req("POST", "/api/contact", f"127.0.0.1:{port}", headers=big) == 413
+    assert req("POST", "/ext/answers", f"127.0.0.1:{port}", headers=big | {"X-Engine-Token": token()}) == 413
+    srv.shutdown()
+
+
+if __name__ == "__main__":
+    _selfcheck()
+    print("ok")
