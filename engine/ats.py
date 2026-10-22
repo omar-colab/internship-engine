@@ -3,7 +3,6 @@
 All public, no login: Greenhouse / Lever / Ashby posting APIs and Workday's own
 career-site search (the JSON the career page itself calls), including Taleo.
 """
-import datetime
 import ipaddress
 import json
 import re
@@ -290,6 +289,8 @@ def oracle(company: str, b: dict, query: str = "intern") -> list[dict]:
 
 
 def _taleo_roles(company: str, b: dict, rows: list[dict]) -> list[dict]:
+    from urllib.parse import quote
+
     out = []
     for item in rows:
         columns = item.get("column") or []
@@ -323,6 +324,8 @@ def _taleo_roles(company: str, b: dict, rows: list[dict]) -> list[dict]:
 
 def taleo(company: str, b: dict, query: str = "intern") -> list[dict]:
     """Use the public Career Section's own anonymous JSON search endpoint."""
+    import datetime
+
     host = str(b.get("host", "")).lower()
     section = str(b.get("section", ""))
     if not re.fullmatch(r"[a-z0-9-]+\.taleo\.net", host) or not re.fullmatch(r"[A-Za-z0-9_-]+", section):
