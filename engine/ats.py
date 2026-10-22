@@ -1,7 +1,7 @@
 """Employer job boards: detect which one a company uses, then list its intern roles.
 
 All public, no login: Greenhouse / Lever / Ashby posting APIs and Workday's own
-career-site search (the JSON the career page itself calls), including Taleo.
+career-site search (the JSON the career page itself calls), including Taleo and ADP.
 """
 import ipaddress
 import json
@@ -31,7 +31,9 @@ BOARD = re.compile(
     r"|https?://(?P<orahost>[a-z0-9.-]+\.oraclecloud\.com)(?::443)?/hcmUI/CandidateExperience/[a-z]{2}/sites/(?P<orasite>CX(?:_\d+)?)"
     r"|https?://jobs\.lever\.co/(?P<lever>[a-z0-9-]+)"
     r"|https?://jobs\.ashbyhq\.com/(?P<ashby>[a-z0-9-]+)"
-    r"|https?://(?P<taleo>[A-Za-z0-9-]+\.taleo\.net)/careersection/(?P<taleo_section>[A-Za-z0-9_-]+)/(?:jobsearch|default)\.ftl")
+    r"|https?://(?P<taleo>[A-Za-z0-9-]+\.taleo\.net)/careersection/(?P<taleo_section>[A-Za-z0-9_-]+)/(?:jobsearch|default)\.ftl"
+    r"|https?://workforcenow\.adp\.com/mascsr/default/mdf/recruitment/recruitment\.html\?(?:[^\"'\s<>]*?&(?:amp;)?)?cid=(?P<adp_cid>[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})(?=[&#\s\"']|$)"
+    r"|https?://myjobs\.adp\.com/(?P<adp_site>[A-Za-z0-9_-]+)/cx(?=[/?#\"'\s]|$)")
 
 
 def detect(careers_url: str) -> tuple[str, dict] | None:
@@ -197,6 +199,10 @@ def detect_html(html: str) -> tuple[str, dict] | None:
             return "oracle", {"host": m["orahost"], "site": m["orasite"]}
         if m["taleo"]:
             return "taleo", {"host": m["taleo"].lower(), "section": m["taleo_section"]}
+        if m["adp_cid"]:
+            return "adp_wfn", {"cid": m["adp_cid"].lower()}
+        if m["adp_site"]:
+            return "adp_myjobs", {"site": m["adp_site"]}
         for ats in ("ghe", "gh", "lever", "ashby"):
             if m[ats]:
                 return {"gh": "greenhouse", "ghe": "greenhouse"}.get(ats, ats), {"token": m[ats]}
@@ -449,9 +455,124 @@ def successfactors(company: str, b: dict, query: str = "intern") -> list[dict]:
     return out
 
 
+def _adp_location(items) -> str | None:
+    places = []
+    for item in items or []:
+        if isinstance(item, str):
+            places.append(item.strip())
+            continue
+        if not isinstance(item, dict):
+            continue
+        address = item.get("address") or {}
+        if isinstance(address, dict):
+            subdivision = address.get("countrySubdivisionLevel1")
+            if isinstance(subdivision, dict):
+                subdivision = subdivision.get("shortName") or subdivision.get("codeValue")
+            country = address.get("country")
+            if isinstance(country, dict):
+                country = country.get("shortName") or country.get("codeValue")
+            place = ", ".join(str(value).strip() for value in
+                               (address.get("cityName"), address.get("stateProvinceName") or subdivision,
+                                address.get("countryName") or country) if value)
+        else:
+            place = ""
+        if not place:
+            name = item.get("nameCode") or item.get("name")
+            if isinstance(name, dict):
+                name = name.get("shortName") or name.get("longName") or name.get("codeValue")
+            place = str(name).strip() if name else ""
+        if place:
+            places.append(place)
+    return "; ".join(dict.fromkeys(places)) or None
+
+
+def _adp_wfn_roles(company: str, cid: str, rows: list[dict]) -> list[dict]:
+    out = []
+    for job in rows:
+        title, job_id = job.get("requisitionTitle"), job.get("itemID")
+        if not title or not job_id or not INTERN.search(title):
+            continue
+        url = "https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?" + urlencode(
+            {"cid": cid, "ccId": "19000101_000001", "jobId": job_id, "lang": "en_US", "source": "CC2"})
+        out.append(_role(company, title, _adp_location(job.get("requisitionLocations")), url, "adp_wfn", job.get("postDate")))
+    return out
+
+
+def adp_wfn(company: str, b: dict) -> list[dict]:
+    import time
+
+    cid = str(b.get("cid", ""))
+    if not re.fullmatch(r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}", cid):
+        raise ValueError("invalid ADP Workforce Now cid")
+    endpoint = "https://workforcenow.adp.com/mascsr/default/careercenter/public/events/staffing/v1/job-requisitions"
+    out, offset = [], 0
+    while offset < 200:                                      # shortcut: cap at 200 roles per board; raise if needed
+        r = _safe_request("GET", endpoint, params={"cid": cid, "timeStamp": time.time_ns() // 1_000_000,
+                                                    "lang": "en_US", "locale": "en_US", "$top": 10, "$skip": offset},
+                          headers={**UA, "Accept": "application/json"}, timeout=20)
+        if r.status_code != 200:
+            r.raise_for_status()
+            raise RuntimeError(f"ADP Workforce Now search returned HTTP {r.status_code}")
+        data = r.json()
+        page = data.get("jobRequisitions") or []
+        out.extend(_adp_wfn_roles(company, cid, page))
+        total = int((data.get("meta") or {}).get("totalNumber") or 0)
+        if not page or len(page) < 10 or (total and offset + len(page) >= total):
+            break
+        offset += len(page)
+    return out
+
+
+def _adp_myjobs_roles(company: str, site: str, rows: list[dict]) -> list[dict]:
+    out = []
+    for job in rows:
+        title, req_id = job.get("publishedJobTitle") or job.get("jobTitle"), job.get("reqId")
+        if not title or not req_id or not INTERN.search(title):
+            continue
+        url = f"https://myjobs.adp.com/{site}/cx/job-details?{urlencode({'reqId': req_id})}"
+        out.append(_role(company, title, _adp_location(job.get("requisitionLocations") or job.get("workLocations")),
+                         url, "adp_myjobs", job.get("postingDate")))
+    return out
+
+
+def adp_myjobs(company: str, b: dict) -> list[dict]:
+    site = str(b.get("site", ""))
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", site):
+        raise ValueError("invalid ADP MyJobs site")
+    headers = {**UA, "Accept": "application/json"}
+    config = _safe_request("GET", f"https://myjobs.adp.com/public/staffing/v1/career-site/{site}",
+                           headers=headers, timeout=20)
+    if config.status_code != 200:
+        config.raise_for_status()
+        raise RuntimeError(f"ADP MyJobs configuration returned HTTP {config.status_code}")
+    settings = config.json()
+    orgoid, token = settings.get("orgoid"), settings.get("myJobsToken")
+    if not orgoid or not token:
+        raise ValueError("ADP MyJobs public configuration is missing listing headers")
+    headers.update({"Origin": "https://myjobs.adp.com", "Referer": "https://myjobs.adp.com/",
+                    "rolecode": "manager", "orgoid": str(orgoid), "myjobstoken": str(token)})
+    endpoint = "https://my.adp.com/myadp_prefix/mycareer/public/staffing/v1/job-requisitions/apply-custom-filters"
+    out, offset = [], 0
+    while offset < 200:                                      # shortcut: cap at 200 roles per board; raise if needed
+        r = _safe_request("GET", endpoint, params={"$select": "reqId,jobTitle,publishedJobTitle,workLocations,requisitionLocations,postingDate",
+                                                    "$top": 10, "$skip": offset, "radius": 25, "tz": "America/New_York"},
+                          headers=headers, timeout=20)
+        if r.status_code != 200:
+            r.raise_for_status()
+            raise RuntimeError(f"ADP MyJobs search returned HTTP {r.status_code}")
+        data = r.json()
+        page = data.get("jobRequisitions") or []
+        out.extend(_adp_myjobs_roles(company, site, page))
+        total = int(data.get("count") or 0)
+        if not page or len(page) < 10 or (total and offset + len(page) >= total):
+            break
+        offset += len(page)
+    return out
+
+
 LIST = {"workday": workday, "greenhouse": greenhouse, "lever": lever, "ashby": ashby, "icims": icims,
         "ukg": ukg, "oracle": oracle, "phenom": phenom, "jobvite": jobvite, "jazzhr": jazzhr, "workable": workable,
-        "successfactors": successfactors, "taleo": taleo}
+        "successfactors": successfactors, "taleo": taleo, "adp_wfn": adp_wfn, "adp_myjobs": adp_myjobs}
 SEARCHABLE = {"workday", "icims", "ukg", "oracle", "phenom", "jobvite", "workable", "taleo"}   # keyword search: one title at a time
 
 
@@ -475,6 +596,31 @@ def _selfcheck() -> None:
         ("successfactors", {"host": "career012.successfactors.eu", "company": "paccarinc"})
     assert detect_html("https://hdr.taleo.net/careersection/ex/jobsearch.ftl?lang=en") == \
         ("taleo", {"host": "hdr.taleo.net", "section": "ex"})
+    assert detect_html("https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=0ac9c872-8815-465b-b05a-caa90545c4d1") == \
+        ("adp_wfn", {"cid": "0ac9c872-8815-465b-b05a-caa90545c4d1"})
+    assert detect_html("https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?ccId=19000101_000001&amp;cid=df9f4474-51bf-4d5c-ba2d-f8c1edc1e317") == \
+        ("adp_wfn", {"cid": "df9f4474-51bf-4d5c-ba2d-f8c1edc1e317"})
+    assert detect_html("https://myjobs.adp.com/scacareers/cx/job-listing") == ("adp_myjobs", {"site": "scacareers"})
+    assert detect_html("https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=abc") is None
+    wfn_roles = _adp_wfn_roles("Contoso", "0ac9c872-8815-465b-b05a-caa90545c4d1", [
+        {"itemID": "100", "requisitionTitle": "Software Engineering Intern", "postDate": "2026-10-01",
+         "requisitionLocations": [{"address": {"cityName": "Seattle", "countrySubdivisionLevel1": {"codeValue": "WA"}}}]},
+        {"itemID": "101", "requisitionTitle": "Software Engineer", "requisitionLocations": []}])
+    assert len(wfn_roles) == 1 and wfn_roles[0]["location"] == "Seattle, WA" and \
+        "jobId=100" in wfn_roles[0]["url"] and wfn_roles[0]["ats"] == "adp_wfn", wfn_roles
+    myjobs_roles = _adp_myjobs_roles("Northwind", "fictional", [
+        {"reqId": "req-7", "publishedJobTitle": "Operations Co-op", "postingDate": "2026-10-02",
+         "requisitionLocations": [{"address": {"cityName": "Chicago", "countrySubdivisionLevel1": {"codeValue": "IL"}}}]},
+        {"reqId": "req-8", "publishedJobTitle": "Operations Manager"}])
+    assert len(myjobs_roles) == 1 and myjobs_roles[0]["location"] == "Chicago, IL" and \
+        myjobs_roles[0]["url"].endswith("job-details?reqId=req-7") and myjobs_roles[0]["ats"] == "adp_myjobs", myjobs_roles
+    assert LIST["adp_wfn"] is adp_wfn and LIST["adp_myjobs"] is adp_myjobs
+    for lister, board in ((adp_wfn, {"cid": "invalid"}), (adp_myjobs, {"site": "../invalid"})):
+        try:
+            lister("Contoso", board)
+            raise AssertionError("invalid ADP board identifier accepted")
+        except ValueError:
+            pass
     assert LIST["taleo"] is taleo and "taleo" in SEARCHABLE
     assert detect_phenom("<script src=//cdn.phenompeople.com/x.js>", "https://careers.cboe.com/us/en/home") == \
         ("phenom", {"origin": "https://careers.cboe.com", "locale": "us/en"})
