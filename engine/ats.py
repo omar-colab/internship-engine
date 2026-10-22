@@ -328,38 +328,39 @@ def taleo(company: str, b: dict, query: str = "intern") -> list[dict]:
     if not re.fullmatch(r"[a-z0-9-]+\.taleo\.net", host) or not re.fullmatch(r"[A-Za-z0-9_-]+", section):
         raise ValueError("invalid Taleo host or career section")
     base = f"https://{host}"
-    with httpx.Client(headers={**UA, "Accept": "application/json"}, timeout=20, follow_redirects=False) as client:
-        page = client.get(f"{base}/careersection/{section}/jobsearch.ftl", params={"lang": "en"})
-        if page.status_code != 200:
-            page.raise_for_status()
-            raise RuntimeError(f"Taleo career page returned HTTP {page.status_code}")
-        portal = re.search(r"\bportalNo\s*:\s*['\"](\d+)['\"]", page.text)
-        if not portal:
-            raise ValueError("Taleo career page did not expose a public portal ID")
-        now = datetime.datetime.now().astimezone()
-        offset = now.utcoffset()
-        headers = {"tz": str(int(-offset.total_seconds() / 60)) if offset else "0",
-                   "tzname": now.tzname() or "UTC"}
-        out = []
-        for page_no in range(1, 9):                    # shortcut: cap at 8 pages, raise if target boards need deeper searches
-            response = client.post(
-                f"{base}/careersection/rest/jobboard/searchjobs",
-                params={"lang": "en", "portal": portal[1]},
-                json={"fieldData": {"fields": {"KEYWORD": query}, "valid": True}, "pageNo": page_no},
-                headers=headers)
-            if response.status_code != 200:
-                response.raise_for_status()
-                raise RuntimeError(f"Taleo search returned HTTP {response.status_code}")
-            data = response.json()
-            if data.get("careerSectionUnAvailable"):
-                raise RuntimeError("Taleo career section is unavailable")
-            rows = data.get("requisitionList") or []
-            out.extend(_taleo_roles(company, {"host": host, "section": section}, rows))
-            paging = data.get("pagingData") or {}
-            page_size = int(paging.get("pageSize") or len(rows))
-            total = int(paging.get("totalCount") or len(rows))
-            if not rows or not page_size or page_no * page_size >= total:
-                break
+    headers = {**UA, "Accept": "application/json"}
+    page = _safe_request("GET", f"{base}/careersection/{section}/jobsearch.ftl", params={"lang": "en"},
+                         headers=headers, timeout=20)
+    if page.status_code != 200:
+        page.raise_for_status()
+        raise RuntimeError(f"Taleo career page returned HTTP {page.status_code}")
+    portal = re.search(r"\bportalNo\s*:\s*['\"](\d+)['\"]", page.text)
+    if not portal:
+        raise ValueError("Taleo career page did not expose a public portal ID")
+    now = datetime.datetime.now().astimezone()
+    offset = now.utcoffset()
+    headers.update({"tz": str(int(-offset.total_seconds() / 60)) if offset else "0",
+                    "tzname": now.tzname() or "UTC"})
+    out = []
+    for page_no in range(1, 9):                    # shortcut: cap at 8 pages, raise if target boards need deeper searches
+        response = _safe_request(
+            "POST", f"{base}/careersection/rest/jobboard/searchjobs",
+            params={"lang": "en", "portal": portal[1]},
+            json_data={"fieldData": {"fields": {"KEYWORD": query}, "valid": True}, "pageNo": page_no},
+            headers=headers, timeout=20)
+        if response.status_code != 200:
+            response.raise_for_status()
+            raise RuntimeError(f"Taleo search returned HTTP {response.status_code}")
+        data = response.json()
+        if data.get("careerSectionUnAvailable"):
+            raise RuntimeError("Taleo career section is unavailable")
+        rows = data.get("requisitionList") or []
+        out.extend(_taleo_roles(company, {"host": host, "section": section}, rows))
+        paging = data.get("pagingData") or {}
+        page_size = int(paging.get("pageSize") or len(rows))
+        total = int(paging.get("totalCount") or len(rows))
+        if not rows or not page_size or page_no * page_size >= total:
+            break
     return out
 
 
