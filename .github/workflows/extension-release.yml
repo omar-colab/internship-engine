@@ -30,6 +30,19 @@ jobs:
           unzip -p "dist/$archive" manifest.json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const m=JSON.parse(s);if(m.manifest_version!==3)process.exit(1)})'
           (cd dist && sha256sum "$archive" > "$archive.sha256" && sha256sum -c "$archive.sha256")
           echo "archive=dist/$archive" >> "$GITHUB_OUTPUT"
+      - name: Prepare release notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/releases/generate-notes" \
+            -f tag_name="$GITHUB_REF_NAME" \
+            -f target_commitish="$GITHUB_SHA" \
+            --jq '.body' > dist/generated-notes.md
+          {
+            printf '%s\n\n' '## Install'
+            printf '%s\n\n' 'Download the ZIP and follow the [GitHub install guide](https://github.com/omar-colab/internship-engine/blob/main/extension/README.md). Chrome requires Developer mode and **Load unpacked** for GitHub ZIPs. The extension also needs the local Internship Engine running on your computer.'
+            cat dist/generated-notes.md
+          } > dist/release-notes.md
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -39,4 +52,4 @@ jobs:
             "${{ steps.package.outputs.archive }}" \
             "${{ steps.package.outputs.archive }}.sha256" \
             --title "Internship Engine Chrome extension $version" \
-            --generate-notes
+            --notes-file dist/release-notes.md

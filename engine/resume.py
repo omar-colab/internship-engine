@@ -155,7 +155,7 @@ def render(r: dict, path: Path) -> Path:
 
 def master() -> dict:
     if not MASTER.exists():
-        raise SystemExit("No data/resume.json yet. Run /setup in Claude Code, or copy the structure from the README.")
+        raise SystemExit("No data/resume.json yet. Run /setup in Claude Code, or copy resume.example.json to data/resume.json.")
     return json.loads(MASTER.read_text())
 
 

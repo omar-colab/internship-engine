@@ -10,6 +10,7 @@ You need macOS or Linux, Chrome, Python 3.13+, and [`uv`](https://docs.astral.sh
 git clone https://github.com/omar-colab/internship-engine.git
 cd internship-engine
 uv sync
+mkdir -p data
 cp profile.example.json data/profile.json
 ```
 

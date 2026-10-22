@@ -38,8 +38,8 @@ cp profile.example.json data/profile.json
 uv run python -m engine serve
 ```
 
-To run the browser-based application filler, also install its browser once with `uv run playwright install chromium`.
-For assisted setup, run `claude` in the repository and type `/setup`; it builds `data/profile.json` from facts on your resume and asks about tracks, locations and work authorization.
+For application filling or resume PDF generation, install the browser once with `uv run playwright install chromium`.
+For assisted setup, run `claude` in the repository and type `/setup`; it builds `data/profile.json` and `data/resume.json` from your resume, then asks about tracks, locations and work authorization. Review both before using them; the resume schema is shown in [`resume.example.json`](resume.example.json).
 
 To run the daily job search after editing your profile:
 
