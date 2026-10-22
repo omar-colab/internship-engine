@@ -1,0 +1,54 @@
+{
+  "name": "Your Name",
+  "contact": [
+    "you@example.com",
+    "Your City, ST",
+    "LinkedIn"
+  ],
+  "links": {},
+  "sections": [
+    {
+      "title": "Education",
+      "entries": [
+        {
+          "org": "Your University",
+          "role": "B.S., Your Major",
+          "dates": "Expected May 2028",
+          "bullets": [
+            "Relevant coursework or distinction from your resume"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Experience",
+      "entries": [
+        {
+          "org": "Employer or Organization",
+          "role": "Your Role",
+          "dates": "Month Year – Month Year",
+          "bullets": [
+            "A complete bullet copied from your resume"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Projects",
+      "entries": []
+    },
+    {
+      "title": "Skills",
+      "lines": [
+        [
+          "Technical",
+          "Skills listed on your resume"
+        ],
+        [
+          "Business",
+          "Other skills listed on your resume"
+        ]
+      ]
+    }
+  ]
+}
