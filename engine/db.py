@@ -63,9 +63,9 @@ def today() -> str:
 def upsert_role(db: sqlite3.Connection, r: dict) -> bool:
     """Insert a role if its key is new. Returns True when it was new. Never overwrites status."""
     cur = db.execute(
-        """insert or ignore into roles (key, company, title, location, work_model, url, source, ats, track, found_on, posted, homepage)
-           values (:key, :company, :title, :location, :work_model, :url, :source, :ats, :track, :found_on, :posted, :homepage)""",
-        {"location": None, "work_model": None, "url": None, "ats": None, "track": None, "posted": None, "homepage": None,
+        """insert or ignore into roles (key, company, title, location, work_model, url, source, ats, track, found_on, posted, homepage, description)
+           values (:key, :company, :title, :location, :work_model, :url, :source, :ats, :track, :found_on, :posted, :homepage, :description)""",
+        {"location": None, "work_model": None, "url": None, "ats": None, "track": None, "posted": None, "homepage": None, "description": None,
          "found_on": today(), **r})
     return cur.rowcount == 1
 

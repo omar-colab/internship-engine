@@ -10,7 +10,7 @@ your resume, tracker and email never leave it.
 
 | | |
 |---|---|
-| **Find** | Reads Workday, Greenhouse, Lever, Ashby, iCIMS, UKG, Oracle Cloud and Phenom boards directly, plus public internship lists. Any company it meets once gets watched from then on. |
+| **Find** | Reads Workday, Greenhouse, Lever, Ashby, iCIMS, UKG, Oracle Cloud, Phenom, SuccessFactors, Jobvite, JazzHR and Workable boards directly, plus public internship lists. Any company it meets once gets watched from then on. |
 | **Rank** | Fetches every posting in full and scores it 1–5 against your resume with a one-line reason. Graduate-only roles, the wrong class year and past seasons are hidden. |
 | **Fill** | Clicks through to the real form, opens every dropdown to read hidden options, types into search-as-you-type fields, attaches your resume, verifies each answer and refills what the page wiped. Works from the dashboard (a browser window it drives) or the Chrome extension (on the page you're on). |
 | **Track** | Confirmation, assessment, interview and rejection emails update each application. Quiet for two weeks → a follow-up reminder. |

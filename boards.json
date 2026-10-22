@@ -67,6 +67,12 @@
    "locale": "us/en"
   },
   {
+   "name": "CenterPoint Energy",
+   "ats": "successfactors",
+   "host": "career4.successfactors.com",
+   "company": "centerpoin"
+  },
+  {
    "name": "Cigna",
    "ats": "workday",
    "tenant": "cigna",
@@ -119,6 +125,13 @@
    "site": "Enact_MI"
   },
   {
+   "name": "Federal Express Corporation",
+   "ats": "workday",
+   "tenant": "fedex",
+   "wd": "wd1",
+   "site": "FXE_APAC_External"
+  },
+  {
    "name": "Federated Insurance",
    "ats": "icims",
    "host": "careers-federatedinsurance.icims.com"
@@ -127,6 +140,12 @@
    "name": "Four Hands",
    "ats": "greenhouse",
    "token": "fourhands"
+  },
+  {
+   "name": "GALLO",
+   "ats": "successfactors",
+   "host": "career4.successfactors.com",
+   "company": "Gallo"
   },
   {
    "name": "Genworth",
@@ -148,6 +167,11 @@
    "tenant": "guidehouse",
    "wd": "wd1",
    "site": "External"
+  },
+  {
+   "name": "Hays Electrical Services",
+   "ats": "jazzhr",
+   "token": "hayselectricalservices"
   },
   {
    "name": "Health Care Service Corporation",
@@ -179,11 +203,22 @@
    "token": "integra"
   },
   {
+   "name": "Love's Travel Stops",
+   "ats": "successfactors",
+   "host": "career8.successfactors.com",
+   "company": "Loves"
+  },
+  {
    "name": "M&T Bank",
    "ats": "workday",
    "tenant": "mtb",
    "wd": "wd5",
    "site": "MTB"
+  },
+  {
+   "name": "Martin Marietta",
+   "ats": "jobvite",
+   "token": "martinmarietta"
   },
   {
    "name": "Medpace",
@@ -247,6 +282,12 @@
    "tenant": "otis",
    "wd": "wd504",
    "site": "REC_Ext_Gateway"
+  },
+  {
+   "name": "PACCAR",
+   "ats": "successfactors",
+   "host": "career012.successfactors.eu",
+   "company": "paccarinc"
   },
   {
    "name": "Parker Hannifin",
@@ -367,6 +408,11 @@
    "token": "spectrum"
   },
   {
+   "name": "Stifel Financial Corp.",
+   "ats": "icims",
+   "host": "careers-stifel.icims.com"
+  },
+  {
    "name": "Stripe",
    "ats": "greenhouse",
    "token": "stripe"
@@ -429,6 +475,11 @@
    "site": "External"
   },
   {
+   "name": "USG Insurance Services, Inc.",
+   "ats": "jazzhr",
+   "token": "usginsurance"
+  },
+  {
    "name": "Waymo",
    "ats": "greenhouse",
    "token": "waymo"
@@ -437,6 +488,11 @@
    "name": "West Monroe",
    "ats": "greenhouse",
    "token": "westmonroe4"
+  },
+  {
+   "name": "WeVote",
+   "ats": "jazzhr",
+   "token": "wevote"
   },
   {
    "name": "Wipfli",

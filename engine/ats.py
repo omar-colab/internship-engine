@@ -15,6 +15,10 @@ BOARD = re.compile(
     r"|https?://(?:boards|job-boards)\.greenhouse\.io/(?!embed\b)(?P<gh>[a-z0-9]+)"
     r"|https?://(?P<icims>(?!www\.|cookie)[a-z0-9-]+\.icims\.com)/jobs"
     r"|https?://(?P<ukg>recruiting2?\.ultipro\.com/[A-Z0-9]+/JobBoard/[0-9a-f-]{36})"
+    r"|https?://jobs\.jobvite\.com/(?!api\b|__assets__)(?P<jobvite>[a-z0-9-]+)"
+    r"|https?://(?!www\.)(?P<jazz>[a-z0-9-]+)\.applytojob\.com"
+    r"|https?://apply\.workable\.com/(?!api\b|j\b)(?P<workable>[a-z0-9-]+)"
+    r"|https?://(?P<sfhost>career\d*\.successfactors\.(?:com|eu))/careers?\?(?:[^\"'\s<>]*?&(?:amp;)?)?company=(?P<sfco>[A-Za-z0-9_-]+)"
     r"|https?://(?P<orahost>[a-z0-9.-]+\.oraclecloud\.com)(?::443)?/hcmUI/CandidateExperience/[a-z]{2}/sites/(?P<orasite>CX(?:_\d+)?)"
     r"|https?://jobs\.lever\.co/(?P<lever>[a-z0-9-]+)"
     r"|https?://jobs\.ashbyhq\.com/(?P<ashby>[a-z0-9-]+)")
@@ -49,6 +53,14 @@ def detect_html(html: str) -> tuple[str, dict] | None:
             return "icims", {"host": m["icims"]}
         if m["ukg"]:
             return "ukg", {"board": m["ukg"]}
+        if m["jobvite"]:
+            return "jobvite", {"token": m["jobvite"]}
+        if m["jazz"]:
+            return "jazzhr", {"token": m["jazz"]}
+        if m["workable"]:
+            return "workable", {"token": m["workable"]}
+        if m["sfhost"]:
+            return "successfactors", {"host": m["sfhost"], "company": m["sfco"]}
         if m["orahost"]:
             return "oracle", {"host": m["orahost"], "site": m["orasite"]}
         for ats in ("ghe", "gh", "lever", "ashby"):
@@ -161,9 +173,70 @@ def phenom(company: str, b: dict, query: str = "intern") -> list[dict]:
     return out
 
 
+def _strip(t: str) -> str:
+    import html as h
+    return re.sub(r"\s+", " ", h.unescape(re.sub(r"<[^>]+>", " ", t))).strip()
+
+
+def jobvite(company: str, b: dict, query: str = "intern") -> list[dict]:
+    r = httpx.get(f"https://jobs.jobvite.com/{b['token']}/search", params={"q": query}, headers=UA, follow_redirects=True, timeout=20)
+    out = []
+    for href, body in re.findall(rf'<a[^>]+href="(/{re.escape(b["token"])}/job/[A-Za-z0-9]+)"[^>]*>(.*?)</a>', r.text, re.S):
+        name = re.search(r'jv-job-list-name">(.*?)</div>', body, re.S)
+        loc = re.search(r'jv-job-list-location">(.*?)</div>', body, re.S)
+        title = _strip(name[1]) if name else _strip(body)
+        if INTERN.search(title):
+            out.append(_role(company, title, _strip(loc[1]) if loc else None, f"https://jobs.jobvite.com{href}", "jobvite"))
+    return out
+
+
+def jazzhr(company: str, b: dict, query: str = "intern") -> list[dict]:
+    """JazzHR boards ({company}.applytojob.com) list every opening on one page."""
+    r = httpx.get(f"https://{b['token']}.applytojob.com/apply", headers=UA, follow_redirects=True, timeout=20)
+    out = []
+    for href, title in re.findall(rf'href="(https://{re.escape(b["token"])}\.applytojob\.com/apply/[A-Za-z0-9]+/[^"]+)"[^>]*>(.*?)</a>', r.text, re.S):
+        title = _strip(title)
+        if INTERN.search(title):
+            out.append(_role(company, title, None, href, "jazzhr"))
+    return out
+
+
+def workable(company: str, b: dict, query: str = "intern") -> list[dict]:
+    r = httpx.post(f"https://apply.workable.com/api/v3/accounts/{b['token']}/jobs",
+                   json={"query": query, "location": [], "department": [], "worktype": [], "remote": []}, headers=UA, timeout=20)
+    out = []
+    for j in (r.json().get("results", []) if r.status_code == 200 else []):
+        loc = j.get("location") or {}
+        place = ", ".join(x for x in (loc.get("city"), loc.get("region")) if x) or ("Remote" if j.get("remote") else None)
+        if INTERN.search(j["title"]):
+            out.append(_role(company, j["title"], place, f"https://apply.workable.com/{b['token']}/j/{j['shortcode']}/", "workable"))
+    return out
+
+
+def successfactors(company: str, b: dict, query: str = "intern") -> list[dict]:
+    """SuccessFactors' classic career site publishes its whole listing as XML, descriptions included."""
+    r = httpx.get(f"https://{b['host']}/career", params={"company": b["company"], "career_ns": "job_listing_summary", "resultType": "XML"},
+                  headers=UA, follow_redirects=True, timeout=60)
+    out = []
+    for job in re.findall(r"<Job>(.*?)</Job>", r.text, re.S):
+        title = _strip(re.sub(r"^<!\[CDATA\[|\]\]>$", "", (re.search(r"<JobTitle>(.*?)</JobTitle>", job, re.S) or [""," "])[1].strip()))
+        req = re.search(r"<ReqId>(\d+)</ReqId>", job)
+        if not (req and INTERN.search(title)):
+            continue
+        val = lambda lab: (re.search(rf"<label>{lab}</label>\s*<value>(.*?)</value>", job, re.S) or [None, ""])[1].strip()
+        place = ", ".join(x for x in (val("City"), val("State")) if x) or None
+        desc = re.search(r"<Job-Description>(.*?)</Job-Description>", job, re.S)
+        role = _role(company, re.sub(r"^\d+\s*-\s*#?\d*\s*", "", title) or title, place,
+                     f"https://{b['host']}/career?company={b['company']}&career_ns=job_listing&career_job_req_id={req[1]}", "successfactors")
+        role["description"] = text_of(re.sub(r"^<!\[CDATA\[|\]\]>$", "", desc[1].strip())) if desc else None
+        out.append(role)
+    return out
+
+
 LIST = {"workday": workday, "greenhouse": greenhouse, "lever": lever, "ashby": ashby, "icims": icims,
-        "ukg": ukg, "oracle": oracle, "phenom": phenom}
-SEARCHABLE = {"workday", "icims", "ukg", "oracle", "phenom"}   # keyword search: resolve one title at a time
+        "ukg": ukg, "oracle": oracle, "phenom": phenom, "jobvite": jobvite, "jazzhr": jazzhr, "workable": workable,
+        "successfactors": successfactors}
+SEARCHABLE = {"workday", "icims", "ukg", "oracle", "phenom", "jobvite", "workable"}   # keyword search: one title at a time
 
 
 def _selfcheck() -> None:
@@ -177,6 +250,13 @@ def _selfcheck() -> None:
         ("ukg", {"board": "recruiting2.ultipro.com/SOU1016SFBLI/JobBoard/adba73e4-f371-45d0-a5d2-32260abcd2f8"})
     assert detect_html("https://eofd.fa.us6.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/pages/x") == \
         ("oracle", {"host": "eofd.fa.us6.oraclecloud.com", "site": "CX_1001"})
+    assert detect_html('href="https://jobs.jobvite.com/martinmarietta/search"') == ("jobvite", {"token": "martinmarietta"})
+    assert detect_html("https://usginsurance.applytojob.com/apply") == ("jazzhr", {"token": "usginsurance"})
+    assert detect_html("https://apply.workable.com/huggingface/") == ("workable", {"token": "huggingface"})
+    assert detect_html("https://career4.successfactors.com/career?career_company=Gallo&lang=en_US&company=Gallo&site=") == \
+        ("successfactors", {"host": "career4.successfactors.com", "company": "Gallo"})
+    assert detect_html("https://career012.successfactors.eu/career?company=paccarinc&amp;site=V") == \
+        ("successfactors", {"host": "career012.successfactors.eu", "company": "paccarinc"})
     assert detect_phenom("<script src=//cdn.phenompeople.com/x.js>", "https://careers.cboe.com/us/en/home") == \
         ("phenom", {"origin": "https://careers.cboe.com", "locale": "us/en"})
     a = '<a href="https://careers-x.icims.com/jobs/4066/summer-2027-consulting-internship/job?in_iframe=1" class="iCIMS_Anchor" title="4066 - Summer 2027 Consulting Internship">'
@@ -230,6 +310,11 @@ def description(url: str) -> str | None:
         if r.status_code == 200:
             j = r.json()
             return "\n".join([j.get("descriptionPlain", "")] + [f"{l['text']}\n{text_of(l['content'])}" for l in j.get("lists", [])])
+    if m := re.match(r"https://apply\.workable\.com/([a-z0-9-]+)/j/([A-Z0-9]+)", url):
+        r = httpx.get(f"https://apply.workable.com/api/v2/accounts/{m[1]}/jobs/{m[2]}", headers=UA, timeout=20)
+        if r.status_code == 200:
+            j = r.json()
+            return text_of("\n".join(j.get(k) or "" for k in ("description", "requirements", "benefits")))
     if m := re.match(r"https://([a-z0-9.-]+\.oraclecloud\.com)/hcmUI/CandidateExperience/[a-z]{2}/sites/(CX(?:_\d+)?)/job/(\d+)", url):
         r = httpx.get(f"https://{m[1]}/hcmRestApi/resources/latest/recruitingCEJobRequisitionDetails",
                       params={"expand": "all", "onlyData": "true", "finder": f'ById;Id="{m[3]}",siteNumber={m[2]}'},
