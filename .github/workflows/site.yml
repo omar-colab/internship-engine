@@ -1,0 +1,31 @@
+# The website (site/) plus the shared feed (site/feed.json), rebuilt every morning.
+# The feed holds public posting facts only. No personal data exists in this job: it builds in a scratch folder.
+name: Site and shared feed
+on:
+  push:
+    branches: [main]
+    paths: ["site/**", "boards.json", "companies.json", "engine/**"]
+  schedule:
+    - cron: "0 10 * * *"        # 6:00 ET, before anyone's 7:00 run
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency: { group: pages, cancel-in-progress: false }
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: { name: github-pages, url: "${{ steps.d.outputs.page_url }}" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync
+      - name: Build the shared feed
+        run: INTERNSHIP_ENGINE_DATA="$RUNNER_TEMP/data" uv run python -m engine feed-build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: site }
+      - id: d
+        uses: actions/deploy-pages@v4

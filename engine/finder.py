@@ -47,7 +47,16 @@ def run() -> dict:
     found = new = 0
     errors: list[str] = []
     seed = json.loads(SEED.read_text())["companies"]
-    names = {c["name"] for c in seed}
+    from . import shared
+    pulled = shared.pull_feed()                    # fresh shared feed → no need to poll the boards it covers
+    covered = {b["name"] for b in shared.load_boards()} | {c["name"] for c in seed if "board" in c} if pulled else set()
+    for r in pulled or []:
+        found += 1
+        new += db.upsert_role(con, {**r, "key": r["url"], "source": r["ats"]})
+    seed = [c for c in seed if c["name"] not in covered]
+    seed += [{"name": b["name"], "board": {k: v for k, v in b.items() if k != "name"}} for b in shared.load_boards()
+             if b["name"] not in covered and b["name"] not in {c["name"] for c in seed}]
+    names = {c["name"] for c in seed} | covered
     # the list grows itself: every company whose board the resolver found is polled directly from now on
     learned = [{"name": r["name"], "board": {"ats": r["ats"], **json.loads(r["board"])}}
                for r in con.execute("select name, ats, board from companies where ats is not null and board is not null")
