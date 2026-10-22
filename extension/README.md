@@ -28,10 +28,34 @@ uv run python -m engine token
 
 ## 2. Install from GitHub
 
-1. Open [the latest GitHub Release](https://github.com/omar-colab/internship-engine/releases/latest) and download `internship-engine-extension-*.zip`.
-2. Extract the ZIP. The extracted folder must contain `manifest.json` at its top level.
-3. In Chrome, open `chrome://extensions`, turn on **Developer mode**, choose **Load unpacked**, and select that extracted folder.
-4. Open the extension, paste the token printed by `engine token`, and choose **Save token**.
+1. Open [the latest GitHub Release](https://github.com/omar-colab/internship-engine/releases/latest) and download the extension ZIP and its `.sha256` file.
+2. Set `archive` to the downloaded ZIP filename, replacing `0.1.1` with the version in that filename:
+
+   ```sh
+   archive="internship-engine-extension-0.1.1.zip"
+   ```
+
+3. Verify the checksum. On macOS, run:
+
+   ```sh
+   shasum -a 256 -c "$archive.sha256"
+   ```
+
+   On Linux, run:
+
+   ```sh
+   sha256sum -c "$archive.sha256"
+   ```
+
+4. Install the [GitHub CLI](https://cli.github.com/) and verify the build provenance before extracting the ZIP:
+
+   ```sh
+   gh attestation verify "$archive" -R omar-colab/internship-engine
+   ```
+
+5. Extract the ZIP. The extracted folder must contain `manifest.json` at its top level.
+6. In Chrome, open `chrome://extensions`, turn on **Developer mode**, choose **Load unpacked**, and select that extracted folder.
+7. Open the extension, paste the token printed by `engine token`, and choose **Save token**.
 
 The GitHub ZIP is not installed automatically. Chrome allows one-click installation through the Chrome Web Store; until this project has a published Web Store listing, use the steps above. To install directly from a source checkout, select the repository's `extension` folder in step 3.
 
