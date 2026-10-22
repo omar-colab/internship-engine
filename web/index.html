@@ -186,6 +186,7 @@ body.open .drawer { transform: none; visibility: visible; transition: transform 
       <button data-view="jobs">Jobs for you <span class="n" id="n-jobs"></span></button>
       <button data-view="applied">Applications <span class="n" id="n-applied"></span></button>
       <button data-view="people">People <span class="n" id="n-people"></span></button>
+      <button data-view="answers">My answers <span class="n" id="n-answers"></span></button>
       <button data-view="results">Results</button>
     </nav>
     <div class="runs" id="runs"></div>
@@ -360,6 +361,19 @@ function peopleView() {
     ${groups.filter(([, g]) => g.length).map(([h, g]) => `<h2>${h} · ${g.length}</h2><div class="sheet">${g.slice(0, 60).map(card).join("")}</div>`).join("")}`;
 }
 
+// ---- My answers ----
+function answersView() {
+  const A = S.answers || [];
+  const row = a => `<div class="item">${mono("?")}<div><div class="ti">${esc(a.label)}</div>
+      <form class="keep" data-label="${esc(a.label)}"><input name="answer" value="${esc(a.answer)}" maxlength="5000" aria-label="Your answer">
+        <button class="btn">Update</button></form><div class="meta">${a.on ? `<span>saved ${esc(a.on)}</span>` : ""}</div></div>
+      <div class="acts">${btn("Forget", `data-forget="${esc(a.label)}"`)}</div></div>`;
+  return `<h1>${A.length ? `${A.length} saved ${A.length === 1 ? "answer" : "answers"}` : "Your answers"}</h1>
+    <p class="lede">Questions you answered yourself, from the dashboard or by typing them on a form the extension filled. Each one fills only the same question, word for word,
+      and only if it's one of that question's choices. Essays come back as a draft, never filled. SSN, birth-date, bank and login answers are never kept.</p>
+    ${A.length ? `<div class="sheet">${A.map(row).join("")}</div>` : `<p class="lede">Nothing saved yet. After a Prep, questions left to you show a <b>Save for next time</b> box on Today.</p>`}`;
+}
+
 // ---- Results ----
 function resultsView() {
   const f = S.funnel.all, pct = (a, b) => b ? Math.round(100 * a / b) + "%" : "–";
@@ -411,7 +425,8 @@ function render() {
   $("#runs").innerHTML = [last("find") && `Jobs checked <b>${when(last("find"))}</b>`, last("listen") && `Inbox read <b>${when(last("listen"))}</b>`].filter(Boolean).join("<br>");
   document.querySelectorAll(".nav button").forEach(b => b.dataset.view === view ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
   $("#n-people").textContent = (S.contacts_due || []).length || "";
-  $("#main").innerHTML = { needs: todayView, jobs: jobsView, applied: appliedView, people: peopleView, results: resultsView }[view]();
+  $("#n-answers").textContent = (S.answers || []).length || "";
+  $("#main").innerHTML = { needs: todayView, jobs: jobsView, applied: appliedView, people: peopleView, answers: answersView, results: resultsView }[view]();
   document.querySelectorAll("form.keep").forEach(f => f.addEventListener("submit", async e => {
     e.preventDefault(); const a = new FormData(f).get("answer");
     if (a) { await post("/api/answer", { label: f.dataset.label, answer: a }); f.querySelector("button").textContent = "Saved ✓"; }
@@ -452,6 +467,8 @@ document.addEventListener("click", async e => {
   }
   const lg = t.closest("[data-log]");
   if (lg) { await post(`/api/role/${lg.dataset.log}`, { log: "Followed up" }); return load(); }
+  const fg = t.closest("[data-forget]");
+  if (fg) { await post("/api/answer", { label: fg.dataset.forget, answer: "" }); return load(); }
   const pc = t.closest("[data-pc]");
   if (pc) { await post("/api/contact", { id: pc.dataset.pc, status: pc.dataset.ps }); return load(); }
   const ap = t.closest("[data-apps]");

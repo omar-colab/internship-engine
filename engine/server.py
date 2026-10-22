@@ -129,6 +129,8 @@ def state() -> dict:
             needs.append(r)
     return {"roles": rows, "events": events, "runs": runs, "needs": needs, "health": report.health(con),
             "contacts": contacts, "contacts_due": report.contacts_due(con),
+            "answers": sorted(({"label": v.get("label", k), "answer": v.get("answer", ""), "on": v.get("on")} for k, v in bank.items()),
+                              key=lambda a: a["on"] or "", reverse=True),
             "funnel": {"all": report.funnel(con)["all"], "track": report.funnel(con, "track"), "source": report.funnel(con, "source")}}
 
 
