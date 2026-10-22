@@ -35,10 +35,11 @@ def funnel(con, by: str | None = None) -> dict:
             "interview": r["status"] in ("interview", "offer") or "interview" in t,
             "offer": r["status"] == "offer",
         }
-    groups: dict[str, dict] = {}
+    stages = ("found", "queued", "applied", "replied", "interview", "offer")
+    groups: dict[str, dict] = {} if by else {"all": dict.fromkeys(stages, 0)}     # a fresh install still has a funnel
     for r in rows:
         key = "all" if not by else (r[by] or "other").split(":")[0]
-        g = groups.setdefault(key, {s: 0 for s in ("found", "queued", "applied", "replied", "interview", "offer")})
+        g = groups.setdefault(key, dict.fromkeys(stages, 0))
         for s, on in stage(r).items():
             g[s] += on
     return groups
@@ -135,6 +136,7 @@ def _selfcheck() -> None:
     con = sqlite3.connect(":memory:")
     con.row_factory = sqlite3.Row
     con.executescript(db.SCHEMA)
+    assert funnel(con)["all"]["found"] == 0 and funnel(con, "track") == {}           # empty tracker: no KeyError
     for col, typ in db.MIGRATIONS["roles"].items():
         con.execute(f"alter table roles add column {col} {typ}")
     old = (date.today() - timedelta(days=20)).isoformat()

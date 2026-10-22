@@ -96,6 +96,8 @@ h2 { font: 700 18px/1.2 var(--display); letter-spacing: -.02em; margin: 34px 0 1
 .callout p { margin: 4px 0 10px; font-size: 14px; color: var(--ink); }
 .callout ul { margin: 6px 0 0; padding-left: 18px; }
 .callout li { margin: 4px 0; }
+.keep { display: flex; gap: 6px; margin: 6px 0 2px; }
+.keep input, .keep select { flex: 1; min-width: 0; font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--sheet); color: var(--ink); }
 .hist { font-size: 12px; color: var(--ink-3); margin: 8px 0 0; padding-left: 16px; }
 
 .tools { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 0 0 16px; }
@@ -248,7 +250,12 @@ function prepBlock(r) {
   if (!r.prep) return "";
   const y = r.prep.yours;
   return `<div class="callout"><b>Filled ${r.prep.filled} of ${r.prep.fields}.</b> ${y.length ? "Left for you, then Submit:" : "Read it over, then Submit."}
-    ${y.length ? `<ul>${y.map(x => `<li>${esc(x.label)}${x.suggest?.length ? `<br><span class="meta">From your resume: ${esc(x.suggest[0])}</span>` : ""}</li>`).join("")}</ul>` : ""}</div>`;
+    ${y.length ? `<ul>${y.map(x => `<li>${esc(x.label)}${x.suggest?.length ? `<br><span class="meta">${x.saved ? "Your saved draft" : "From your resume"}: ${esc(x.suggest[0])}</span>` : ""}
+      ${x.kind === "file" ? "" : `<form class="keep" data-label="${esc(x.label)}">${x.options?.length
+        ? `<select name="answer"><option value="">Your answer…</option>${x.options.map(o => `<option>${esc(o)}</option>`).join("")}</select>`
+        : `<input name="answer" placeholder="Your answer" maxlength="5000">`}
+        <button class="btn">${x.saved ? "Saved ✓ · update" : "Save for next time"}</button></form>`}</li>`).join("")}</ul>
+      <div class="why">Saved answers fill only the same question, word for word, and only if your answer is one of its choices. Prep again to use them.</div>` : ""}</div>`;
 }
 
 // ---- Today ----
@@ -405,6 +412,10 @@ function render() {
   document.querySelectorAll(".nav button").forEach(b => b.dataset.view === view ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
   $("#n-people").textContent = (S.contacts_due || []).length || "";
   $("#main").innerHTML = { needs: todayView, jobs: jobsView, applied: appliedView, people: peopleView, results: resultsView }[view]();
+  document.querySelectorAll("form.keep").forEach(f => f.addEventListener("submit", async e => {
+    e.preventDefault(); const a = new FormData(f).get("answer");
+    if (a) { await post("/api/answer", { label: f.dataset.label, answer: a }); f.querySelector("button").textContent = "Saved ✓"; }
+  }));
   $("#addp")?.addEventListener("submit", async e => { e.preventDefault(); await post("/api/contact", Object.fromEntries(new FormData(e.target))); load(); });
   document.querySelectorAll("[data-move]").forEach(sel => sel.addEventListener("change", async () => { await post(`/api/role/${sel.dataset.move}`, { status: sel.value }); load(); }));
   document.querySelectorAll("[data-card]").forEach(c => c.addEventListener("dragstart", e => e.dataTransfer.setData("text/plain", c.dataset.card)));

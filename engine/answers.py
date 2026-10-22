@@ -2,12 +2,22 @@
 
 The honesty rule: an answer exists only if a profile field or a resume line backs it. No rule matches →
 the question goes to Needs-you with the closest resume lines as a starting point. Optional questions with
-no backing are left blank, never guessed.
+no backing are left blank, never guessed. Questions you answered yourself are kept in data/answers.json
+and reused only for the same question word for word (and, on a list, only if your answer is one of its options).
 
     answer(field, profile, resume_lines) → {"value"|"option", "source", "status": auto | needs_you | skip}
 """
+import json
 import re
+from datetime import date
 
+from . import db
+
+BANK = db.DATA / "answers.json"
+
+# never kept, whoever asks: identity numbers, birth dates, money, logins
+SENSITIVE = r"social security|\bssn\b|\bsin\b|date of birth|\bdob\b|birth ?date|passport|driver.?s? licen|license number|" \
+            r"bank|routing|account number|credit card|card number|password|passcode|\bpin\b|tax id|\btin\b|national id"
 DECLINE = r"decline|don.?t wish|prefer not|not to (answer|disclose|say)|choose not"
 
 
@@ -80,7 +90,40 @@ def suggest(label: str, resume_lines: list[str], n: int = 3) -> list[str]:
     return [l.strip("• ").strip() for s, l in scored[:n] if s]
 
 
-def answer(field: dict, p: dict, resume_lines: list[str]) -> dict:
+def key(label: str) -> str:
+    """The same question on two forms: case, punctuation and the required star don't matter; wording does."""
+    return " ".join(plain(re.sub(r"[*✱]|\(required\)", "", label)).split())
+
+
+def load_bank(path=BANK) -> dict:
+    try:
+        return json.loads(path.read_text())
+    except (OSError, ValueError):
+        return {}
+
+
+def remember(label: str, ans: str, path=BANK) -> dict:
+    """Your answer to a question, kept for next time. Empty answer = forget it."""
+    k, ans = key(str(label)[:500]), str(ans).strip()[:5000]
+    if not k:
+        raise ValueError("a question needs a label")
+    if re.search(SENSITIVE, k):
+        raise ValueError("answers to identity, birth-date, bank or login questions are never saved")
+    bank = load_bank(path)
+    if ans:
+        if k not in bank and len(bank) >= 2000:
+            raise ValueError("answer bank is full (2000)")
+        bank[k] = {"answer": ans, "label": str(label)[:500], "on": date.today().isoformat()}
+    else:
+        bank.pop(k, None)
+    path.parent.mkdir(exist_ok=True)
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(json.dumps(bank, indent=1))
+    tmp.replace(path)                           # never a half-written bank
+    return bank
+
+
+def answer(field: dict, p: dict, resume_lines: list[str], bank: dict | None = None) -> dict:
     label = re.sub(r"[*✱]|\(required\)", "", field["label"]).strip()
     for rx, resolve in RULES:
         if re.search(rx, label, re.I):
@@ -92,15 +135,22 @@ def answer(field: dict, p: dict, resume_lines: list[str]) -> dict:
                 ans, src = got                  # with a fixed list, the answer must be one of its options
                 return {"label": label, "kind": field["kind"], "answer": ans, "source": src, "status": "auto"}
             break                                   # the right rule, but the profile can't back it → you decide
+    saved = (bank or {}).get(key(label))
+    if saved and field["kind"] not in ("textarea", "file"):   # essays name a company: a draft below; uploads are yours
+        opts = field.get("options") or []
+        hit = next((o for o in opts if plain(o) == plain(saved["answer"])), None) if opts else saved["answer"]
+        if hit:
+            return {"label": label, "kind": field["kind"], "answer": hit, "source": f"you ({saved.get('on', 'saved')})", "status": "auto"}
     if not field.get("required"):
         return {"label": label, "kind": field["kind"], "answer": None, "source": None, "status": "skip"}
     return {"label": label, "kind": field["kind"], "answer": None, "source": None, "status": "needs_you",
-            "options": field.get("options", [])[:12], "suggest": suggest(label, resume_lines) if field["kind"] in FREE_TEXT else []}
+            "options": field.get("options", [])[:12], "suggest": ([saved["answer"]] if saved else []) + suggest(label, resume_lines) if field["kind"] in FREE_TEXT else []}
 
 
-def answer_all(fields: list[dict], p: dict, resume_text: str) -> list[dict]:
+def answer_all(fields: list[dict], p: dict, resume_text: str, bank: dict | None = None) -> list[dict]:
     lines = [l.strip() for l in resume_text.splitlines() if l.strip()]
-    return [answer(f, p, lines) for f in fields]
+    bank = load_bank() if bank is None else bank
+    return [answer(f, p, lines, bank) for f in fields]
 
 
 def _selfcheck() -> None:
@@ -137,6 +187,31 @@ def _selfcheck() -> None:
     assert a("Are you willing to work at our Chicago office location?", "text")["status"] == "needs_you"
     assert a("Location (City)*", "combobox")["answer"] == "Hartford, CT"
     assert a("This role requires working in the office 3-4 days per week. Can you?", "checkbox", ["Yes", "No"])["status"] == "needs_you"
+    import pathlib, tempfile
+    f = pathlib.Path(tempfile.mkdtemp()) / "answers.json"
+    remember("Can you work in the office 3-4 days per week?*", "yes", f)
+    bank = load_bank(f)
+    q = {"label": "Can you work in the office 3–4 days per week? (required)", "kind": "combobox", "options": ["Yes", "No"], "required": True}
+    got = answer(q, p, [], bank)
+    assert got["answer"] == "Yes" and got["source"].startswith("you ("), got          # same question, the form's own option text
+    assert answer({**q, "options": ["Agree", "Disagree"]}, p, [], bank)["status"] == "needs_you"     # not an option here → ask
+    assert answer({**q, "label": "Can you work in the office 5 days per week?"}, p, [], bank)["status"] == "needs_you"   # wording matters
+    assert answer({"label": "First name", "kind": "text", "required": True}, p, [], {key("First name"): {"answer": "X", "on": "x"}})["answer"] == "Ana"
+    for bad in ("Social Security Number*", "Date of Birth", "Bank account number", "Driver's License #"):
+        try:
+            remember(bad, "123", f)
+            raise AssertionError(bad)
+        except ValueError:
+            pass
+    remember("Why do you want to work here?", "Contoso's retail analytics work.", f)
+    essay = answer({"label": "Why do you want to work here?", "kind": "textarea", "required": True}, p, [], load_bank(f))
+    assert essay["status"] == "needs_you" and essay["suggest"][0].startswith("Contoso"), essay      # a draft for you, not a fill
+    remember("Upload portfolio", "data/resume.pdf", f)
+    assert answer({"label": "Upload portfolio", "kind": "file", "required": True}, p, [], load_bank(f))["status"] == "needs_you"
+    remember("Upload portfolio", "", f)
+    remember("Why do you want to work here?", "", f)
+    remember("Can you work in the office 3-4 days per week?", "", f)
+    assert not load_bank(f)                                                            # empty answer = forget
 
 
 if __name__ == "__main__":

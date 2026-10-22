@@ -5,7 +5,7 @@ Two AI agents build this project in parallel: **Codex** (PRs from `codex/*` bran
 
 ## How work is handed out
 
-- Tasks for Codex are **GitHub issues labeled `codex`**. Take the oldest open one unless it says otherwise.
+- Tasks for Codex are **GitHub issues labeled `codex`**. Take the oldest open one labeled `priority` first, then the oldest open one.
   Comment on the issue when you start, open a PR that says `Closes #N`, and keep one issue per PR.
 - Claude Code works on whatever isn't claimed by an open `codex` issue. Issues labeled `claude` are Claude Code's.
 - Found something outside your task? Open an issue instead of fixing it in your PR.
@@ -47,7 +47,7 @@ Need to touch a file you don't own? Say so in the issue and keep the change mini
 ```sh
 uv sync && uv run playwright install chromium
 for m in engine.ats engine.feed engine.finder engine.listener engine.resolve engine.score engine.warm \
-         engine.answers engine.report engine.resume engine.shared engine.insight; do uv run python -m $m; done
+         engine.answers engine.report engine.resume engine.shared engine.insight engine.server; do uv run python -m $m; done
 uv run python -m engine.fill --selfcheck
 ```
 

@@ -83,6 +83,12 @@ def ext_call(path: str, body: dict) -> dict:
         con.commit()
         return {"role": {k: scored[k] for k in ("id", "company", "title", "fit", "fit_why", "eligible", "eligible_why")} | {"status": "queued"}}
     if path == "/ext/applied":                 # you clicked Submit on a page the extension filled
+        for q in (body.get("learned") or [])[:50]:   # what you typed where the engine stopped: reused for the same question
+            if isinstance(q, dict) and q.get("label") and q.get("answer") and len(str(q["answer"])) <= 300:
+                try:
+                    answers.remember(q["label"], q["answer"])
+                except ValueError:              # sensitive or bank full: skip it, still record the submit
+                    pass
         r = find_role(con, body.get("url", ""))
         if r and r["status"] in ("new", "queued", "blocked"):
             update(r["id"], {"status": "submitted"})
@@ -100,12 +106,14 @@ def state() -> dict:
         "coalesce(last_event, found_on) desc, id desc")]
     events = [dict(e) for e in con.execute("select * from events order by at desc limit 200")]
     runs = [dict(r) for r in con.execute("select * from runs where id in (select max(id) from runs group by job) order by id desc")]
+    bank = answers.load_bank()
     for r in rows:                          # attach the last prep summary, if any
         f = db.DATA / "prep" / f"{r['id']}.json"
         if f.exists() and r["status"] in ("queued", "blocked", "new"):
             prep = json.loads(f.read_text())
             r["prep"] = {"filled": prep["filled"], "fields": prep["fields"],
-                         "yours": [{"label": a["label"], "suggest": a.get("suggest", []), "error": a.get("error")}
+                         "yours": [{"label": a["label"], "suggest": a.get("suggest", []), "error": a.get("error"),
+                                    "options": a.get("options", []), "saved": answers.key(a["label"]) in bank, "kind": a.get("kind")}
                                    for a in prep["answers"] if a["result"] in ("needs_you", "failed")]}
     needs = [r for r in rows if r["status"] in NEEDS]
     warm_seen = set()                       # one "message your contact" per company: rows arrive best fit first
@@ -200,7 +208,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def _body(self) -> dict:
         n = int(self.headers.get("Content-Length") or 0)
-        if n > MAX_BODY:
+        if not 0 <= n <= MAX_BODY:            # negative would read(-1): wait for EOF and hold the thread
             raise TooLarge
         return json.loads(self.rfile.read(n) or b"{}")
 
@@ -224,6 +232,12 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if not self._host_ok():
             return
+        try:
+            self._get()
+        except Exception as e:
+            self._send(500, json.dumps({"error": f"{type(e).__name__}: {e}"}).encode())
+
+    def _get(self):
         if self.path == "/api/state":
             return self._send(200, json.dumps(state()).encode())
         if m := re.fullmatch(r"/api/resume/(\d+)\.pdf", self.path):
@@ -275,6 +289,15 @@ class Handler(BaseHTTPRequestHandler):
                 self.end_headers()
                 return self.wfile.write(out)
             except (ValueError, TypeError, KeyError) as e:
+                return self._send(400, json.dumps({"error": str(e)}).encode())
+        if self.path == "/api/answer":          # your answer to a question, reused when the same question comes back
+            if not self._same_origin():
+                return self._send(403, b'{"error":"forbidden"}')
+            body = self._body()
+            try:
+                answers.remember(body.get("label", ""), body.get("answer", ""))
+                return self._send(200, b'{"ok":true}')
+            except ValueError as e:
                 return self._send(400, json.dumps({"error": str(e)}).encode())
         if self.path == "/api/contact":
             if not self._same_origin():
@@ -342,6 +365,8 @@ def _selfcheck() -> None:
     assert req("POST", "/ext/ping", f"127.0.0.1:{port}") == 401                # token still required
     big = {"Content-Length": str(MAX_BODY + 1)}                                # refused before a byte of body is read
     assert req("POST", "/api/contact", f"127.0.0.1:{port}", headers=big) == 413
+    assert req("POST", "/api/answer", f"127.0.0.1:{port}", headers={"Content-Length": "-1"}) == 413
+    assert req("POST", "/api/answer", f"127.0.0.1:{port}", headers={"Origin": "http://evil.example"}) == 403
     assert req("POST", "/ext/answers", f"127.0.0.1:{port}", headers=big | {"X-Engine-Token": token()}) == 413
     srv.shutdown()
 

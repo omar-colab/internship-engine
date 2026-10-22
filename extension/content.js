@@ -157,6 +157,21 @@
     return el.value === ans || plain(el.value).includes(plain(ans));
   }
 
+  // What you typed into a question the engine left to you. Essays and files aren't learned (see answers.py).
+  function current(q) {
+    const { el, kind } = q;
+    if (kind === "radio" || kind === "checkbox")
+      return [...document.querySelectorAll(`input[name="${CSS.escape(q.name)}"]`)].filter(b => b.checked).map(optionLabel).join(", ");
+    if (kind.startsWith("select")) return el.value ? clean(el.options[el.selectedIndex]?.text) : "";
+    if (kind === "combobox") {                         // only a choice from its own list, never the widget's other text
+      let n = el, shown = "";
+      for (let i = 0; i < 5 && n.parentElement && !shown; i++) { n = n.parentElement; shown = plain(n.innerText); }
+      return (q.options || []).find(o => plain(o) && shown.includes(plain(o))) || "";
+    }
+    return kind === "textarea" || kind === "file" || kind === "password" ? "" : String(el.value || "").trim();
+  }
+  let yoursLeft = [];
+
   async function fillPage(ui) {
     ui.busy("Reading every question…");
     const qs = await collect();
@@ -176,6 +191,7 @@
           plan[i].result = pass === 0 ? await fillOne(qs[i], plan[i], resumeFile) : "failed";
     const submit = [...document.querySelectorAll("button, input[type=submit]")].find(b => visible(b) && SUBMIT.test(b.innerText || b.value));
     submit?.scrollIntoView({ block: "center" });
+    yoursLeft = qs.filter((q, i) => ["needs_you", "failed"].includes(plan[i].result));
     ui.done(plan);
   }
 
@@ -257,7 +273,8 @@
   // You clicked Submit: record it (the confirmation email will confirm it again later)
   document.addEventListener("click", e => {
     const b = e.target.closest?.("button, input[type=submit]");
-    if (b && SUBMIT.test(b.innerText || b.value || "") && !b.closest("#internship-engine-root")) send("/ext/applied", { url: location.href });
+    if (b && SUBMIT.test(b.innerText || b.value || "") && !b.closest("#internship-engine-root")) send("/ext/applied", {
+      url: location.href, learned: yoursLeft.map(q => ({ label: q.label, answer: current(q) })).filter(x => x.answer) });
   }, true);
 
   start();

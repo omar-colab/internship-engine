@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SUBMIT = re.compile(r"submit|send application|apply$", re.I)
 NEXT = re.compile(r"^\s*(save and continue|continue|next|save & continue)\s*$", re.I)
 MAX_STEPS = 8
+SIGN_IN_MINUTES = 10
 
 
 def next_step(page: Page):
@@ -140,6 +141,25 @@ def verify(page: Page, f: dict, a: dict) -> bool:
         return False
 
 
+def wait_for_sign_in(page, headed: bool, minutes: int = SIGN_IN_MINUTES) -> bool:
+    """You sign in (or make the account) in the open window; filling carries on once the password box is gone.
+    The engine never types a password: it only watches. Closed window or timeout → False."""
+    if not headed:
+        return False
+    print(f"This site needs you to sign in. Do it in the window; filling continues when you're in (waiting {minutes} min).")
+    for _ in range(minutes * 30):
+        try:
+            page.wait_for_timeout(2000)
+            if not page.locator("input[type=password]").filter(visible=True).count():
+                page.wait_for_timeout(2500)              # the post-login redirect settles
+                read_form.reveal_form(page)
+                if not page.locator("input[type=password]").filter(visible=True).count():
+                    return True
+        except Exception:                                # you closed the window
+            return False
+    return False
+
+
 def prep(role_id: int, headed: bool = True, upload: bool = True, profile: dict | None = None) -> dict:
     con = db.connect()
     role = con.execute("select * from roles where id = ?", (role_id,)).fetchone()
@@ -157,13 +177,10 @@ def prep(role_id: int, headed: bool = True, upload: bool = True, profile: dict |
         page.goto(role["url"], wait_until="load")
         page.wait_for_timeout(2500)                       # some boards never go network-idle (analytics polling)
         read_form.reveal_form(page)
-        if page.locator("input[type=password]").filter(visible=True).count():
-            # Workday and friends: an account first. Leave the window with you; the login is remembered next time.
+        if page.locator("input[type=password]").filter(visible=True).count() and not wait_for_sign_in(page, headed):
+            # Workday and friends: an account first. The login is remembered next time (persistent profile).
             con.execute("update roles set status = 'blocked', blocked_reason = 'sign-in needed: sign in, then Prep again' where id = ?", (role_id,))
             con.commit()
-            if headed:
-                print("This site needs you to sign in (or create an account). Do that in the window, close it, then Prep again.")
-                page.wait_for_event("close", timeout=0)
             ctx.close()
             return {"role_id": role_id, "blocked": "sign-in needed", "fields": 0, "filled": 0, "needs_you": []}
         plan: list[dict] = []
@@ -190,7 +207,7 @@ def prep(role_id: int, headed: bool = True, upload: bool = True, profile: dict |
         summary = {"role_id": role_id, "url": role["url"], "fields": len(plan),
                    "filled": sum(a["result"] == "filled" for a in plan),
                    "needs_you": [a["label"] for a in plan if a["result"] in ("needs_you", "failed")],
-                   "answers": [{k: v for k, v in a.items() if k != "options"} for a in plan]}
+                   "answers": [{k: v for k, v in a.items() if k != "options" or a["result"] == "needs_you"} for a in plan]}
         con.execute("update roles set next_action = ?, notes = coalesce(notes, '') where id = ?",
                     (f"Prepped {summary['filled']}/{summary['fields']}; you: {len(summary['needs_you'])} question(s), then Submit", role_id))
         con.execute("insert into events (role_id, at, type, summary) values (?, datetime('now'), 'note', ?)",
@@ -215,6 +232,10 @@ def _selfcheck() -> None:
         assert next_step(page) is None                     # a Submit on screen: stop, it's yours
         page.set_content("<form><input id=a></form>")
         assert next_step(page) is None
+        page.set_content("<input type=password id=pw><script>setTimeout(() => pw.remove(), 2500)</script>")
+        assert wait_for_sign_in(page, True, minutes=1)     # you signed in: the password box went away
+        page.set_content("<input type=password>")
+        assert not wait_for_sign_in(page, False)           # headless: nobody to sign in, block
         b.close()
 
 
