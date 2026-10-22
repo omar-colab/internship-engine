@@ -49,8 +49,8 @@ def run() -> dict:
     seed = json.loads(SEED.read_text())["companies"]
     from . import shared
     pulled = shared.pull_feed()                    # fresh shared feed → no need to poll the boards it covers
-    covered = {b["name"] for b in shared.load_boards()} | {c["name"] for c in seed if "board" in c} if pulled else set()
-    for r in pulled or []:
+    covered = set(pulled["covered"]) if pulled else set()
+    for r in pulled["roles"] if pulled else []:
         found += 1
         new += db.upsert_role(con, {**r, "key": r["url"], "source": r["ats"]})
     seed = [c for c in seed if c["name"] not in covered]
