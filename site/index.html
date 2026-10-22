@@ -67,10 +67,10 @@ h1 { font: 800 68px/.98 var(--display); letter-spacing: -.045em; margin: 0 0 22p
 section { padding: 96px 0; }
 h2 { font: 800 44px/1.02 var(--display); letter-spacing: -.035em; margin: 0 0 16px; max-width: 18ch; }
 .lead { font-size: 19px; color: var(--ink-2); max-width: 56ch; margin: 0 0 44px; }
-.motion-ready [data-reveal] { opacity: 0; transform: translateY(18px); transition: opacity 560ms ease, transform 560ms cubic-bezier(.2,.75,.2,1); }
-.motion-ready [data-reveal].is-visible { opacity: 1; transform: translateY(0); }
-.motion-ready .feats > [data-reveal]:nth-child(even) { transition-delay: 80ms; }
-.motion-ready .steps > [data-reveal]:nth-child(2), .motion-ready .rules > [data-reveal]:nth-child(2) { transition-delay: 90ms; }
+.motion-ready [data-reveal], .motion-ready .feats > .feat, .motion-ready .rules > .rule { opacity: 0; transform: translateY(18px); transition: opacity 560ms ease, transform .24s ease, box-shadow .24s ease; }
+.motion-ready .is-visible { opacity: 1; transform: translateY(0); }
+.motion-ready .feats > .feat:nth-child(even) { transition-delay: 80ms; }
+.motion-ready .steps > [data-reveal]:nth-child(2), .motion-ready .rules > .rule:nth-child(2) { transition-delay: 90ms; }
 .nums { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border-radius: 18px; overflow: hidden; box-shadow: 0 0 0 1px var(--line); }
 .nums div { background: var(--sheet); padding: 28px 24px; }
 .nums b { display: block; font: 800 48px/1 var(--display); letter-spacing: -.045em; color: var(--blue); }
@@ -182,9 +182,9 @@ footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wr
       <h2>Four jobs, done for you every day.</h2>
       <p class="lead">It wakes up at 7:00, does the busywork, and leaves you a short list of things only you can do.</p>
       <div class="feats">
-        <div class="feat" data-reveal><h3>Find</h3><p>Workday, Greenhouse, Lever, Ashby, iCIMS, UKG, Oracle and Phenom boards, plus public internship lists. When a company shows up once, its board gets watched from then on.</p></div>
-        <div class="feat" data-reveal><h3>Rank</h3><p>Every posting is read in full and scored 1 to 5 against your resume, with the reason in one line. Graduate-only roles, the wrong class year and seasons already past are hidden before you see them.</p></div>
-        <div class="feat big" data-reveal>
+        <div class="feat"><h3>Find</h3><p>Workday, Greenhouse, Lever, Ashby, iCIMS, UKG, Oracle and Phenom boards, plus public internship lists. When a company shows up once, its board gets watched from then on.</p></div>
+        <div class="feat"><h3>Rank</h3><p>Every posting is read in full and scored 1 to 5 against your resume, with the reason in one line. Graduate-only roles, the wrong class year and seasons already past are hidden before you see them.</p></div>
+        <div class="feat big">
           <div><h3>Fill the forms other autofills give up on</h3>
             <p>It clicks through to the real form, opens every dropdown to read the hidden options, types into search-as-you-type fields, attaches your resume, then checks each answer stuck and refills anything the page wiped. Anything your resume doesn't back is left for you, never guessed.</p></div>
           <div class="form" aria-label="Example: an application after filling">
@@ -196,8 +196,8 @@ footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wr
             <div class="q"><span>Can you work in our Chicago office 3–4 days a week?</span><b class="you">Yours to answer</b></div>
           </div>
         </div>
-        <div class="feat" data-reveal><h3>Track, from your inbox</h3><p>Confirmation, assessment, interview and rejection emails update each application on their own. Quiet for two weeks? It reminds you to follow up.</p></div>
-        <div class="feat" data-reveal><h3>Warm leads first</h3><p>Drop in your LinkedIn connections and roles where you know someone get flagged, with a short note drafted from your real experience, ready to copy.</p></div>
+        <div class="feat"><h3>Track, from your inbox</h3><p>Confirmation, assessment, interview and rejection emails update each application on their own. Quiet for two weeks? It reminds you to follow up.</p></div>
+        <div class="feat"><h3>Warm leads first</h3><p>Drop in your LinkedIn connections and roles where you know someone get flagged, with a short note drafted from your real experience, ready to copy.</p></div>
       </div>
     </div>
   </section>
@@ -223,9 +223,9 @@ footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wr
       <h2>Three rules it never breaks.</h2>
       <p class="lead">Automation should take the busywork, not your judgment.</p>
       <div class="rules">
-        <div class="rule" data-reveal><h3>It never clicks Submit</h3><p>Every application ends with you reading it and pressing the button yourself.</p></div>
-        <div class="rule" data-reveal><h3>It never invents</h3><p>Every answer points at a line in your profile or resume. No backing, no answer.</p></div>
-        <div class="rule" data-reveal><h3>It never pretends to be you</h3><p>No CAPTCHA solving, no LinkedIn automation, no sending messages. Drafts only.</p></div>
+        <div class="rule"><h3>It never clicks Submit</h3><p>Every application ends with you reading it and pressing the button yourself.</p></div>
+        <div class="rule"><h3>It never invents</h3><p>Every answer points at a line in your profile or resume. No backing, no answer.</p></div>
+        <div class="rule"><h3>It never pretends to be you</h3><p>No CAPTCHA solving, no LinkedIn automation, no sending messages. Drafts only.</p></div>
       </div>
     </div>
   </section>
@@ -256,7 +256,7 @@ if (!matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObse
     }
   }, { threshold: 0.12, rootMargin: "0px 0px -24px 0px" });
   document.documentElement.classList.add("motion-ready");
-  document.querySelectorAll("[data-reveal]").forEach(el => observer.observe(el));
+  document.querySelectorAll("[data-reveal], .feats > .feat, .rules > .rule").forEach(el => observer.observe(el));
 }
 </script>
 </body>
