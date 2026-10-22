@@ -8,6 +8,7 @@
   schedule [off]     install / remove the launchd timers
   fill <id> [--dry-run]   open the posting, fill what your profile backs, stop before Submit
   digest             this week in one page (data/digest/) + a notification; Sundays at 18:00 when scheduled
+  resume variants | tailor <id> | check <file.json>   honest variants and per-role PDFs
   boards             share the job boards you've found: writes boards.json
   feed-build         build the shared daily feed (GitHub Actions runs this)
   token              the key to paste into the browser extension's settings
@@ -40,6 +41,14 @@ elif cmd == "fill":
 elif cmd == "digest":
     from . import report
     print(report.digest())
+elif cmd == "resume":
+    from . import resume
+    sub = args[0] if args else "variants"
+    if sub == "check":
+        problems = resume.check(resume.master(), json.loads(open(args[1]).read()))
+        out({"honest": not problems, "problems": problems})
+    else:
+        out(resume.variants() if sub == "variants" else resume.tailor(int(args[1])))
 elif cmd in ("boards", "feed-build"):
     from . import shared
     out(shared.export_boards() if cmd == "boards" else shared.build_feed())

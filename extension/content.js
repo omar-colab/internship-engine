@@ -164,7 +164,7 @@
     if (res?.error) return ui.error(res.error);
     let resumeFile = null;
     if (qs.some(q => q.kind === "file")) {
-      const r = await new Promise(ok => chrome.runtime.sendMessage({ type: "resume" }, ok));
+      const r = await new Promise(ok => chrome.runtime.sendMessage({ type: "resume", url: location.href }, ok));
       if (r?.b64) resumeFile = new File([Uint8Array.from(atob(r.b64), c => c.charCodeAt(0))], r.name, { type: "application/pdf" });
     }
     const plan = res.answers;

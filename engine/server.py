@@ -171,16 +171,29 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/api/state":
             return self._send(200, json.dumps(state()).encode())
+        if m := re.fullmatch(r"/api/resume/(\d+)\.pdf", self.path):
+            pdf = db.DATA / "resumes" / f"{m[1]}.pdf"
+            return self._send(200, pdf.read_bytes(), "application/pdf") if pdf.exists() else self._send(404, b'{"error":"not tailored yet"}')
         if self.path in ("/", "/index.html"):
             return self._send(200, (WEB / "index.html").read_bytes(), "text/html; charset=utf-8")
         self._send(404, b'{"error":"not found"}')
 
     def do_POST(self):
+        try:
+            self._post()
+        except Exception as e:                  # never drop the connection: say what broke
+            self._send(500, json.dumps({"error": f"{type(e).__name__}: {e}"}).encode())
+
+    def _post(self):
         if self.path.startswith("/ext/"):       # the browser extension: token required, any page origin refused
             if not self._ext_ok():
                 return self._send(401, b'{"error":"wrong or missing engine token"}')
             if self.path == "/ext/resume":      # the PDF itself, so the extension can attach it like a drag-and-drop
+                body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
+                role = find_role(db.connect(), body.get("url", "")) if body.get("url") else None
                 pdf = WEB.parent / score.load_profile().get("resume_pdf", "data/resume.pdf")
+                if role and (db.DATA / "resumes" / f"{role['id']}.pdf").exists():
+                    pdf = db.DATA / "resumes" / f"{role['id']}.pdf"        # tailored for this posting
                 if not pdf.exists():
                     return self._send(404, b'{"error":"no resume_pdf in your profile"}')
                 data = pdf.read_bytes()
@@ -203,10 +216,16 @@ class Handler(BaseHTTPRequestHandler):
                 return self.wfile.write(out)
             except (ValueError, TypeError, KeyError) as e:
                 return self._send(400, json.dumps({"error": str(e)}).encode())
-        m = re.fullmatch(r"/api/role/(\d+)(/prep)?", self.path)
+        m = re.fullmatch(r"/api/role/(\d+)(/prep|/tailor)?", self.path)
         # same-origin only: a page on another site must not be able to change your tracker
         if not m or self.headers.get("Origin") not in (None, f"http://{self.headers.get('Host')}"):
             return self._send(403, b'{"error":"forbidden"}')
+        if m[2] == "/tailor":                   # reorder your resume for this posting; never adds a word
+            from . import resume
+            try:
+                return self._send(200, json.dumps(resume.tailor(int(m[1]))).encode())
+            except SystemExit as e:
+                return self._send(400, json.dumps({"error": str(e)}).encode())
         if m[2]:                                # Prep: a visible browser on this laptop, filled up to (never past) Submit
             subprocess.Popen([sys.executable, "-m", "engine", "fill", m[1]], cwd=str(WEB.parent),
                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)

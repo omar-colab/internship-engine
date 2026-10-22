@@ -15,6 +15,7 @@ your resume, tracker and email never leave it.
 | **Fill** | Clicks through to the real form, opens every dropdown to read hidden options, types into search-as-you-type fields, attaches your resume, verifies each answer and refills what the page wiped. Works from the dashboard (a browser window it drives) or the Chrome extension (on the page you're on). |
 | **Track** | Confirmation, assessment, interview and rejection emails update each application. Quiet for two weeks → a follow-up reminder. |
 | **Warm leads** | Your LinkedIn connections export flags roles where you know someone, with a short note built from your real experience. |
+| **Resumes** | Variants per track and a tailored PDF per role. Only your own lines, reordered for the posting; rewording (Claude Code `/tailor`) must pass an honesty check that rejects any new number, tool, employer or skill. |
 | **Measure** | Reply and interview rates by track and source, plus a Sunday digest. |
 
 ## Three rules it never breaks
@@ -61,11 +62,14 @@ reads your inbox and never sends, labels or deletes anything.
 daily | find | resolve | score | warm     the morning pipeline, or one step of it
 listen | import <mail.json>               inbox → application statuses
 fill <role id> [--dry-run]                fill an application in a visible browser; you submit
+resume variants | tailor <id> | check <f>  honest resume variants and per-role PDFs
 digest                                    this week in one page
 gmail | token | schedule [off] | serve
 ```
 
-In Claude Code: `/setup`, and `/rank` to have Claude re-read your top 30 roles against your resume.
+In Claude Code: `/setup`, `/rank` (Claude re-reads your top 30 roles against your resume), and `/tailor <id>`
+(rewords for one posting, checked line by line against your master resume). Your master resume lives at
+`data/resume.json`: sections → entries (org, role, dates, bullets) → skill lines; `/setup` builds it from your PDF.
 
 ## Privacy
 

@@ -17,11 +17,12 @@ async function call(path, body = {}) {
   }
 }
 
-async function resume() {
+async function resume(url) {
   // The resume PDF, so the page's file input can be filled the way a drag-and-drop would.
   const { token } = await chrome.storage.local.get("token");
   try {
-    const r = await fetch(ENGINE + "/ext/resume", { method: "POST", headers: { "X-Engine-Token": token } });
+    const r = await fetch(ENGINE + "/ext/resume", { method: "POST", headers: { "Content-Type": "application/json", "X-Engine-Token": token },
+                                                    body: JSON.stringify({ url }) });
     if (!r.ok) return { error: "no-resume" };
     const buf = new Uint8Array(await r.arrayBuffer());
     let bin = "";
@@ -33,6 +34,6 @@ async function resume() {
 }
 
 chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
-  (msg.type === "resume" ? resume() : call(msg.path, msg.body)).then(reply);
+  (msg.type === "resume" ? resume(msg.url) : call(msg.path, msg.body)).then(reply);
   return true; // async reply
 });

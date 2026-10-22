@@ -9,7 +9,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: uv sync && uv run playwright install --with-deps chromium
       - run: |
-          for m in engine.ats engine.feed engine.finder engine.listener engine.resolve engine.score engine.warm engine.answers engine.report engine.shared; do
+          for m in engine.ats engine.feed engine.finder engine.listener engine.resolve engine.score engine.warm engine.answers engine.report engine.resume engine.shared; do
             uv run python -m $m
           done
           uv run python -m engine.fill --selfcheck

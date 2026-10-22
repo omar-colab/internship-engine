@@ -321,7 +321,9 @@ function openDrawer(id) {
       ${r.eligible === 2 ? `<div class="callout warm"><b>Check first:</b> ${esc(r.eligible_why)}</div>` : ""}
       ${r.eligible === 0 ? `<div class="callout warm"><b>Probably not eligible:</b> ${esc(r.eligible_why)}</div>` : ""}
       ${warmBlock(r)}
-      <div class="dact">${openLink(r)}${r.status === "new" ? act(r, "queued", "Queue to apply", true) + act(r, "skipped", "Skip") : status(r.status)}</div></div>
+      <div class="dact">${openLink(r)}${r.status === "new" ? act(r, "queued", "Queue to apply", true) + act(r, "skipped", "Skip") : status(r.status)}
+        ${btn(r.resume_variant ? "Re-tailor resume" : "Tailor resume", `data-tailor="${r.id}"`)}${r.resume_variant ? `<a class="btn" href="/api/resume/${r.id}.pdf" target="_blank">Open tailored PDF</a>` : ""}</div>
+      <div id="tailored"></div></div>
     <div class="dbody">${r.description ? `<div class="desc">${esc(r.description)}${r.description.length >= 1500 ? "…" : ""}</div>` : `<p class="empty">No description fetched yet. Open the posting to read it.</p>`}</div>`;
   document.body.classList.add("open");
   $("#drawer").setAttribute("aria-hidden", "false");
@@ -356,6 +358,16 @@ document.addEventListener("click", async e => {
   if (s) { await post(`/api/role/${s.dataset.id}`, { status: s.dataset.s }); closeDrawer(); return load(); }
   const pr = t.closest("[data-prep]");
   if (pr) { await fetch(`/api/role/${pr.dataset.prep}/prep`, { method: "POST" }); pr.textContent = "Opening a browser…"; pr.disabled = true; setTimeout(load, 15000); return; }
+  const tl = t.closest("[data-tailor]");
+  if (tl) {
+    tl.textContent = "Tailoring…"; tl.disabled = true;
+    const res = await (await fetch(`/api/role/${tl.dataset.tailor}/tailor`, { method: "POST" })).json();
+    $("#tailored").innerHTML = res.error ? `<div class="callout warm">${esc(res.error)}</div>` :
+      `<div class="callout"><b>Same lines, new order.</b> Nothing added or reworded.<ul>${(res.moved.length ? res.moved : ["Already in the best order for this posting."]).map(x => `<li>${esc(x)}</li>`).join("")}</ul>
+       <a class="btn go" style="margin-top:10px" href="/api/resume/${tl.dataset.tailor}.pdf" target="_blank">Open tailored PDF</a></div>`;
+    tl.textContent = "Re-tailor resume"; tl.disabled = false;
+    return;
+  }
   const lg = t.closest("[data-log]");
   if (lg) { await post(`/api/role/${lg.dataset.log}`, { log: "Followed up" }); return load(); }
   const tr = t.closest("[data-track]");

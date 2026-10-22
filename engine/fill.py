@@ -91,7 +91,7 @@ def fill_one(page: Page, f: dict, a: dict, upload: bool) -> str:
         if kind == "file":
             if not upload:
                 return "skipped"
-            el.set_input_files(str(ROOT / ans))
+            el.set_input_files(str(ans if Path(ans).is_absolute() else ROOT / ans))
         elif kind in ("select-one", "select-multiple"):
             el.select_option(label=ans)
         elif kind == "combobox":
@@ -146,6 +146,9 @@ def prep(role_id: int, headed: bool = True, upload: bool = True, profile: dict |
     if not role or not role["url"]:
         raise SystemExit("That role has no posting link yet.")
     p = profile or score.load_profile()
+    tailored = db.DATA / "resumes" / f"{role_id}.pdf"
+    if tailored.exists() and profile is None:              # a resume ordered for this posting, if you made one
+        p = {**p, "resume_pdf": str(tailored.relative_to(ROOT)) if tailored.is_relative_to(ROOT) else str(tailored)}
     resume = (ROOT / p.get("resume", "data/resume.txt")).read_text() if (ROOT / p.get("resume", "data/resume.txt")).exists() else ""
     with sync_playwright() as pw:
         # a persistent profile keeps your logins (Workday, etc.) between runs; it lives in data/, never committed
