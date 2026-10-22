@@ -11,6 +11,7 @@ import json
 import re
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
+from urllib.parse import urlsplit
 
 import httpx
 
@@ -33,7 +34,7 @@ def same_title(a: str, b: str) -> bool:
 
 def find_board(homepage: str) -> tuple[str, dict] | None:
     """Homepage → board link on it, or one careers link away."""
-    r = httpx.get(homepage, headers=ats.UA, follow_redirects=True, timeout=15)
+    r = ats._safe_request("GET", homepage, headers=ats.UA)
     if found := ats.detect_html(r.text):
         return found
     seen = set()
@@ -43,8 +44,8 @@ def find_board(homepage: str) -> tuple[str, dict] | None:
             continue
         seen.add(url)
         try:
-            page = httpx.get(url, headers=ats.UA, follow_redirects=True, timeout=15)
-        except httpx.HTTPError:
+            page = ats._safe_request("GET", url, headers=ats.UA)
+        except (httpx.HTTPError, ValueError):
             continue
         if found := ats.detect_html(page.text) or ats.detect_url(str(page.url)) or ats.detect_phenom(page.text, str(page.url)):
             return found
@@ -72,12 +73,30 @@ def guess_board(name: str) -> tuple[str, dict] | None:
                   ("lever", f"https://api.lever.co/v0/postings/{s}?mode=json&limit=1")]
         for kind, url in probes:
             try:
-                r = httpx.get(url, timeout=8)
-            except httpx.HTTPError:
+                r = ats._safe_request("GET", url, timeout=8)
+            except (httpx.HTTPError, ValueError):
                 continue
             if r.status_code == 200 and r.text.lstrip()[:1] in "[{" and '"ok":false' not in r.text:
                 return kind, {"token": s}
     return None
+
+
+def _search_api_post(url: str, headers) -> bool:
+    """Only allow the read-only JSON searches needed to discover supported boards."""
+    try:
+        parts = urlsplit(url)
+    except ValueError:
+        return False
+    host, path = (parts.hostname or "").lower(), parts.path
+    content_type = headers.get("content-type", "").split(";", 1)[0].strip().lower()
+    if content_type != "application/json":
+        return False
+    return bool(
+        re.fullmatch(r"[a-z0-9-]+\.wd\d+\.myworkdayjobs\.com", host)
+        and re.fullmatch(r"/wday/cxs/[a-z0-9-]+/[A-Za-z0-9_-]+/jobs", path)
+        or host in {"recruiting.ultipro.com", "recruiting2.ultipro.com"} and path == "/JobBoardView/LoadSearchResults"
+        or host == "apply.workable.com" and re.fullmatch(r"/api/v\d+/accounts/[a-z0-9-]+/jobs", path)
+    )
 
 
 def render_board(homepage: str) -> tuple[str, dict] | None:
@@ -85,11 +104,54 @@ def render_board(homepage: str) -> tuple[str, dict] | None:
     An embedded board always calls its own API (…myworkdayjobs.com/wday/cxs/…, boards-api.greenhouse.io/…)."""
     from playwright.sync_api import sync_playwright
     seen: list[str] = []
+    try:
+        ats._checked_url(homepage)
+    except ValueError:
+        return None
+
+    clients = {}
+    request_count = 0
     with sync_playwright() as p:
-        browser = p.chromium.launch()
-        page = browser.new_page(user_agent=ats.UA["User-Agent"])
-        page.on("request", lambda req: seen.append(req.url))
+        browser = p.chromium.launch(args=["--disable-dns-prefetch", "--disable-preconnect", "--disable-webrtc"])
         try:
+            context = browser.new_context(user_agent=ats.UA["User-Agent"], service_workers="block")
+            page = context.new_page()
+
+            def fetch(route):
+                nonlocal request_count
+                request = route.request
+                request_count += 1
+                if request_count > 64:
+                    route.abort()
+                    return
+                if request.url.startswith(("data:", "blob:", "about:")):
+                    route.continue_()
+                    return
+                if request.method == "POST" and not _search_api_post(request.url, request.headers):
+                    route.abort()
+                    return
+                try:
+                    host = (urlsplit(request.url).hostname or "").lower()
+                    if not host:
+                        route.abort()
+                        return
+                    client = clients.get(host)
+                    if client is None:
+                        client = clients[host] = ats._safe_client()
+                    response = ats._safe_request(request.method, request.url, headers=request.headers,
+                                                 content=request.post_data_buffer, timeout=ats.FETCH_TIMEOUT,
+                                                 _client=client)
+                except (httpx.HTTPError, ValueError):
+                    route.abort()
+                    return
+                seen.append(request.url)
+                headers = {k: v for k, v in response.headers.items()
+                           if k.lower() not in {"content-encoding", "content-length", "transfer-encoding", "connection",
+                                                "keep-alive", "upgrade", "alt-svc"}}
+                route.fulfill(status=response.status_code, headers=headers, body=response.content)
+
+            context.route("**/*", fetch)
+            page.route_web_socket("**/*", lambda ws: ws.close())
             page.goto(homepage, wait_until="domcontentloaded", timeout=20000)
             page.wait_for_timeout(2500)
             if found := ats.detect_html(page.content() + " ".join(seen)):
@@ -103,6 +165,8 @@ def render_board(homepage: str) -> tuple[str, dict] | None:
             return ats.detect_html(" ".join(seen))
         finally:
             browser.close()
+            for client in clients.values():
+                client.close()
     return None
 
 
@@ -164,6 +228,12 @@ def _selfcheck() -> None:
     assert search_terms("Technology Risk Consulting Intern - Summer 2027") == "technology risk consulting"
     html = '<a class="nav" href="/about/careers">Careers</a><a href="/x">Blog</a>'
     assert CAREERS_LINK.findall(html)[0][0] == "/about/careers"
+    assert _search_api_post("https://otis.wd504.myworkdayjobs.com/wday/cxs/otis/External/jobs",
+                            {"content-type": "application/json; charset=utf-8"})
+    assert not _search_api_post("https://example.com/apply", {"content-type": "application/x-www-form-urlencoded"})
+    assert not _search_api_post("https://otis.wd504.myworkdayjobs.com/wday/cxs/otis/External/apply",
+                                {"content-type": "application/json"})
+    assert render_board("http://127.0.0.1/") is None and render_board("https://[::1]/") is None
 
 
 if __name__ == "__main__":
