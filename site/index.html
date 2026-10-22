@@ -215,17 +215,19 @@ footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wr
   <section id="start">
     <div class="wrap">
       <h2>Set it up in about ten minutes.</h2>
-      <p class="lead">You need a Mac or Linux laptop, Chrome, and Claude Code (a Claude Pro plan works).</p>
+      <p class="lead">You need a Mac or Linux laptop, Chrome, and uv. Claude Code is optional for assisted setup.</p>
       <div class="steps">
-        <div class="step"><h3>Get the engine</h3><p>Clone the repo and install it.</p><pre><code>git clone https://github.com/omar-colab/internship-engine
+        <div class="step"><h3>Get the engine</h3><p>Clone the repo, install it, and copy the example profile.</p><pre><code>git clone https://github.com/omar-colab/internship-engine
 cd internship-engine
-uv sync</code></pre></div>
-        <div class="step"><h3>Tell it about you</h3><p>Open the folder in Claude Code and type <code>/setup</code>. It reads your resume, asks a few questions, and runs your first search.</p></div>
-        <div class="step"><h3>Add the extension</h3><p>In Chrome, open <code>chrome://extensions</code>, turn on Developer mode, choose Load unpacked, and pick the <code>extension</code> folder. Paste your token from <code>engine token</code>.</p></div>
+uv sync
+mkdir -p data
+cp profile.example.json data/profile.json</code></pre></div>
+        <div class="step"><h3>Tell it about you</h3><p>Edit <code>data/profile.json</code> with your information. Or use Claude Code's optional <code>/setup</code> flow to build the profile from your resume and run your first search.</p></div>
+        <div class="step"><h3>Add the extension</h3><p><a href="https://github.com/omar-colab/internship-engine/releases/latest">Download the latest GitHub Release</a>, extract it, and load the folder containing <code>manifest.json</code> from <code>chrome://extensions</code> with Developer mode on. Paste your token from <code>engine token</code>.</p></div>
       </div>
     </div>
   </section>
 </main>
-<footer><div class="wrap"><span>Internship Engine · MIT licensed · Built by students, for students.</span><span>Not affiliated with JobRight.</span></div></footer>
+<footer><div class="wrap"><span>Internship Engine · MIT licensed · Built by students, for students.</span><span><a href="privacy.html">Privacy</a> · Not affiliated with JobRight.</span></div></footer>
 </body>
 </html>

@@ -4,7 +4,7 @@ Finds internships on employers' own job boards, ranks them against your resume, 
 other autofills give up on, and tracks everything from your inbox. Free, open source, and it runs on your laptop:
 your resume, tracker and email never leave it.
 
-**New here?** Clone it, open the folder in [Claude Code](https://claude.com/claude-code), and type `/setup`.
+**New here?** Start with the [quick setup guide](#set-up). The Chrome extension is in [GitHub Releases](https://github.com/omar-colab/internship-engine/releases/latest); it connects to an engine running on your own computer.
 
 ## What it does
 
@@ -25,27 +25,30 @@ your resume, tracker and email never leave it.
 
 ## Set up
 
-Needs macOS or Linux, Chrome, [uv](https://docs.astral.sh/uv/), and Claude Code (for `/setup`).
+Needs macOS or Linux, Chrome, and [uv](https://docs.astral.sh/uv/). Claude Code is optional for the assisted `/setup` flow.
 
 ```sh
 git clone https://github.com/omar-colab/internship-engine
 cd internship-engine
-uv sync && uv run playwright install chromium
-claude        # then type /setup
+uv sync
+mkdir -p data
+cp profile.example.json data/profile.json
+# edit data/profile.json, then start the engine
+uv run python -m engine serve
 ```
 
-`/setup` reads your resume, builds `data/profile.json` from facts on it only, asks a few questions (tracks,
-locations, work authorization), and runs your first search. By hand instead:
+To run the browser-based application filler, also install its browser once with `uv run playwright install chromium`.
+For assisted setup, run `claude` in the repository and type `/setup`; it builds `data/profile.json` from facts on your resume and asks about tracks, locations and work authorization.
+
+To run the daily job search after editing your profile:
 
 ```sh
-cp profile.example.json data/profile.json        # fill it in
 uv run python -m engine daily                    # find → resolve → score → warm
 uv run python -m engine serve                    # dashboard at http://127.0.0.1:8765
 uv run python -m engine schedule                 # every morning at 7:00, inbox every 2 h, digest Sundays
 ```
 
-**Chrome extension:** `chrome://extensions` → Developer mode → Load unpacked → the `extension` folder, then paste
-the key from `uv run python -m engine token` into the extension.
+**Chrome extension:** Follow [the extension install guide](extension/README.md). GitHub Releases provides a ready-to-load ZIP. Chrome requires Developer mode for GitHub-hosted ZIPs; true one-click installation needs a Chrome Web Store listing.
 
 **Inbox (optional):** `uv run python -m engine gmail` stores a Gmail app password in your macOS Keychain. The listener
 reads your inbox and never sends, labels or deletes anything.
@@ -68,6 +71,7 @@ In Claude Code: `/setup`, and `/rank` to have Claude re-read your top 30 roles a
 
 Everything personal lives in `data/`, which git ignores. The dashboard and the engine's API listen on
 `127.0.0.1` only. The extension talks to the engine with a key only you have, and web pages never see it.
+See the hosted [extension privacy notice](https://omar-colab.github.io/internship-engine/privacy.html).
 
 ## The shared feed
 
