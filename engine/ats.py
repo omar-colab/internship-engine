@@ -341,7 +341,7 @@ def taleo(company: str, b: dict, query: str = "intern") -> list[dict]:
         headers = {"tz": str(int(-offset.total_seconds() / 60)) if offset else "0",
                    "tzname": now.tzname() or "UTC"}
         out = []
-        for page_no in range(1, 9):                    # 8-page cap per company to bound public requests
+        for page_no in range(1, 9):                    # shortcut: cap at 8 pages, raise if target boards need deeper searches
             response = client.post(
                 f"{base}/careersection/rest/jobboard/searchjobs",
                 params={"lang": "en", "portal": portal[1]},
