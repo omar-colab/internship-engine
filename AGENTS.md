@@ -8,6 +8,8 @@ Two AI agents build this project in parallel: **Codex** (PRs from `codex/*` bran
 - Tasks for Codex are **GitHub issues labeled `codex`**. Take the oldest open one labeled `priority` first, then the oldest open one.
   Comment on the issue when you start, open a PR that says `Closes #N`, and keep one issue per PR.
 - Claude Code works on whatever isn't claimed by an open `codex` issue. Issues labeled `claude` are Claude Code's.
+- A PR labeled `changes-requested` has a review comment from Claude Code. Fix that before starting anything new,
+  then remove the label in the same push. Claude Code and Codex share one GitHub account, so reviews arrive as comments.
 - Found something outside your task? Open an issue instead of fixing it in your PR.
 
 ## Who owns what (so two agents never edit the same file at once)

@@ -301,6 +301,15 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(200, b'{"ok":true}')
             except ValueError as e:
                 return self._send(400, json.dumps({"error": str(e)}).encode())
+        if self.path == "/api/contacts-import":    # LinkedIn's Connections.csv, dropped on People
+            if not self._same_origin():
+                return self._send(403, b'{"error":"forbidden"}')
+            from . import warm
+            try:
+                n = warm.import_csv(str(self._body().get("csv", "")))
+            except ValueError as e:
+                return self._send(400, json.dumps({"error": str(e)}).encode())
+            return self._send(200, json.dumps({"imported": n} | warm.run()).encode())
         if self.path == "/api/contact":
             if not self._same_origin():
                 return self._send(403, b'{"error":"forbidden"}')
@@ -369,6 +378,7 @@ def _selfcheck() -> None:
     assert req("POST", "/api/contact", f"127.0.0.1:{port}", headers=big) == 413
     assert req("POST", "/api/answer", f"127.0.0.1:{port}", headers={"Content-Length": "-1"}) == 413
     assert req("POST", "/api/answer", f"127.0.0.1:{port}", headers={"Origin": "http://evil.example"}) == 403
+    assert req("POST", "/api/contacts-import", f"127.0.0.1:{port}", headers={"Origin": "http://evil.example"}) == 403
     assert req("POST", "/ext/answers", f"127.0.0.1:{port}", headers=big | {"X-Engine-Token": token()}) == 413
     srv.shutdown()
 

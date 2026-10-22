@@ -24,14 +24,34 @@ def company_key(name: str) -> str:
     return re.sub(r"[^a-z0-9]", "", SUFFIX.sub(" ", (name or "").lower()))
 
 
+KEEP = ("First Name", "Last Name", "Company", "Position", "URL")
+
+
+def parse(text: str) -> list[dict]:
+    lines = text.lstrip("\ufeff").splitlines()
+    start = next((i for i, l in enumerate(lines) if l.startswith("First Name")), 0)   # LinkedIn puts notes above the header
+    return [{k: r.get(k) for k in KEEP} for r in csv.DictReader(io.StringIO("\n".join(lines[start:]))) if r.get("Company")]
+
+
 def load_contacts(path=CONTACTS) -> list[dict]:
-    if not path.exists():
-        return []
-    text = path.read_text(encoding="utf-8-sig")
-    start = next((i for i, l in enumerate(text.splitlines()) if l.startswith("First Name")), 0)   # LinkedIn puts notes above the header
-    rows = csv.DictReader(io.StringIO("\n".join(text.splitlines()[start:])))
-    keep = ("First Name", "Last Name", "Company", "Position", "URL")
-    return [{k: r.get(k) for k in keep} for r in rows if r.get("Company")]
+    return parse(path.read_text(encoding="utf-8-sig")) if path.exists() else []
+
+
+def import_csv(text: str, path=CONTACTS) -> int:
+    """A LinkedIn Connections.csv dropped on the dashboard. Parsed in memory; only the five columns we use reach disk."""
+    rows = parse(text)
+    if not rows:
+        raise ValueError("No connections found. Expected LinkedIn's Connections.csv (First Name, Last Name, Company, Position, URL).")
+    out = io.StringIO()
+    w = csv.DictWriter(out, KEEP, extrasaction="ignore")
+    w.writeheader()
+    w.writerows(rows)
+    path.parent.mkdir(exist_ok=True)
+    tmp = path.with_suffix(".tmp")
+    tmp.touch(mode=0o600)                       # names of people you know: readable by you only
+    tmp.write_text(out.getvalue())
+    tmp.replace(path)
+    return len(rows)
 
 
 def short_title(title: str, location: str = "") -> str:
@@ -99,6 +119,13 @@ def _selfcheck() -> None:
     f.write_text(export)
     row = load_contacts(f)[0]
     assert row["Position"] == "Senior Consultant" and "Email Address" not in row and "sam@" not in str(row), row
+    g = f.with_name("saved.csv")
+    assert import_csv(export, g) == 1 and "sam@" not in g.read_text() and oct(g.stat().st_mode & 0o777) == "0o600"
+    try:
+        import_csv("name,email\nx,y\n", g)
+        raise AssertionError("non-LinkedIn CSV accepted")
+    except ValueError:
+        pass
 
 
 if __name__ == "__main__":

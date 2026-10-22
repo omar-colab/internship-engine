@@ -17,7 +17,7 @@
 import json
 import sys
 
-from . import finder, listener, resolve, schedule, score, server, warm
+from . import db, finder, listener, resolve, schedule, score, server, warm
 
 cmd, args = (sys.argv[1] if len(sys.argv) > 1 else "serve"), sys.argv[2:]
 out = lambda x: print(json.dumps(x, indent=1))
@@ -28,7 +28,8 @@ if cmd == "daily":
 elif cmd in ("find", "resolve", "score", "warm"):
     out({"find": finder, "resolve": resolve, "score": score, "warm": warm}[cmd].run())
 elif cmd == "listen":
-    out(listener.run(listener.fetch_imap()))
+    recent = db.connect().execute("select 1 from runs where job = 'listen' and started > datetime('now', '-3 days')").fetchone()
+    out(listener.run(listener.fetch_imap(days=3 if recent else 14)))   # every 2h: just the new mail; after a gap: catch up
 elif cmd == "import":
     out(listener.run(json.loads(open(args[0]).read())))
 elif cmd == "gmail":

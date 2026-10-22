@@ -355,7 +355,11 @@ function peopleView() {
         ${c.status !== "messaged" || due.has(c.id) ? btn(c.status === "messaged" ? "Messaged again" : "Messaged", `data-pc="${c.id}" data-ps="messaged"`, true) : ""}
         ${btn("Replied", `data-pc="${c.id}" data-ps="replied"`)}${btn("Not now", `data-pc="${c.id}" data-ps="not_now"`)}</div></div>`;
   return `<h1>${C.length ? `${C.length} ${C.length === 1 ? "person" : "people"} you know` : "The people you know"}</h1>
-    <p class="lede">A referral usually beats any number of cold applications. Log who you've messaged and the engine tells you when to follow up.${C.length ? "" : " Drop your LinkedIn connections export at data/contacts.csv, or add people here."}</p>
+    <p class="lede">A referral usually beats any number of cold applications. Log who you've messaged and the engine tells you when to follow up.</p>
+    <div class="callout"><b>Import your LinkedIn connections.</b> On LinkedIn: Settings → Data privacy → Get a copy of your data → <i>Connections</i> → Request archive.
+      LinkedIn emails a link in about 10 minutes; unzip it and pick <code>Connections.csv</code> here. Only names, companies, positions and profile links are kept; emails are dropped.
+      Roles where you know someone get flagged with a short message draft.
+      <label class="btn" style="margin-left:6px">Choose Connections.csv<input type="file" id="liimport" accept=".csv,text/csv" hidden></label> <span id="lires" class="meta"></span></div>
     <form class="addp" id="addp"><input name="name" placeholder="Name" required aria-label="Name"><input name="company" placeholder="Company" aria-label="Company">
       <input name="title" placeholder="Their role" aria-label="Their role"><input name="url" placeholder="LinkedIn URL" aria-label="LinkedIn URL"><button class="btn go">Add person</button></form>
     ${groups.filter(([, g]) => g.length).map(([h, g]) => `<h2>${h} · ${g.length}</h2><div class="sheet">${g.slice(0, 60).map(card).join("")}</div>`).join("")}`;
@@ -431,6 +435,14 @@ function render() {
     e.preventDefault(); const a = new FormData(f).get("answer");
     if (a) { await post("/api/answer", { label: f.dataset.label, answer: a }); f.querySelector("button").textContent = "Saved ✓"; }
   }));
+  $("#liimport")?.addEventListener("change", async e => {
+    const f = e.target.files[0]; if (!f) return;
+    $("#lires").textContent = "Importing…";
+    const r = await fetch("/api/contacts-import", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ csv: await f.text() }) });
+    const j = await r.json();
+    if (!r.ok) { $("#lires").textContent = j.error; return; }
+    $("#lires").textContent = `${j.imported} people imported, ${j.warm_roles} roles where you know someone.`; setTimeout(load, 1500);
+  });
   $("#addp")?.addEventListener("submit", async e => { e.preventDefault(); await post("/api/contact", Object.fromEntries(new FormData(e.target))); load(); });
   document.querySelectorAll("[data-move]").forEach(sel => sel.addEventListener("change", async () => { await post(`/api/role/${sel.dataset.move}`, { status: sel.value }); load(); }));
   document.querySelectorAll("[data-card]").forEach(c => c.addEventListener("dragstart", e => e.dataTransfer.setData("text/plain", c.dataset.card)));

@@ -10,10 +10,12 @@ Two ways in, same rules:
 """
 import email
 import email.header
+import email.utils
 import imaplib
 import json
 import os
 import re
+import sys
 from datetime import datetime, timedelta
 
 from . import db
@@ -171,6 +173,15 @@ def save_gmail_login() -> None:
     print("Saved to your login Keychain. The listener can read your inbox now (read-only).")
 
 
+def sent_at(header: str | None, meta: bytes = b"") -> str:
+    """The Date header; missing or malformed (some mailers) → when Gmail received it."""
+    try:
+        return email.utils.parsedate_to_datetime(header).isoformat()
+    except (TypeError, ValueError):
+        t = imaplib.Internaldate2tuple(meta)
+        return (datetime(*t[:6]) if t else datetime.now()).isoformat()
+
+
 def fetch_imap(days: int = 14) -> list[dict]:
     """ponytail: plain IMAP over SSL with an app password; Gmail OAuth only if app passwords go away."""
     address, password = gmail_login()
@@ -181,17 +192,23 @@ def fetch_imap(days: int = 14) -> list[dict]:
     _, ids = box.search(None, f'(SINCE "{since}")')
     out = []
     for i in ids[0].split():
-        _, data = box.fetch(i, "(BODY.PEEK[HEADER.FIELDS (MESSAGE-ID FROM SUBJECT DATE)] BODY.PEEK[TEXT]<0.600>)")
-        hdr = email.message_from_bytes(data[0][1])
-        dec = lambda v: str(email.header.make_header(email.header.decode_header(v or "")))
-        out.append({"id": hdr["Message-ID"] or i.decode(), "from": email.utils.parseaddr(hdr["From"])[1],
-                    "subject": dec(hdr["Subject"]), "snippet": data[1][1].decode(errors="replace") if len(data) > 1 else "",
-                    "date": email.utils.parsedate_to_datetime(hdr["Date"]).isoformat()})
+        _, data = box.fetch(i, "(INTERNALDATE BODY.PEEK[HEADER.FIELDS (MESSAGE-ID FROM SUBJECT DATE)] BODY.PEEK[TEXT]<0.600>)")
+        try:
+            hdr = email.message_from_bytes(data[0][1])
+            dec = lambda v: str(email.header.make_header(email.header.decode_header(v or "")))
+            out.append({"id": hdr["Message-ID"] or i.decode(), "from": email.utils.parseaddr(hdr["From"])[1],
+                        "subject": dec(hdr["Subject"]), "snippet": data[1][1].decode(errors="replace") if len(data) > 1 else "",
+                        "date": sent_at(hdr["Date"], data[0][0])})
+        except Exception as e:                                 # one odd message never stops the inbox read
+            print(f"skipped message {i.decode()}: {type(e).__name__}", file=sys.stderr)
     box.logout()
     return out
 
 
 def _selfcheck() -> None:
+    assert sent_at("Wed, 21 Oct 2026 09:30:00 -0400").startswith("2026-10-21T09:30")
+    assert sent_at(None, b'1 (INTERNALDATE "21-Oct-2026 09:30:00 +0000" BODY[HEADER] {10}').startswith("2026-10-21")
+    assert sent_at("garbage", b"")                                       # no date anywhere: still a value, no crash
     c = lambda s, sub, sn="": classify(s, sub, sn)
     assert c("contoso@myworkday.com", "Contoso job application: Progress update", "We regret to inform you") == "rejection"
     assert c("donotreply@northwind.com", "Thank you for applying to Northwind!") == "confirmation"
