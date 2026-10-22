@@ -57,6 +57,23 @@ def follow_ups(con) -> list[dict]:
     return out
 
 
+def contacts_due(con) -> list[dict]:
+    """People you messaged whose follow-up date has come."""
+    return [dict(r) for r in con.execute("select * from contacts where status = 'messaged' and next_on <= date('now')")]
+
+
+def new_match_alert() -> int:
+    """After the morning run: a notification when roles scoring 5 appeared today."""
+    con = db.connect()
+    rows = con.execute("""select company from roles where found_on = date('now', 'localtime') and fit = 5 and coalesce(eligible, 1) > 0
+                          and status = 'new'""").fetchall()
+    if rows:
+        names = ", ".join(sorted({r["company"] for r in rows})[:3])
+        subprocess.run(["osascript", "-e", f'display notification "{len(rows)} new fit-5 roles: {names}" with title "Internship Engine"'],
+                       capture_output=True)
+    return len(rows)
+
+
 def health(con) -> list[str]:
     """Plain warnings for the dashboard banner."""
     warn = []

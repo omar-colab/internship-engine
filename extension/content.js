@@ -236,7 +236,11 @@
     const r = res.role;
     if (r?.fit) showFit(r.fit);
     const formHere = [...document.querySelectorAll(FIELDS)].filter(visible).length >= 3;
-    body.innerHTML = `${r ? `<p class="why">${esc(r.fit ? `Fit ${r.fit}/5 · ${r.fit_why || ""}` : "Saved in your tracker")}</p>` : `<p class="why">Not in your tracker yet.</p>`}
+    let kw = null; try { kw = JSON.parse(r?.keywords || "null"); } catch {}
+    const appliedNote = r?.applied_on ? `<p class="note">You applied here on ${esc(r.applied_on)}. Applying twice rarely helps.</p>` : "";
+    const extra = [r?.pay, kw?.asked?.length ? `${kw.have.length}/${kw.asked.length} skills on your resume` : ""].filter(Boolean).join(" · ");
+    body.innerHTML = `${appliedNote}${r ? `<p class="why">${esc(r.fit ? `Fit ${r.fit}/5 · ${r.fit_why || ""}` : "Saved in your tracker")}</p>` : `<p class="why">Not in your tracker yet.</p>`}
+      ${extra ? `<p class="muted" style="margin:-4px 0 10px">${esc(extra)}</p>` : ""}
       ${r?.eligible === 0 ? `<p class="note">You may not be eligible: ${esc(r.eligible_why)}</p>` : r?.eligible === 2 ? `<p class="note">Check first: ${esc(r.eligible_why)}</p>` : ""}
       <div class="row">${r ? "" : `<button class="save">Save job</button>`}${formHere ? `<button class="go fill">Fill application</button>` : ""}</div>
       ${!formHere ? `<p class="muted" style="margin-top:8px">Open the application form and the Fill button appears here.</p>` : ""}`;

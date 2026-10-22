@@ -13,7 +13,7 @@ import re
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from . import ats, db, feed
+from . import ats, db, feed, insight
 
 PROFILE = db.DATA / "profile.json"
 EXAMPLE = Path(__file__).resolve().parent.parent / "profile.example.json"
@@ -127,6 +127,12 @@ def _describe(row: dict) -> tuple[int, str | None]:
         return row["id"], None
 
 
+def resume_text(p: dict) -> str:
+    f = db.DATA.parent / p.get("resume", "data/resume.txt") if not str(p.get("resume", "")).startswith("/") else Path(p["resume"])
+    f = f if f.exists() else db.DATA / "resume.txt"
+    return f.read_text() if f.exists() else ""
+
+
 def score_one(con, role_id: int, p: dict | None = None) -> dict:
     """Score a single role now (the extension saves a job and wants its fit right away)."""
     p = p or load_profile()
@@ -134,9 +140,10 @@ def score_one(con, role_id: int, p: dict | None = None) -> dict:
     e, ewhy = eligibility(r["title"], r["description"] or "", p)
     f, fwhy = fit(r, p)
     track = feed.track(r["title"]) or desc_track(r["description"] or "")
-    con.execute("update roles set eligible = ?, eligible_why = ?, fit = ?, fit_why = ?, track = coalesce(?, track) where id = ?",
-                (e, ewhy, f, fwhy, track, role_id))
-    return {**r, "eligible": e, "eligible_why": ewhy, "fit": f, "fit_why": fwhy, "track": track}
+    kw = insight.keywords(r["description"] or "", resume_text(p))
+    con.execute("update roles set eligible = ?, eligible_why = ?, fit = ?, fit_why = ?, track = coalesce(?, track), pay = ?, keywords = ? where id = ?",
+                (e, ewhy, f, fwhy, track, insight.pay(r["description"]), json.dumps(kw), role_id))
+    return {**r, "eligible": e, "eligible_why": ewhy, "fit": f, "fit_why": fwhy, "track": track, "pay": insight.pay(r["description"]), "keywords": kw}
 
 
 def run(refetch: bool = False) -> dict:
@@ -151,12 +158,13 @@ def run(refetch: bool = False) -> dict:
                 con.execute("update roles set description = ? where id = ?", (desc[:20000], rid))
                 fetched += 1
     scored = 0
+    resume = resume_text(p)
     for r in [dict(r) for r in con.execute("select * from roles where status in ('new', 'queued')")]:
         e, ewhy = eligibility(r["title"], r["description"] or "", p)
         f, fwhy = fit(r, p)
         track = feed.track(r["title"]) or desc_track(r["description"] or "")
-        con.execute("update roles set eligible = ?, eligible_why = ?, fit = ?, fit_why = ?, track = coalesce(?, track) where id = ?",
-                    (e, ewhy, f, fwhy, track, r["id"]))
+        con.execute("update roles set eligible = ?, eligible_why = ?, fit = ?, fit_why = ?, track = coalesce(?, track), pay = ?, keywords = ? where id = ?",
+                    (e, ewhy, f, fwhy, track, insight.pay(r["description"]), json.dumps(insight.keywords(r["description"] or "", resume)), r["id"]))
         scored += 1
     con.commit()
     db.log_run(con, "score", scored, fetched, [])

@@ -110,6 +110,26 @@ def check(master: dict, variant: dict) -> list[str]:
     return problems
 
 
+def check_text(master: dict, text: str) -> list[str]:
+    """Honesty check for prose (a cover letter, a 'why us' answer). Each sentence with a claim in it must trace to a
+    master bullet; short connective sentences ("I'd welcome the chance to talk.") pass. No new numbers."""
+    m_bullets = [b for s in master["sections"] for e in s.get("entries", []) for b in e["bullets"]]
+    m_text = " ".join(m_bullets + [l[1] for s in master["sections"] for l in s.get("lines", [])] +
+                      [f"{e['org']} {e['role']}" for s in master["sections"] for e in s.get("entries", [])]).lower()
+    m_nums = set(NUM.findall(" ".join(m_bullets)))
+    problems = []
+    for sent in re.split(r"(?<=[.!?])\s+", text.strip()):
+        w = set(words(sent))
+        if len(w) < 7 and not NUM.search(sent):
+            continue
+        for n in set(NUM.findall(sent)) - m_nums:
+            problems.append(f"New number '{n}': {sent[:100]}")
+        claims = {x for x in w if len(x) > 3} - set(words("intern internship role team company position opportunity apply applying excited interest interested work working help learn believe would welcome chance talk thank you your their this program"))
+        if claims and len([x for x in claims if x in m_text]) / len(claims) < 0.5:
+            problems.append(f"Doesn't trace to your resume: {sent[:100]}")
+    return problems
+
+
 def to_html(r: dict) -> str:
     """Classic one-page layout: name, contact line, ruled sections, bold org | italic role, right-aligned dates."""
     e = html.escape
@@ -200,6 +220,8 @@ def _selfcheck() -> None:
     assert any("Python" in p or "Power" in p for p in check(m, bad)), check(m, bad)
     bad["sections"][0]["entries"].append({"org": "Fabrikam", "role": "Intern", "dates": "2025", "bullets": []})
     assert any("Entry not on the master" in p for p in check(m, bad))
+    assert not check_text(m, "I built a SQL dashboard in Tableau at Contoso. I'd welcome the chance to talk.")
+    assert check_text(m, "At Contoso I grew revenue 40% by launching a pricing engine in Python.")
     ok = copy.deepcopy(m)
     ok["sections"][0]["entries"][0]["bullets"][1] = "Built a Tableau dashboard with SQL."           # a reword that keeps the facts
     assert not check(m, ok), check(m, ok)

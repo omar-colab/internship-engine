@@ -8,7 +8,7 @@
   schedule [off]     install / remove the launchd timers
   fill <id> [--dry-run]   open the posting, fill what your profile backs, stop before Submit
   digest             this week in one page (data/digest/) + a notification; Sundays at 18:00 when scheduled
-  resume variants | tailor <id> | check <file.json>   honest variants and per-role PDFs
+  resume variants | tailor <id> | check <file.json> | check-text <file.txt>   honest resumes and cover letters
   boards             share the job boards you've found: writes boards.json
   feed-build         build the shared daily feed (GitHub Actions runs this)
   token              the key to paste into the browser extension's settings
@@ -23,6 +23,8 @@ cmd, args = (sys.argv[1] if len(sys.argv) > 1 else "serve"), sys.argv[2:]
 out = lambda x: print(json.dumps(x, indent=1))
 if cmd == "daily":
     out({"find": finder.run(), "resolve": resolve.run(), "score": score.run(), "warm": warm.run()})
+    from . import report
+    report.new_match_alert()
 elif cmd in ("find", "resolve", "score", "warm"):
     out({"find": finder, "resolve": resolve, "score": score, "warm": warm}[cmd].run())
 elif cmd == "listen":
@@ -44,7 +46,10 @@ elif cmd == "digest":
 elif cmd == "resume":
     from . import resume
     sub = args[0] if args else "variants"
-    if sub == "check":
+    if sub == "check-text":
+        problems = resume.check_text(resume.master(), open(args[1]).read())
+        out({"honest": not problems, "problems": problems})
+    elif sub == "check":
         problems = resume.check(resume.master(), json.loads(open(args[1]).read()))
         out({"honest": not problems, "problems": problems})
     else:

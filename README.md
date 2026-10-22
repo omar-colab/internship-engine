@@ -16,6 +16,8 @@ your resume, tracker and email never leave it.
 | **Track** | Confirmation, assessment, interview and rejection emails update each application. Quiet for two weeks → a follow-up reminder. |
 | **Warm leads** | Your LinkedIn connections export flags roles where you know someone, with a short note built from your real experience. |
 | **Resumes** | Variants per track and a tailored PDF per role. Only your own lines, reordered for the posting; rewording (Claude Code `/tailor`) must pass an honesty check that rejects any new number, tool, employer or skill. |
+| **Skill gaps & pay** | Each posting's named skills split into the ones your resume shows and the ones it doesn't, plus the pay when the posting states it. Gaps are shown, never pasted into your resume. |
+| **Board & people** | Drag applications across stages. Track the people you know: message, reply, follow-up dates. |
 | **Measure** | Reply and interview rates by track and source, plus a Sunday digest. |
 
 ## Three rules it never breaks
@@ -68,7 +70,8 @@ gmail | token | schedule [off] | serve
 ```
 
 In Claude Code: `/setup`, `/rank` (Claude re-reads your top 30 roles against your resume), and `/tailor <id>`
-(rewords for one posting, checked line by line against your master resume). Your master resume lives at
+(rewords for one posting, checked line by line against your master resume), `/cover <id>` (a short letter, only when a form asks;
+every sentence checked against your resume), and `/interview <id>` (likely questions, STAR outlines from your real bullets, a mock). Your master resume lives at
 `data/resume.json`: sections → entries (org, role, dates, bullets) → skill lines; `/setup` builds it from your PDF.
 
 ## Privacy

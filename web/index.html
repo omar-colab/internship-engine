@@ -125,6 +125,24 @@ table.f .n { text-align: right; }
 .bar { height: 8px; border-radius: 4px; background: var(--paper); overflow: hidden; min-width: 90px; }
 .bar i { display: block; height: 100%; background: var(--blue); border-radius: 4px; }
 
+/* skills */
+.skills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.sk { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: var(--blue-soft); color: var(--blue); }
+.sk.gap { background: transparent; color: var(--ink-3); box-shadow: inset 0 0 0 1px var(--line); }
+.pay { color: var(--mint); font-weight: 700; }
+/* board */
+.viewtoggle { margin: -12px 0 18px; }
+.board { display: grid; grid-template-columns: repeat(5, minmax(170px, 1fr)); gap: 12px; align-items: start; overflow-x: auto; padding-bottom: 6px; }
+.col { background: color-mix(in srgb, var(--line) 45%, transparent); border-radius: var(--r); padding: 10px; min-height: 200px; }
+.col.over { box-shadow: inset 0 0 0 2px var(--blue); }
+.col h3 { font: 700 14px/1 var(--display); margin: 4px 4px 10px; display: flex; justify-content: space-between; }
+.card { background: var(--sheet); border-radius: 12px; padding: 12px; margin-bottom: 8px; box-shadow: 0 0 0 1px var(--line); cursor: grab; }
+.card .ti { font-size: 14px; }
+.card select { margin-top: 8px; width: 100%; font: inherit; font-size: 12px; padding: 5px; border-radius: 8px; border: 1px solid var(--line); background: var(--sheet); color: var(--ink); }
+/* people form */
+.addp { display: grid; grid-template-columns: repeat(4, 1fr) auto; gap: 8px; margin-bottom: 18px; }
+.addp input { font: inherit; font-size: 14px; padding: 10px 12px; border-radius: 10px; border: 0; background: var(--sheet); color: var(--ink); box-shadow: 0 0 0 1px var(--line); min-width: 0; }
+
 /* drawer */
 .scrim { position: fixed; inset: 0; background: rgba(10,15,36,.38); opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 9; }
 .drawer { position: fixed; top: 0; right: 0; height: 100vh; width: min(560px, 100vw); background: var(--sheet); box-shadow: -30px 0 60px -30px rgba(10,15,36,.5);
@@ -151,6 +169,7 @@ body.open .drawer { transform: none; visibility: visible; transition: transform 
   .item { grid-template-columns: 36px 1fr; align-items: start; } .mono { width: 36px; height: 36px; font-size: 14px; }
   .side, .item > .acts { grid-column: 1 / -1; justify-content: space-between; }
   .stats { grid-template-columns: repeat(2, 1fr); }
+  .addp { grid-template-columns: 1fr 1fr; }
 }
 @media (prefers-reduced-motion: reduce) { .drawer, .scrim { transition: none; } }
 </style>
@@ -164,6 +183,7 @@ body.open .drawer { transform: none; visibility: visible; transition: transform 
       <button data-view="needs">Today <span class="n hot" id="n-needs"></span></button>
       <button data-view="jobs">Jobs for you <span class="n" id="n-jobs"></span></button>
       <button data-view="applied">Applications <span class="n" id="n-applied"></span></button>
+      <button data-view="people">People <span class="n" id="n-people"></span></button>
       <button data-view="results">Results</button>
     </nav>
     <div class="runs" id="runs"></div>
@@ -204,7 +224,7 @@ async function post(path, body) {
   if (!r.ok) alert((await r.json()).error);
 }
 function meta(r, extra = "") {
-  return `<div class="meta">${[r.location && `<b>${esc(place(r.location))}</b>`, r.track && TRACK[r.track], r.posted && esc(r.posted),
+  return `<div class="meta">${[r.location && `<b>${esc(place(r.location))}</b>`, r.pay && `<span class="pay">${esc(r.pay)}</span>`, r.track && TRACK[r.track], r.posted && esc(r.posted),
     r.applied_on && `applied ${esc(r.applied_on)}`].filter(Boolean).map(x => `<span>${x}</span>`).join("")}${extra}</div>`;
 }
 function history(r) {
@@ -216,6 +236,13 @@ function warmBlock(r) {
   const [who, url] = r.warm.split(" | ");
   return `<div class="callout warm">You know <b>${esc(who)}</b> here. Message them before you apply:<p>${esc(r.outreach)}</p>
     ${btn("Copy message", `data-copy="${esc(r.outreach)}"`)} ${safeUrl(url) ? `<a class="btn" href="${esc(url)}" target="_blank" rel="noopener">Open their profile</a>` : ""}</div>`;
+}
+function skillsBlock(r) {
+  let k; try { k = JSON.parse(r.keywords || "null"); } catch { k = null; }
+  if (!k || !k.asked?.length) return "";
+  return `<div class="callout"><b>Your resume shows ${k.have.length} of the ${k.asked.length} skills this posting names.</b>
+    <div class="skills">${k.have.map(x => `<span class="sk">${esc(x)}</span>`).join("")}${k.missing.map(x => `<span class="sk gap" title="Not on your resume">${esc(x)}</span>`).join("")}</div>
+    ${k.missing.length ? `<div class="why">Outlined ones aren't on your resume. Learn them or weigh the role; never paste them in.</div>` : ""}</div>`;
 }
 function prepBlock(r) {
   if (!r.prep) return "";
@@ -234,7 +261,8 @@ const TODO = {
 function todayView() {
   const order = ["offer", "interview", "assessment", "blocked", "new", "queued", "submitted"];
   const items = [...S.needs].sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status));
-  const n = items.length;
+  const people = S.contacts_due || [];
+  const n = items.length + people.length;
   const banner = S.health?.length ? `<div class="banner" role="status"><div>${S.health.map(h => `<p>${esc(h)}</p>`).join("")}</div></div>` : "";
   return `${banner}<div class="hero">${n ? `<div class="count">${n}</div>` : ""}<h1>${n ? `${n === 1 ? "thing needs" : "things need"} you today` : "You're clear for today"}</h1></div>
     <p class="lede">${n ? "Interviews and assessments first, then people to message, then applications to send, then follow-ups."
@@ -245,7 +273,9 @@ function todayView() {
         ${r.status === "queued" ? (safeUrl(r.url) ? btn(r.prep ? "Prep again" : "Prep application", `data-prep="${r.id}"`, true) : "") + act(r, "submitted", "Mark applied") : ""}
         ${r.status === "blocked" && safeUrl(r.url) ? btn("Prep again", `data-prep="${r.id}"`, true) : ""}
         ${r.status === "new" ? act(r, "queued", "Queue", true) : ""}
-        ${r.follow_up ? btn("I followed up", `data-log="${r.id}"`) + act(r, "ghosted", "No reply") : ""}</div></div>`).join("")}</div>` : ""}`;
+        ${r.follow_up ? btn("I followed up", `data-log="${r.id}"`) + act(r, "ghosted", "No reply") : ""}</div></div>`).join("")}
+      ${people.map(c => `<div class="item">${mono(c.company || c.name)}<div><div class="ti">Follow up with ${esc(c.name)}</div><div class="co">${esc([c.title, c.company].filter(Boolean).join(" · "))}</div></div>
+        <div class="acts">${btn("Messaged again", `data-pc="${c.id}" data-ps="messaged"`, true)}${btn("Replied", `data-pc="${c.id}" data-ps="replied"`)}</div></div>`).join("")}</div>` : ""}`;
 }
 
 // ---- Jobs for you ----
@@ -282,14 +312,45 @@ function jobsView() {
 }
 
 // ---- Applications ----
+let appsAs = "list";
+const LANES = [["submitted", "Applied"], ["assessment", "Assessment"], ["interview", "Interview"], ["offer", "Offer"], ["rejected", "Closed"]];
+function boardView(done) {
+  const lane = s => s === "ghosted" || s === "rejected" ? "rejected" : s === "blocked" ? "submitted" : s;
+  return `<div class="board">${LANES.map(([k, l]) => { const cards = done.filter(r => lane(r.status) === k);
+    return `<div class="col" data-lane="${k}"><h3>${l}<span class="fitlabel">${cards.length}</span></h3>${cards.map(r => `<div class="card" draggable="true" data-card="${r.id}">
+      <div class="co">${esc(r.company)}</div><div class="ti">${esc(title(r.title))}</div>
+      <select aria-label="Move ${esc(r.company)}" data-move="${r.id}">${LANES.map(([v, n]) => `<option value="${v}" ${v === lane(r.status) ? "selected" : ""}>${n}</option>`).join("")}</select></div>`).join("")}</div>`; }).join("")}</div>`;
+}
 function appliedView() {
   const done = S.roles.filter(applied);
+  const toggle = `<div class="seg viewtoggle" role="group" aria-label="Layout"><button data-apps="list" aria-pressed="${appsAs === "list"}">List</button><button data-apps="board" aria-pressed="${appsAs === "board"}">Board</button></div>`;
+  if (appsAs === "board") return `<h1>${done.length} applications</h1><p class="lede">Drag a card to move it, or pick a stage from its menu. Your inbox moves most of them for you.</p>${toggle}${boardView(done)}`;
   const by = s => done.filter(r => r.status === s);
   const groups = ["offer", "interview", "assessment", "submitted", "blocked", "rejected", "ghosted"].filter(s => by(s).length);
   return `<h1>${done.length} applications</h1><p class="lede">Built from your inbox. Confirmation, assessment, interview and rejection emails move these on their own.</p>
-    ${groups.map(s => `<h2>${STATUS[s][0]} · ${by(s).length}</h2><div class="sheet">${by(s).map(r => `<div class="item">${mono(r.company)}<div>
+    ${toggle}${groups.map(s => `<h2>${STATUS[s][0]} · ${by(s).length}</h2><div class="sheet">${by(s).map(r => `<div class="item">${mono(r.company)}<div>
       <div class="co">${esc(r.company)}</div><div class="ti">${esc(title(r.title))}</div>${meta(r)}${history(r)}</div><div class="acts">${status(r.status)}</div></div>`).join("")}</div>`).join("")
       || `<div class="sheet"><p class="empty">No applications yet. Mark a role applied, or let the listener read your inbox.</p></div>`}`;
+}
+
+// ---- People ----
+const PSTAT = { to_message: "To message", messaged: "Messaged", replied: "Replied", met: "Met", not_now: "Not now" };
+function peopleView() {
+  const C = S.contacts || [];
+  const due = new Set((S.contacts_due || []).map(c => c.id));
+  const groups = [["Follow up now", C.filter(c => due.has(c.id))], ["To message", C.filter(c => c.status === "to_message")],
+                  ["Waiting on a reply", C.filter(c => c.status === "messaged" && !due.has(c.id))], ["Talked", C.filter(c => ["replied", "met"].includes(c.status))]];
+  const jobsAt = c => S.roles.filter(r => r.status === "new" && good(r) && c.company && r.company.toLowerCase().includes(c.company.toLowerCase().split(" ")[0])).length;
+  const card = c => `<div class="item">${mono(c.company || c.name)}<div><div class="ti">${esc(c.name)}</div><div class="co">${esc([c.title, c.company].filter(Boolean).join(" · "))}</div>
+      <div class="meta">${jobsAt(c) ? `<span><b>${jobsAt(c)} open roles there</b></span>` : ""}${c.next_on ? `<span>follow up ${esc(c.next_on)}</span>` : ""}</div></div>
+      <div class="acts">${safeUrl(c.url) ? `<a class="btn" href="${esc(c.url)}" target="_blank" rel="noopener">Profile</a>` : ""}
+        ${c.status !== "messaged" || due.has(c.id) ? btn(c.status === "messaged" ? "Messaged again" : "Messaged", `data-pc="${c.id}" data-ps="messaged"`, true) : ""}
+        ${btn("Replied", `data-pc="${c.id}" data-ps="replied"`)}${btn("Not now", `data-pc="${c.id}" data-ps="not_now"`)}</div></div>`;
+  return `<h1>${C.length ? `${C.length} ${C.length === 1 ? "person" : "people"} you know` : "The people you know"}</h1>
+    <p class="lede">A referral usually beats any number of cold applications. Log who you've messaged and the engine tells you when to follow up.${C.length ? "" : " Drop your LinkedIn connections export at data/contacts.csv, or add people here."}</p>
+    <form class="addp" id="addp"><input name="name" placeholder="Name" required aria-label="Name"><input name="company" placeholder="Company" aria-label="Company">
+      <input name="title" placeholder="Their role" aria-label="Their role"><input name="url" placeholder="LinkedIn URL" aria-label="LinkedIn URL"><button class="btn go">Add person</button></form>
+    ${groups.filter(([, g]) => g.length).map(([h, g]) => `<h2>${h} · ${g.length}</h2><div class="sheet">${g.slice(0, 60).map(card).join("")}</div>`).join("")}`;
 }
 
 // ---- Results ----
@@ -320,7 +381,7 @@ function openDrawer(id) {
       <div class="dfit">${fitBox(r)}<div class="why" style="margin:0">${esc(r.fit_why || "")}</div></div>
       ${r.eligible === 2 ? `<div class="callout warm"><b>Check first:</b> ${esc(r.eligible_why)}</div>` : ""}
       ${r.eligible === 0 ? `<div class="callout warm"><b>Probably not eligible:</b> ${esc(r.eligible_why)}</div>` : ""}
-      ${warmBlock(r)}
+      ${warmBlock(r)}${skillsBlock(r)}
       <div class="dact">${openLink(r)}${r.status === "new" ? act(r, "queued", "Queue to apply", true) + act(r, "skipped", "Skip") : status(r.status)}
         ${btn(r.resume_variant ? "Re-tailor resume" : "Tailor resume", `data-tailor="${r.id}"`)}${r.resume_variant ? `<a class="btn" href="/api/resume/${r.id}.pdf" target="_blank">Open tailored PDF</a>` : ""}</div>
       <div id="tailored"></div></div>
@@ -342,7 +403,17 @@ function render() {
   const last = j => S.runs.find(r => r.job === j);
   $("#runs").innerHTML = [last("find") && `Jobs checked <b>${when(last("find"))}</b>`, last("listen") && `Inbox read <b>${when(last("listen"))}</b>`].filter(Boolean).join("<br>");
   document.querySelectorAll(".nav button").forEach(b => b.dataset.view === view ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
-  $("#main").innerHTML = { needs: todayView, jobs: jobsView, applied: appliedView, results: resultsView }[view]();
+  $("#n-people").textContent = (S.contacts_due || []).length || "";
+  $("#main").innerHTML = { needs: todayView, jobs: jobsView, applied: appliedView, people: peopleView, results: resultsView }[view]();
+  $("#addp")?.addEventListener("submit", async e => { e.preventDefault(); await post("/api/contact", Object.fromEntries(new FormData(e.target))); load(); });
+  document.querySelectorAll("[data-move]").forEach(sel => sel.addEventListener("change", async () => { await post(`/api/role/${sel.dataset.move}`, { status: sel.value }); load(); }));
+  document.querySelectorAll("[data-card]").forEach(c => c.addEventListener("dragstart", e => e.dataTransfer.setData("text/plain", c.dataset.card)));
+  document.querySelectorAll("[data-lane]").forEach(col => {
+    col.addEventListener("dragover", e => { e.preventDefault(); col.classList.add("over"); });
+    col.addEventListener("dragleave", () => col.classList.remove("over"));
+    col.addEventListener("drop", async e => { e.preventDefault(); col.classList.remove("over");
+      await post(`/api/role/${e.dataTransfer.getData("text/plain")}`, { status: col.dataset.lane }); load(); });
+  });
   const qi = $("#q");
   qi?.addEventListener("input", () => { q = qi.value; shown = 30; const pos = qi.selectionStart; render(); const n = $("#q"); n.focus(); n.setSelectionRange(pos, pos); });
   $("#src")?.addEventListener("change", e => { src = e.target.value; shown = 30; render(); });
@@ -370,6 +441,10 @@ document.addEventListener("click", async e => {
   }
   const lg = t.closest("[data-log]");
   if (lg) { await post(`/api/role/${lg.dataset.log}`, { log: "Followed up" }); return load(); }
+  const pc = t.closest("[data-pc]");
+  if (pc) { await post("/api/contact", { id: pc.dataset.pc, status: pc.dataset.ps }); return load(); }
+  const ap = t.closest("[data-apps]");
+  if (ap) { appsAs = ap.dataset.apps; return render(); }
   const tr = t.closest("[data-track]");
   if (tr) { track = tr.dataset.track; shown = 30; return render(); }
   if (t.id === "more") { shown += 30; return render(); }

@@ -45,7 +45,8 @@ def ext_call(path: str, body: dict) -> dict:
         return {"ok": True, "name": p.get("first_name"), "roles": con.execute("select count(*) from roles").fetchone()[0]}
     if path == "/ext/lookup":
         r = find_role(con, body.get("url", ""))
-        return {"role": {k: r[k] for k in ("id", "company", "title", "fit", "fit_why", "eligible", "eligible_why", "status", "warm")} if r else None}
+        return {"role": {k: r[k] for k in ("id", "company", "title", "fit", "fit_why", "eligible", "eligible_why", "status", "warm",
+                                           "applied_on", "pay", "keywords")} if r else None}
     if path == "/ext/answers":
         p = score.load_profile()
         resume = (WEB.parent / p.get("resume", "data/resume.txt"))
@@ -107,13 +108,37 @@ def state() -> dict:
         if r["status"] == "new" and r["warm"] and (r["fit"] or 0) >= 3 and r["company"] not in warm_seen:
             warm_seen.add(r["company"])
             needs.append(r)
+    contacts = [dict(c) for c in con.execute("select * from contacts order by case status when 'messaged' then 0 when 'to_message' then 1 else 2 end, company")]
     fu = {f["id"]: f for f in report.follow_ups(con)}
     for r in rows:
         if r["id"] in fu:
             r["follow_up"] = fu[r["id"]]
             needs.append(r)
     return {"roles": rows, "events": events, "runs": runs, "needs": needs, "health": report.health(con),
+            "contacts": contacts, "contacts_due": report.contacts_due(con),
             "funnel": {"all": report.funnel(con)["all"], "track": report.funnel(con, "track"), "source": report.funnel(con, "source")}}
+
+
+CONTACT_STATUS = ("to_message", "messaged", "replied", "met", "not_now")
+
+
+def save_contact(body: dict) -> dict:
+    """Add a person, or move one along: messaged sets a follow-up 5 days out."""
+    con = db.connect()
+    f = {k: (str(body[k])[:300] if body.get(k) is not None else None) for k in ("name", "company", "title", "url", "email", "notes")}
+    status = body.get("status", "to_message")
+    if status not in CONTACT_STATUS:
+        raise ValueError(f"unknown status {status!r}")
+    if body.get("id"):
+        con.execute("update contacts set status = ?, next_on = case when ? = 'messaged' then date('now', '+5 days') else null end, "
+                    "notes = coalesce(?, notes) where id = ?", (status, status, f["notes"], int(body["id"])))
+    else:
+        if not f["name"]:
+            raise ValueError("a contact needs a name")
+        con.execute("insert into contacts (name, company, title, url, email, notes, status, source) values (?, ?, ?, ?, ?, ?, ?, 'manual')",
+                    (f["name"], f["company"], f["title"], f["url"], f["email"], f["notes"], status))
+    con.commit()
+    return {"ok": True}
 
 
 def update(role_id: int, body: dict) -> dict:
@@ -215,6 +240,14 @@ class Handler(BaseHTTPRequestHandler):
                 self.end_headers()
                 return self.wfile.write(out)
             except (ValueError, TypeError, KeyError) as e:
+                return self._send(400, json.dumps({"error": str(e)}).encode())
+        if self.path == "/api/contact":
+            if self.headers.get("Origin") not in (None, f"http://{self.headers.get('Host')}"):
+                return self._send(403, b'{"error":"forbidden"}')
+            body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
+            try:
+                return self._send(200, json.dumps(save_contact(body)).encode())
+            except ValueError as e:
                 return self._send(400, json.dumps({"error": str(e)}).encode())
         m = re.fullmatch(r"/api/role/(\d+)(/prep|/tailor)?", self.path)
         # same-origin only: a page on another site must not be able to change your tracker

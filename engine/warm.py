@@ -60,6 +60,11 @@ def run() -> dict:
     by_company: dict[str, list[dict]] = {}
     for c in contacts:
         by_company.setdefault(company_key(c["Company"]), []).append(c)
+    for c in contacts:                       # everyone in the export lands in People, ready to track
+        con.execute("""insert into contacts (name, company, title, url, email, source) values (?, ?, ?, ?, ?, 'linkedin')
+                       on conflict(name, company) do update set title = excluded.title, url = excluded.url""",
+                    (f"{c.get('First Name', '')} {c.get('Last Name', '')}".strip(), c.get("Company"), c.get("Position"),
+                     c.get("URL"), c.get("Email Address") or None))
     flagged = 0
     con.execute("update roles set warm = null, outreach = null where status in ('new', 'queued')")
     for r in [dict(r) for r in con.execute("select * from roles where status in ('new', 'queued') and coalesce(eligible, 1) > 0")]:
