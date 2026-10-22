@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy — Internship Engine</title>
+  <meta name="description" content="How the Internship Engine Chrome extension handles your data.">
+  <style>
+    body { max-width: 760px; margin: 48px auto; padding: 0 20px; color: #10162E; font: 17px/1.6 system-ui, sans-serif; }
+    h1, h2 { line-height: 1.2; } a { color: #2335F5; }
+  </style>
+</head>
+<body>
+  <main>
+    <p><a href="./">Internship Engine</a></p>
+    <h1>Privacy notice</h1>
+    <p>Last updated: October 22, 2026</p>
+    <p>This notice describes the Internship Engine browser extension and its connection to the optional local Internship Engine app. The software is open source and runs on your computer.</p>
+
+    <h2>Information the extension handles</h2>
+    <p>On supported job-board pages, the extension reads the page URL, job-posting details, and visible application-field labels and options so it can look up a role, save it, and request answers from your local profile. When you choose to fill a form with a resume field, the extension retrieves your resume from the local app and places it in that page's file field.</p>
+
+    <h2>Where information goes</h2>
+    <p>The extension sends the information needed for these actions only to the local app at <code>127.0.0.1:8765</code>, using a token stored in Chrome's local extension storage. The extension does not send your profile, resume, application fields, or browsing history to the project maintainers or a project-operated server. The local app stores personal files in the repository's ignored <code>data/</code> directory.</p>
+    <p>If you choose to submit an application, the application site receives the information in the form you reviewed. The extension itself never clicks Submit.</p>
+
+    <h2>Optional features</h2>
+    <p>The local app can optionally read Gmail using credentials you configure, and can import a LinkedIn connections export for local matching. These are separate local-app features; the browser extension does not send those files to the project maintainers.</p>
+
+    <h2>Retention and control</h2>
+    <p>Your engine token is stored in Chrome's local extension storage. Your profile, resume, tracker, and optional imports are stored on your own computer in <code>data/</code>. Remove the extension or clear its storage to remove the token; delete the local files yourself to remove app data.</p>
+
+    <h2>Changes and contact</h2>
+    <p>Changes to this notice will be published on this page. For questions or privacy concerns, open an issue in the <a href="https://github.com/omar-colab/internship-engine/issues">GitHub repository</a>.</p>
+  </main>
+</body>
+</html>

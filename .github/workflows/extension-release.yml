@@ -1,0 +1,42 @@
+name: Chrome extension release
+on:
+  push:
+    tags: ["extension-v*"]
+permissions:
+  contents: write
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check tag and manifest versions
+        run: |
+          version="${GITHUB_REF_NAME#extension-v}"
+          manifest_version="$(node -p "require('./extension/manifest.json').version")"
+          test "$version" = "$manifest_version"
+      - name: Package and verify the extension
+        id: package
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#extension-v}"
+          archive="internship-engine-extension-${version}.zip"
+          mkdir -p dist
+          (
+            cd extension
+            find . -type f ! -name '.DS_Store' ! -name 'README.md' -print0 |
+              while IFS= read -r -d '' file; do zip -q "$GITHUB_WORKSPACE/dist/$archive" "${file#./}"; done
+          )
+          unzip -Z1 "dist/$archive" | grep -qx 'manifest.json'
+          unzip -p "dist/$archive" manifest.json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const m=JSON.parse(s);if(m.manifest_version!==3)process.exit(1)})'
+          sha256sum "dist/$archive" > "dist/$archive.sha256"
+          echo "archive=dist/$archive" >> "$GITHUB_OUTPUT"
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="${GITHUB_REF_NAME#extension-v}"
+          gh release create "$GITHUB_REF_NAME" \
+            "${{ steps.package.outputs.archive }}" \
+            "${{ steps.package.outputs.archive }}.sha256" \
+            --title "Internship Engine Chrome extension $version" \
+            --generate-notes
