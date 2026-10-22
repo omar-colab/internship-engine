@@ -1,0 +1,24 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+  body { margin: 0; width: 300px; font: 13px/1.45 ui-sans-serif, -apple-system, "Segoe UI", sans-serif; background: #0D1430; color: #F4F6FF; }
+  main { padding: 16px; }
+  h1 { font-size: 15px; margin: 0 0 4px; letter-spacing: -.01em; }
+  p { margin: 0 0 12px; color: #AEB6DA; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: #8C94BD; }
+  .ok .dot { background: #4ADE80; } .bad .dot { background: #FFB86B; }
+  label { display: block; font-weight: 600; margin: 12px 0 6px; }
+  input { box-sizing: border-box; width: 100%; padding: 9px 10px; border-radius: 9px; border: 1px solid #2A3566; background: #141C40; color: #fff; font: inherit; }
+  button, a.btn { display: block; box-sizing: border-box; width: 100%; margin-top: 10px; padding: 9px; border: 0; border-radius: 10px; font: 700 13px/1 inherit;
+    text-align: center; text-decoration: none; cursor: pointer; background: #2335F5; color: #fff; }
+  a.btn { background: #1B2550; }
+  code { background: #141C40; padding: 1px 5px; border-radius: 5px; color: #D6DBF5; }
+</style></head>
+<body><main>
+  <h1>Internship Engine</h1>
+  <p id="status"><span class="dot"></span>Checking your engine…</p>
+  <label for="token">Engine token</label>
+  <input id="token" type="password" autocomplete="off" placeholder="Paste it here">
+  <p style="margin-top:6px">Get it in Terminal: <code>uv run python -m engine token</code></p>
+  <button id="save">Save token</button>
+  <a class="btn" href="http://127.0.0.1:8765" target="_blank">Open dashboard</a>
+</main><script src="popup.js"></script></body></html>

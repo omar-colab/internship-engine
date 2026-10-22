@@ -1,0 +1,22 @@
+{
+  "_note": "Shared seed list. careers_url is enough: the engine detects the job board. Add known boards to skip detection.",
+  "companies": [
+    {"name": "Synchrony", "board": {"ats": "workday", "tenant": "synchronyfinancial", "wd": "wd5", "site": "Careers"}},
+    {"name": "Otis", "careers_url": "https://www.otis.com/en/us/careers"},
+    {"name": "M&T Bank", "careers_url": "https://www.mtb.com/careers"},
+    {"name": "Cigna", "careers_url": "https://www.cigna.com/careers"},
+    {"name": "Guidehouse", "careers_url": "https://www.guidehouse.com/careers"},
+    {"name": "DriveWealth", "board": {"ats": "greenhouse", "token": "drivewealth"}},
+    {"name": "RTX", "board": {"ats": "workday", "tenant": "globalhr", "wd": "wd5", "site": "REC_RTX_Ext_Gateway"}},
+    {"name": "Eversource", "careers_url": "https://www.eversource.com/content/residential/about/careers"},
+    {"name": "Slalom", "careers_url": "https://www.slalom.com/us/en/careers"},
+    {"name": "West Monroe", "careers_url": "https://www.westmonroe.com/careers"},
+    {"name": "Travelers", "careers_url": "https://careers.travelers.com/"},
+    {"name": "The Hartford", "careers_url": "https://www.thehartford.com/careers"},
+    {"name": "Stanley Black & Decker", "careers_url": "https://www.stanleyblackanddecker.com/careers"},
+    {"name": "Booz Allen", "careers_url": "https://www.boozallen.com/careers.html"},
+    {"name": "Protiviti", "careers_url": "https://www.protiviti.com/us-en/careers"},
+    {"name": "Capgemini", "careers_url": "https://www.capgemini.com/us-en/careers/"},
+    {"name": "RSM", "careers_url": "https://rsmus.com/careers.html"}
+  ]
+}

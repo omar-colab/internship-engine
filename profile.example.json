@@ -1,0 +1,47 @@
+{
+  "name": "Your Name",
+  "email": "you@example.com",
+  "school": "Your University",
+  "degree": "B.S., Your Major",
+  "degree_level": "bachelors",
+  "graduation": "2028-05",
+  "class_standing": "junior",
+  "seasons": [
+    "Summer 2027"
+  ],
+  "open_to": [],
+  "locations": [
+    "Remote"
+  ],
+  "open_to_relocation": true,
+  "work_authorization": "unknown",
+  "tracks": [
+    "ai-consulting",
+    "transformation",
+    "data-analytics"
+  ],
+  "strengths": [
+    "python",
+    "sql",
+    "excel",
+    "analytics",
+    "consulting",
+    "operations"
+  ],
+  "resume": "data/resume.txt",
+  "school_short": "State U",
+  "hook": "One true sentence from your resume, under 80 characters.",
+  "first_name": "Your",
+  "last_name": "Name",
+  "phone": "555-555-5555",
+  "linkedin": "https://www.linkedin.com/in/your-name/",
+  "city": "Your City",
+  "state": "ST",
+  "country": "United States",
+  "major": "Your Major",
+  "degree_type": "Bachelor's",
+  "eeo": "decline",
+  "heard_about": "Job board",
+  "needs_sponsorship": "unknown",
+  "resume_pdf": "data/resume.pdf"
+}

@@ -1,0 +1,46 @@
+"""uv run python -m engine <command>
+
+  daily              find → resolve → score → warm (what the 7:00 run does)
+  find | resolve | score | warm    one step
+  listen             read the inbox over IMAP (read-only) and update statuses
+  import <mail.json> same, from emails Claude pulled with its Gmail connector
+  gmail              save a Gmail app password to the macOS Keychain
+  schedule [off]     install / remove the launchd timers
+  fill <id> [--dry-run]   open the posting, fill what your profile backs, stop before Submit
+  digest             this week in one page (data/digest/) + a notification; Sundays at 18:00 when scheduled
+  token              the key to paste into the browser extension's settings
+  serve              dashboard at http://127.0.0.1:8765
+"""
+import json
+import sys
+
+from . import finder, listener, resolve, schedule, score, server, warm
+
+cmd, args = (sys.argv[1] if len(sys.argv) > 1 else "serve"), sys.argv[2:]
+out = lambda x: print(json.dumps(x, indent=1))
+if cmd == "daily":
+    out({"find": finder.run(), "resolve": resolve.run(), "score": score.run(), "warm": warm.run()})
+elif cmd in ("find", "resolve", "score", "warm"):
+    out({"find": finder, "resolve": resolve, "score": score, "warm": warm}[cmd].run())
+elif cmd == "listen":
+    out(listener.run(listener.fetch_imap()))
+elif cmd == "import":
+    out(listener.run(json.loads(open(args[0]).read())))
+elif cmd == "gmail":
+    listener.save_gmail_login()
+elif cmd == "schedule":
+    out({"removed": schedule.remove()} if args[:1] == ["off"] else {"installed": schedule.install()})
+elif cmd == "fill":
+    from . import fill
+    dry = "--dry-run" in args
+    r = fill.prep(int(args[0]), headed=not dry, upload=not dry)
+    out({k: r[k] for k in ("fields", "filled", "needs_you") if k in r} | ({"blocked": r["blocked"]} if "blocked" in r else {}))
+elif cmd == "digest":
+    from . import report
+    print(report.digest())
+elif cmd == "token":
+    print(server.token())
+elif cmd == "serve":
+    server.serve()
+else:
+    sys.exit(__doc__)

@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Internship Engine",
+  "version": "0.1.0",
+  "description": "Fit scores, one-click save, and honest autofill for internship applications. Talks only to the engine on your own laptop.",
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": ["http://127.0.0.1:8765/*"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_popup": "popup.html", "default_title": "Internship Engine" },
+  "content_scripts": [{
+    "matches": [
+      "https://*.greenhouse.io/*", "https://jobs.lever.co/*", "https://jobs.ashbyhq.com/*",
+      "https://*.myworkdayjobs.com/*", "https://*.icims.com/*", "https://*.ultipro.com/*",
+      "https://*.oraclecloud.com/*", "https://*.smartrecruiters.com/*", "https://*.jobvite.com/*"
+    ],
+    "js": ["content.js"],
+    "run_at": "document_idle"
+  }],
+  "icons": { "128": "icon.png" }
+}

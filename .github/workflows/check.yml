@@ -1,0 +1,16 @@
+# Every module carries a self-check; run them all on each push.
+name: Self-checks
+on: [push, pull_request]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync && uv run playwright install --with-deps chromium
+      - run: |
+          for m in engine.ats engine.feed engine.finder engine.listener engine.resolve engine.score engine.warm engine.answers engine.report; do
+            uv run python -m $m
+          done
+          uv run python -m engine.fill --selfcheck
+      - run: node --check extension/content.js && node --check extension/background.js && node --check extension/popup.js

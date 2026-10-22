@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Internship Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --night: #0D1430; --night-2: #141C40; --night-line: #26305E; --night-ink: #AEB6DA;
+  --paper: #F3F4F9; --sheet: #FFFFFF; --ink: #10162E; --ink-2: #4A5274; --ink-3: #8A90AE; --line: #E2E4EF;
+  --blue: #2335F5; --blue-soft: #E8EAFE;
+  --apricot: #C96A0E; --apricot-soft: #FFF1E3; --mint: #12936A; --mint-soft: #E3F5EE; --rose: #C7375F; --rose-soft: #FBE7ED;
+  --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif; --body: "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --r: 14px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #0A0F24; --sheet: #121A3A; --ink: #EEF0FA; --ink-2: #B3B9D8; --ink-3: #7880A6; --line: #232C57;
+  --blue: #6F7DFF; --blue-soft: #1D2554; --apricot: #FFAA5C; --apricot-soft: #2E2318; --mint: #4FD1A1; --mint-soft: #12302A; --rose: #FF7E9F; --rose-soft: #33182A;
+} }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font: 15px/1.5 var(--body); -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+button { font: inherit; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 8px; }
+
+/* ---- rail ---- */
+.app { display: grid; grid-template-columns: 248px 1fr; min-height: 100vh; }
+.rail { background: var(--night); color: #fff; padding: 26px 16px; position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; }
+.brand { display: flex; gap: 10px; align-items: center; padding: 0 8px 26px; }
+.brand-mark { width: 32px; height: 32px; border-radius: 10px; background: var(--blue); display: grid; place-items: end center; padding-bottom: 7px; }
+.brand-mark .sig i, .brand-mark .sig i.on { background: #C4CCFF; width: 4px; }
+.brand b { font: 700 16px/1.1 var(--display); letter-spacing: -.02em; display: block; }
+.brand span { font-size: 12px; color: var(--night-ink); }
+.nav button { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; margin: 2px 0;
+  border-radius: 10px; cursor: pointer; color: var(--night-ink); font-weight: 600; font-size: 14px; }
+.nav button:hover { background: var(--night-2); color: #fff; }
+.nav button[aria-current="page"] { background: var(--night-2); color: #fff; box-shadow: inset 0 0 0 1px var(--night-line); }
+.nav .n { margin-left: auto; font: 600 12px/1 var(--display); padding: 4px 7px; border-radius: 99px; background: var(--night-line); color: #fff; min-width: 24px; text-align: center; }
+.nav .n.hot { background: #2335F5; }
+.nav .n:empty { display: none; }
+.runs { margin-top: auto; font-size: 12px; color: var(--night-ink); padding: 0 8px; line-height: 1.6; }
+.runs b { color: #fff; font-weight: 600; }
+
+/* ---- main ---- */
+main { padding: 40px 44px 90px; max-width: 1060px; width: 100%; }
+.lede { color: var(--ink-2); max-width: 62ch; margin: 8px 0 28px; }
+h1 { font: 800 40px/1.05 var(--display); letter-spacing: -.035em; margin: 0; max-width: 20ch; }
+h2 { font: 700 18px/1.2 var(--display); letter-spacing: -.02em; margin: 34px 0 12px; }
+.hero { display: flex; align-items: flex-end; gap: 20px; }
+.hero .count { font: 800 112px/.8 var(--display); letter-spacing: -.06em; color: var(--blue); }
+.hero h1 { padding-bottom: 4px; }
+
+.banner { display: flex; gap: 12px; align-items: flex-start; background: var(--apricot-soft); border-radius: var(--r); padding: 12px 16px; margin: 0 0 26px; font-size: 14px; }
+.banner::before { content: ""; flex: none; width: 8px; height: 8px; margin-top: 7px; border-radius: 50%; background: var(--apricot); }
+.banner p { margin: 0; }
+
+.sheet { background: var(--sheet); border-radius: var(--r); box-shadow: 0 0 0 1px var(--line), 0 12px 30px -18px rgba(16,22,46,.25); overflow: hidden; }
+.item { display: grid; grid-template-columns: 44px 1fr auto; gap: 16px; padding: 16px 18px; border-top: 1px solid var(--line); align-items: center; }
+.item:first-child { border-top: 0; }
+.item.click { cursor: pointer; }
+.item.click:hover { background: color-mix(in srgb, var(--blue-soft) 45%, transparent); }
+.item > div { min-width: 0; }
+.mono { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font: 700 17px/1 var(--display); color: #fff; background: var(--c); }
+.co { font-size: 13px; color: var(--ink-2); font-weight: 600; }
+.ti { font: 700 17px/1.25 var(--display); letter-spacing: -.015em; margin: 1px 0 4px; }
+.meta { font-size: 13px; color: var(--ink-3); display: flex; flex-wrap: wrap; gap: 2px 12px; }
+.meta b { color: var(--ink-2); font-weight: 600; }
+.why { font-size: 13px; color: var(--ink-2); margin-top: 5px; }
+.chips { margin-top: 7px; display: flex; gap: 6px; flex-wrap: wrap; }
+.chips:empty { display: none; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 99px; background: var(--apricot-soft); color: var(--apricot); }
+.side { display: flex; align-items: center; gap: 16px; }
+
+/* the signal meter: fit 1–5 as rising bars */
+.sig { display: inline-flex; gap: 3px; align-items: flex-end; height: 22px; }
+.sig i { width: 5px; border-radius: 3px; background: var(--line); }
+.sig i.on { background: var(--blue); }
+.fitlabel { font: 700 12px/1 var(--display); color: var(--ink-2); margin-top: 5px; }
+.fitbox { display: grid; justify-items: center; min-width: 46px; }
+
+.btn { all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 13px;
+  padding: 8px 13px; border-radius: 10px; color: var(--ink); background: var(--sheet); box-shadow: 0 0 0 1px var(--line); white-space: nowrap; }
+.btn:hover { box-shadow: 0 0 0 1px var(--ink-3); }
+.btn.go { background: var(--blue); color: #fff; box-shadow: none; }
+.btn.go:hover { filter: brightness(1.08); }
+.btn[disabled] { opacity: .6; cursor: default; }
+.acts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; align-items: center; }
+
+.status { display: inline-flex; align-items: center; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 99px; color: var(--c); background: var(--cs); }
+.callout { margin-top: 10px; padding: 12px 14px; border-radius: 12px; background: var(--paper); font-size: 13px; }
+.callout.warm { background: var(--apricot-soft); }
+.callout p { margin: 4px 0 10px; font-size: 14px; color: var(--ink); }
+.callout ul { margin: 6px 0 0; padding-left: 18px; }
+.callout li { margin: 4px 0; }
+.hist { font-size: 12px; color: var(--ink-3); margin: 8px 0 0; padding-left: 16px; }
+
+.tools { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 0 0 16px; }
+.search { flex: 1; min-width: 220px; position: relative; }
+.search input { width: 100%; font: inherit; font-size: 15px; padding: 12px 14px 12px 40px; border-radius: 12px; border: 0; background: var(--sheet); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
+.search svg { position: absolute; left: 14px; top: 50%; translate: 0 -50%; color: var(--ink-3); }
+.seg { display: inline-flex; background: var(--sheet); border-radius: 12px; box-shadow: 0 0 0 1px var(--line); padding: 3px; flex-wrap: wrap; }
+.seg button { all: unset; cursor: pointer; font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: 9px; color: var(--ink-2); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--sheet); }
+select.src { font: inherit; font-size: 13px; font-weight: 600; padding: 11px 12px; border-radius: 12px; border: 0; background: var(--sheet); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
+label.toggle { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; color: var(--ink-2); cursor: pointer; }
+.empty { padding: 34px 22px; color: var(--ink-2); margin: 0; }
+.more { display: flex; justify-content: center; margin-top: 18px; }
+
+/* results */
+.stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+.stat { background: var(--sheet); border-radius: var(--r); box-shadow: 0 0 0 1px var(--line); padding: 18px; }
+.stat b { display: block; font: 800 40px/1 var(--display); letter-spacing: -.04em; }
+.stat span { font-size: 13px; color: var(--ink-2); font-weight: 600; }
+.stat small { display: block; color: var(--ink-3); font-size: 12px; margin-top: 2px; }
+.stat.lead { background: var(--night); color: #fff; box-shadow: none; }
+.stat.lead span, .stat.lead small { color: var(--night-ink); }
+table.f { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+table.f th { text-align: left; font-weight: 700; color: var(--ink-3); font-size: 12px; padding: 12px 18px; }
+table.f td { padding: 12px 18px; border-top: 1px solid var(--line); }
+table.f .n { text-align: right; }
+.bar { height: 8px; border-radius: 4px; background: var(--paper); overflow: hidden; min-width: 90px; }
+.bar i { display: block; height: 100%; background: var(--blue); border-radius: 4px; }
+
+/* drawer */
+.scrim { position: fixed; inset: 0; background: rgba(10,15,36,.38); opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 9; }
+.drawer { position: fixed; top: 0; right: 0; height: 100vh; width: min(560px, 100vw); background: var(--sheet); box-shadow: -30px 0 60px -30px rgba(10,15,36,.5);
+  transform: translateX(102%); transition: transform .28s cubic-bezier(.2,.8,.2,1), visibility 0s .28s; visibility: hidden; display: flex; flex-direction: column; z-index: 10; }
+body.open .scrim { opacity: 1; pointer-events: auto; }
+body.open .drawer { transform: none; visibility: visible; transition: transform .28s cubic-bezier(.2,.8,.2,1); }
+.dhead { padding: 24px 26px 18px; border-bottom: 1px solid var(--line); }
+.dhead .ti { font-size: 25px; line-height: 1.15; margin: 14px 0 12px; }
+.dfit { display: flex; gap: 14px; align-items: center; }
+.dbody { padding: 20px 26px 30px; overflow: auto; }
+.desc { white-space: pre-line; color: var(--ink-2); font-size: 14px; line-height: 1.65; max-width: 68ch; }
+.dact { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; align-items: center; }
+.close { all: unset; cursor: pointer; float: right; font-size: 24px; line-height: 1; color: var(--ink-3); padding: 2px 8px; border-radius: 8px; }
+.close:hover { color: var(--ink); }
+
+@media (max-width: 860px) {
+  .app { grid-template-columns: 1fr; }
+  .rail { position: static; height: auto; padding: 14px; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .brand { padding: 0 8px 0 0; width: 100%; } .brand span { display: none; }
+  .nav { display: flex; flex-wrap: wrap; gap: 2px; } .nav button { width: auto; padding: 8px 10px; }
+  .runs { display: none; }
+  main { padding: 24px 16px 70px; }
+  h1 { font-size: 30px; } .hero .count { font-size: 76px; }
+  .item { grid-template-columns: 36px 1fr; align-items: start; } .mono { width: 36px; height: 36px; font-size: 14px; }
+  .side, .item > .acts { grid-column: 1 / -1; justify-content: space-between; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { .drawer, .scrim { transition: none; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail">
+    <div class="brand"><div class="brand-mark"><span class="sig" aria-hidden="true"><i class="on" style="height:6px"></i><i class="on" style="height:9px"></i><i class="on" style="height:12px"></i><i class="on" style="height:15px"></i></span></div>
+      <div><b>Internship Engine</b><span>Runs on your laptop</span></div></div>
+    <nav class="nav" aria-label="Views">
+      <button data-view="needs">Today <span class="n hot" id="n-needs"></span></button>
+      <button data-view="jobs">Jobs for you <span class="n" id="n-jobs"></span></button>
+      <button data-view="applied">Applications <span class="n" id="n-applied"></span></button>
+      <button data-view="results">Results</button>
+    </nav>
+    <div class="runs" id="runs"></div>
+  </aside>
+  <main id="main" tabindex="-1"></main>
+</div>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Role details" aria-hidden="true"></aside>
+<script>
+const STATUS = { new: ["New", "--ink-3", "--paper"], queued: ["To apply", "--blue", "--blue-soft"], submitted: ["Applied", "--ink-2", "--paper"],
+  assessment: ["Assessment", "--apricot", "--apricot-soft"], interview: ["Interview", "--mint", "--mint-soft"], offer: ["Offer", "--mint", "--mint-soft"],
+  rejected: ["Rejected", "--rose", "--rose-soft"], skipped: ["Skipped", "--ink-3", "--paper"], blocked: ["Blocked", "--apricot", "--apricot-soft"],
+  ghosted: ["No reply", "--ink-3", "--paper"] };
+const TRACK = { "ai-consulting": "AI consulting", transformation: "Transformation", "data-analytics": "Data analytics" };
+const SOURCE_LABEL = { other: "Other", inbox: "Inbox (applied elsewhere)", jobright: "JobRight lists", extension: "Saved with the extension" };
+let S = { roles: [], events: [], runs: [], needs: [], funnel: null, health: [] }, view = "needs", shown = 30, showAll = false, track = "", src = "", q = "";
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const safeUrl = u => /^https:\/\//.test(u || "") ? u : null;
+const postingUrl = r => safeUrl(r.url) || "https://www.google.com/search?q=" + encodeURIComponent(`${r.company} ${r.title} careers apply`);
+const place = l => { l = String(l || "").replace(/^[A-Z0-9]{2,}:\s*/, ""); const m = l.match(/([A-Z][A-Za-z .'-]+, [A-Z]{2})\b(?!.*[A-Z][A-Za-z .'-]+, [A-Z]{2}\b)/); return l.length > 40 && m ? m[1] : l; };
+const title = t => t === "(role from email)" ? "Role not named in the email" : t;
+const HUES = ["#2335F5", "#0F7F81", "#C7375F", "#C96A0E", "#6B3FD6", "#12936A", "#1D4E89", "#A33E62"];
+const mono = c => { let h = 0; for (const ch of c) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return `<div class="mono" style="--c:${HUES[h % HUES.length]}" aria-hidden="true">${esc((c.match(/[A-Za-z0-9]/) || ["?"])[0].toUpperCase())}</div>`; };
+const signal = f => `<span class="sig" aria-hidden="true">${[1, 2, 3, 4, 5].map(n => `<i class="${f >= n ? "on" : ""}" style="height:${6 + n * 3.2}px"></i>`).join("")}</span>`;
+const fitBox = r => r.fit ? `<div class="fitbox" title="Fit ${r.fit} of 5">${signal(r.fit)}<div class="fitlabel">Fit ${r.fit}</div></div>` : "";
+const status = s => { const [l, c, b] = STATUS[s] || [s, "--ink-3", "--paper"]; return `<span class="status" style="--c:var(${c});--cs:var(${b})">${l}</span>`; };
+const btn = (label, data, go) => `<button class="btn${go ? " go" : ""}" ${data}>${label}</button>`;
+const act = (r, s, label, go) => btn(label, `data-id="${r.id}" data-s="${s}"`, go);
+const openLink = r => `<a class="btn" href="${esc(postingUrl(r))}" target="_blank" rel="noopener">${safeUrl(r.url) ? "Open posting" : "Find posting"}</a>`;
+const good = r => showAll || (r.eligible !== 0 && (r.fit == null || r.fit >= 3));
+const applied = r => !["new", "queued", "skipped"].includes(r.status);
+
+async function load() { S = await (await fetch("/api/state")).json(); render(); }
+async function post(path, body) {
+  const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (!r.ok) alert((await r.json()).error);
+}
+function meta(r, extra = "") {
+  return `<div class="meta">${[r.location && `<b>${esc(place(r.location))}</b>`, r.track && TRACK[r.track], r.posted && esc(r.posted),
+    r.applied_on && `applied ${esc(r.applied_on)}`].filter(Boolean).map(x => `<span>${x}</span>`).join("")}${extra}</div>`;
+}
+function history(r) {
+  const ev = S.events.filter(e => e.role_id === r.id).slice(0, 3);
+  return ev.length ? `<ul class="hist">${ev.map(e => `<li>${esc(e.at.slice(0, 10))} · ${esc(e.summary)}</li>`).join("")}</ul>` : "";
+}
+function warmBlock(r) {
+  if (!r.warm) return "";
+  const [who, url] = r.warm.split(" | ");
+  return `<div class="callout warm">You know <b>${esc(who)}</b> here. Message them before you apply:<p>${esc(r.outreach)}</p>
+    ${btn("Copy message", `data-copy="${esc(r.outreach)}"`)} ${safeUrl(url) ? `<a class="btn" href="${esc(url)}" target="_blank" rel="noopener">Open their profile</a>` : ""}</div>`;
+}
+function prepBlock(r) {
+  if (!r.prep) return "";
+  const y = r.prep.yours;
+  return `<div class="callout"><b>Filled ${r.prep.filled} of ${r.prep.fields}.</b> ${y.length ? "Left for you, then Submit:" : "Read it over, then Submit."}
+    ${y.length ? `<ul>${y.map(x => `<li>${esc(x.label)}${x.suggest?.length ? `<br><span class="meta">From your resume: ${esc(x.suggest[0])}</span>` : ""}</li>`).join("")}</ul>` : ""}</div>`;
+}
+
+// ---- Today ----
+const TODO = {
+  offer: r => `Decide on the ${r.company} offer`, interview: r => `Prepare for your ${r.company} interview`,
+  assessment: r => `Finish the ${r.company} assessment`, blocked: r => `${r.company}: ${r.blocked_reason || "needs you"}`,
+  new: r => `Message your contact at ${r.company}`, queued: r => `Apply to ${r.company}`,
+  submitted: r => r.follow_up?.action === "ghost" ? `${r.company} has been quiet for ${r.follow_up.idle_days} days` : `Follow up with ${r.company}`,
+};
+function todayView() {
+  const order = ["offer", "interview", "assessment", "blocked", "new", "queued", "submitted"];
+  const items = [...S.needs].sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status));
+  const n = items.length;
+  const banner = S.health?.length ? `<div class="banner" role="status"><div>${S.health.map(h => `<p>${esc(h)}</p>`).join("")}</div></div>` : "";
+  return `${banner}<div class="hero">${n ? `<div class="count">${n}</div>` : ""}<h1>${n ? `${n === 1 ? "thing needs" : "things need"} you today` : "You're clear for today"}</h1></div>
+    <p class="lede">${n ? "Interviews and assessments first, then people to message, then applications to send, then follow-ups."
+      : "Queue a few roles from Jobs for you and they'll be waiting here, ready to prep."}</p>
+    ${n ? `<div class="sheet">${items.map(r => `<div class="item">${mono(r.company)}<div><div class="ti">${esc(TODO[r.status](r))}</div>
+      <div class="co">${esc(title(r.title))}</div>${r.status === "new" ? warmBlock(r) : prepBlock(r) + history(r)}</div>
+      <div class="acts">${r.status === "new" ? "" : status(r.status)} ${openLink(r)}
+        ${r.status === "queued" ? (safeUrl(r.url) ? btn(r.prep ? "Prep again" : "Prep application", `data-prep="${r.id}"`, true) : "") + act(r, "submitted", "Mark applied") : ""}
+        ${r.status === "blocked" && safeUrl(r.url) ? btn("Prep again", `data-prep="${r.id}"`, true) : ""}
+        ${r.status === "new" ? act(r, "queued", "Queue", true) : ""}
+        ${r.follow_up ? btn("I followed up", `data-log="${r.id}"`) + act(r, "ghosted", "No reply") : ""}</div></div>`).join("")}</div>` : ""}`;
+}
+
+// ---- Jobs for you ----
+// one posting per city ("Atlanta Technology Consulting Intern", "Chicago …") → one row, led by the office near you
+function jobRows(filtered = true) {
+  const cityless = r => { const w = new Set(place(r.location).toLowerCase().match(/[a-z]+/g) || []);
+    return r.company + "|" + r.title.toLowerCase().split(/\s+/).filter(x => !w.has(x.replace(/[^a-z]/g, ""))).join(" "); };
+  const list = S.roles.filter(r => r.status === "new" && good(r) && (!filtered || (!track || r.track === track)
+    && (!src || (r.source || "").startsWith(src) || r.ats === src) && (!q || `${r.company} ${r.title} ${r.location}`.toLowerCase().includes(q.toLowerCase()))));
+  const near = r => /in your area|remote/.test(r.fit_why || "") ? 0 : 1;
+  const groups = new Map();
+  for (const r of list) { const k = cityless(r); groups.has(k) ? groups.get(k).push(r) : groups.set(k, [r]); }
+  return [...groups.values()].map(g => g.sort((a, b) => near(a) - near(b)));
+}
+function jobsView() {
+  const hidden = S.roles.filter(r => r.status === "new" && !good(r)).length;
+  const rows = jobRows();
+  const segs = [["", "All tracks"], ...Object.entries(TRACK)].map(([k, v]) => `<button data-track="${k}" aria-pressed="${track === k}">${v}</button>`).join("");
+  return `<h1>${rows.length} roles worth your time</h1>
+    <p class="lede">Ranked against your resume, best first.${hidden && !showAll ? ` ${hidden} more are hidden: under fit 3, or you can't apply (class year, graduate-only, past season).` : ""}</p>
+    <div class="tools"><label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Search company, role or city" value="${esc(q)}" aria-label="Search"></label>
+      <div class="seg" role="group" aria-label="Track">${segs}</div>
+      <select class="src" id="src" aria-label="Source"><option value="">Every source</option>${["workday", "greenhouse", "lever", "ashby", "icims", "ukg", "oracle", "phenom", "jobright", "extension"].map(s => `<option ${s === src ? "selected" : ""}>${s}</option>`).join("")}</select>
+      <label class="toggle"><input type="checkbox" id="all" ${showAll ? "checked" : ""}> Show hidden</label></div>
+    <div class="sheet">${rows.slice(0, shown).map(g => { const r = g[0];
+      const also = g.length > 1 ? `<span>+${g.length - 1} more ${g.length === 2 ? "city" : "cities"}</span>` : "";
+      return `<div class="item click" data-open="${r.id}" tabindex="0">${mono(r.company)}<div><div class="co">${esc(r.company)}</div><div class="ti">${esc(title(r.title))}</div>
+        ${meta(r, also)}${r.fit_why ? `<div class="why">${esc(r.fit_why)}</div>` : ""}
+        <div class="chips">${r.warm ? `<span class="chip">You know someone here</span>` : ""}${r.eligible === 2 ? `<span class="chip">Check: ${esc(r.eligible_why)}</span>` : ""}</div></div>
+        <div class="side">${fitBox(r)}<div class="acts">${act(r, "queued", "Queue", true)}${act(r, "skipped", "Skip")}</div></div></div>`; }).join("")
+      || `<p class="empty">Nothing matches. Clear the search, or pick another track.</p>`}</div>
+    ${rows.length > shown ? `<div class="more">${btn(`Show ${Math.min(30, rows.length - shown)} more`, 'id="more"')}</div>` : ""}`;
+}
+
+// ---- Applications ----
+function appliedView() {
+  const done = S.roles.filter(applied);
+  const by = s => done.filter(r => r.status === s);
+  const groups = ["offer", "interview", "assessment", "submitted", "blocked", "rejected", "ghosted"].filter(s => by(s).length);
+  return `<h1>${done.length} applications</h1><p class="lede">Built from your inbox. Confirmation, assessment, interview and rejection emails move these on their own.</p>
+    ${groups.map(s => `<h2>${STATUS[s][0]} · ${by(s).length}</h2><div class="sheet">${by(s).map(r => `<div class="item">${mono(r.company)}<div>
+      <div class="co">${esc(r.company)}</div><div class="ti">${esc(title(r.title))}</div>${meta(r)}${history(r)}</div><div class="acts">${status(r.status)}</div></div>`).join("")}</div>`).join("")
+      || `<div class="sheet"><p class="empty">No applications yet. Mark a role applied, or let the listener read your inbox.</p></div>`}`;
+}
+
+// ---- Results ----
+function resultsView() {
+  const f = S.funnel.all, pct = (a, b) => b ? Math.round(100 * a / b) + "%" : "–";
+  const st = [["found", "Found", ""], ["queued", "Queued", pct(f.queued, f.found) + " of found"], ["applied", "Applied", ""],
+              ["replied", "Heard back", pct(f.replied, f.applied) + " of applied"], ["interview", "Interviews", pct(f.interview, f.applied) + " of applied"], ["offer", "Offers", pct(f.offer, f.applied) + " of applied"]];
+  const split = (name, groups) => {
+    const keys = Object.keys(groups).filter(k => groups[k].applied).sort((a, b) => groups[b].applied - groups[a].applied);
+    return keys.length ? `<h2>By ${name}</h2><div class="sheet"><table class="f"><tr><th>${name === "track" ? "Track" : "Where you found it"}</th><th class="n">Applied</th><th class="n">Heard back</th><th class="n">Interviews</th><th>Reply rate</th></tr>
+      ${keys.map(k => { const g = groups[k]; return `<tr><td><b>${esc(TRACK[k] || SOURCE_LABEL[k] || k)}</b></td><td class="n">${g.applied}</td><td class="n">${g.replied}</td><td class="n">${g.interview}</td>
+        <td><div class="bar" title="${pct(g.replied, g.applied)}"><i style="width:${g.applied ? Math.round(100 * g.replied / g.applied) : 0}%"></i></div></td></tr>`; }).join("")}</table></div>` : "";
+  };
+  return `<h1>${f.applied ? `${pct(f.replied, f.applied)} of your applications got a reply` : "Results appear once you apply"}</h1>
+    <p class="lede">Every number comes from your tracker and inbox. The splits start meaning something around 30 applications${f.applied < 30 ? `; you're at ${f.applied}` : ""}.</p>
+    <div class="stats">${st.map(([k, l, sub]) => `<div class="stat${k === "applied" ? " lead" : ""}"><b>${f[k]}</b><span>${l}</span>${sub ? `<small>${sub}</small>` : ""}</div>`).join("")}</div>
+    ${split("track", S.funnel.track)}${split("source", S.funnel.source)}`;
+}
+
+// ---- detail drawer ----
+let lastFocus = null;
+function openDrawer(id) {
+  const r = S.roles.find(x => x.id == id); if (!r) return;
+  lastFocus = document.activeElement;
+  $("#drawer").innerHTML = `<div class="dhead"><button class="close" data-close aria-label="Close">×</button>
+      <div style="display:flex;gap:12px;align-items:center">${mono(r.company)}<div><div class="co">${esc(r.company)}</div>${meta(r)}</div></div>
+      <div class="ti">${esc(title(r.title))}</div>
+      <div class="dfit">${fitBox(r)}<div class="why" style="margin:0">${esc(r.fit_why || "")}</div></div>
+      ${r.eligible === 2 ? `<div class="callout warm"><b>Check first:</b> ${esc(r.eligible_why)}</div>` : ""}
+      ${r.eligible === 0 ? `<div class="callout warm"><b>Probably not eligible:</b> ${esc(r.eligible_why)}</div>` : ""}
+      ${warmBlock(r)}
+      <div class="dact">${openLink(r)}${r.status === "new" ? act(r, "queued", "Queue to apply", true) + act(r, "skipped", "Skip") : status(r.status)}</div></div>
+    <div class="dbody">${r.description ? `<div class="desc">${esc(r.description)}${r.description.length >= 1500 ? "…" : ""}</div>` : `<p class="empty">No description fetched yet. Open the posting to read it.</p>`}</div>`;
+  document.body.classList.add("open");
+  $("#drawer").setAttribute("aria-hidden", "false");
+  $("#drawer .close").focus();
+}
+function closeDrawer() {
+  if (!document.body.classList.contains("open")) return;
+  document.body.classList.remove("open"); $("#drawer").setAttribute("aria-hidden", "true"); lastFocus?.focus?.();
+}
+
+function render() {
+  $("#n-needs").textContent = S.needs.length || "";
+  const keep = showAll; showAll = false; $("#n-jobs").textContent = jobRows(false).length || ""; showAll = keep;
+  $("#n-applied").textContent = S.roles.filter(applied).length || "";
+  const when = r => new Date(r.started.replace(" ", "T") + "Z").toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" });
+  const last = j => S.runs.find(r => r.job === j);
+  $("#runs").innerHTML = [last("find") && `Jobs checked <b>${when(last("find"))}</b>`, last("listen") && `Inbox read <b>${when(last("listen"))}</b>`].filter(Boolean).join("<br>");
+  document.querySelectorAll(".nav button").forEach(b => b.dataset.view === view ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
+  $("#main").innerHTML = { needs: todayView, jobs: jobsView, applied: appliedView, results: resultsView }[view]();
+  const qi = $("#q");
+  qi?.addEventListener("input", () => { q = qi.value; shown = 30; const pos = qi.selectionStart; render(); const n = $("#q"); n.focus(); n.setSelectionRange(pos, pos); });
+  $("#src")?.addEventListener("change", e => { src = e.target.value; shown = 30; render(); });
+  $("#all")?.addEventListener("change", e => { showAll = e.target.checked; shown = 30; render(); });
+}
+
+document.addEventListener("click", async e => {
+  const t = e.target;
+  if (t.closest("[data-close]") || t.id === "scrim") return closeDrawer();
+  const c = t.closest("[data-copy]");
+  if (c) { navigator.clipboard.writeText(c.dataset.copy).then(() => { c.textContent = "Copied"; setTimeout(() => c.textContent = "Copy message", 1500); }); return; }
+  const s = t.closest("[data-s]");
+  if (s) { await post(`/api/role/${s.dataset.id}`, { status: s.dataset.s }); closeDrawer(); return load(); }
+  const pr = t.closest("[data-prep]");
+  if (pr) { await fetch(`/api/role/${pr.dataset.prep}/prep`, { method: "POST" }); pr.textContent = "Opening a browser…"; pr.disabled = true; setTimeout(load, 15000); return; }
+  const lg = t.closest("[data-log]");
+  if (lg) { await post(`/api/role/${lg.dataset.log}`, { log: "Followed up" }); return load(); }
+  const tr = t.closest("[data-track]");
+  if (tr) { track = tr.dataset.track; shown = 30; return render(); }
+  if (t.id === "more") { shown += 30; return render(); }
+  const v = t.closest("[data-view]");
+  if (v) { view = v.dataset.view; shown = 30; render(); return $("#main").focus(); }
+  const o = t.closest("[data-open]");
+  if (o && !t.closest("a, button")) openDrawer(o.dataset.open);
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeDrawer();
+  if (e.key === "Enter" && e.target.matches?.("[data-open]")) openDrawer(e.target.dataset.open);
+});
+load();
+</script>
+</body>
+</html>
