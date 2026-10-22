@@ -7,7 +7,9 @@ import ipaddress
 import json
 import re
 import socket
-from urllib.parse import urlencode, urljoin, urlsplit, urlunsplit
+from html.parser import HTMLParser
+from pathlib import Path
+from urllib.parse import parse_qs, urlencode, urljoin, urlsplit, urlunsplit
 
 import httpx
 
@@ -478,6 +480,29 @@ def _selfcheck() -> None:
         assert False, "compressed response must be rejected"
     except ValueError:
         pass
+    calls = []
+    def detail_redirect(request):
+        calls.append(request)
+        if request.url.path == "/career":
+            return httpx.Response(302, headers={"Location": "https://detail.example/job/1"},
+                                  stream=httpx.ByteStream(b""), request=request)
+        return httpx.Response(200, stream=httpx.ByteStream(b'<div class="job">Fictional posting</div>'), request=request)
+    response = _safe_page("https://career.example/career", _resolver=dns,
+                          _transport=httpx.MockTransport(detail_redirect))
+    assert response and response.status_code == 200 and len(calls) == 2
+    calls = []
+    response = _safe_page("https://career.example/career", _resolver=dns,
+                          _transport=httpx.MockTransport(lambda req: calls.append(req) or httpx.Response(
+                              302, headers={"Location": "https://127.0.0.1/"}, stream=httpx.ByteStream(b""), request=req)))
+    assert response is None and len(calls) == 1
+    fixtures = Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "ats"
+    assert _workable_description(json.loads((fixtures / "workable.json").read_text())) == \
+        "Contoso internship: build useful tools.\n Requirements: clear writing.\n Benefits: mentorship."
+    assert _successfactors_description((fixtures / "successfactors.html").read_text()) == \
+        "Summer Intern Contoso summer internship. Build a fictional operations dashboard."
+    assert _jsonld_description((fixtures / "jobvite.html").read_text()) == "Contoso data internship."
+    assert _jsonld_description((fixtures / "jazzhr.html").read_text()) == "Contoso research internship."
+    assert _jsonld_description((fixtures / "taleo.html").read_text()) is None
 
 
 # ---- descriptions ---------------------------------------------------------------------------------
@@ -505,8 +530,52 @@ def _jsonld_description(html: str) -> str | None:
     return None
 
 
+def _workable_description(job: dict) -> str | None:
+    return text_of("\n".join(job.get(k) or "" for k in ("description", "requirements", "benefits"))) or None
+
+
+class _JobText(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.depth = self.skip = 0
+        self.parts = []
+
+    def handle_starttag(self, tag, attrs):
+        if self.depth and tag == "div":
+            self.depth += 1
+        elif not self.depth and tag == "div" and "job" in dict(attrs).get("class", "").split():
+            self.depth = 1
+        if self.depth and tag in {"script", "style"}:
+            self.skip += 1
+
+    def handle_endtag(self, tag):
+        if self.depth and self.skip and tag in {"script", "style"}:
+            self.skip -= 1
+        if self.depth and tag == "div":
+            self.depth -= 1
+
+    def handle_data(self, data):
+        if self.depth and not self.skip:
+            self.parts.append(data)
+
+
+def _successfactors_description(html: str) -> str | None:
+    parser = _JobText()
+    parser.feed(html)
+    description = re.sub(r"\s+", " ", " ".join(parser.parts)).strip()
+    return None if not description or re.search(r"\bno longer accepting applications\b", description, re.I) else description
+
+
+def _safe_page(url: str, *, _resolver=socket.getaddrinfo, _transport=None) -> httpx.Response | None:
+    """A detail page via the guarded fetch (it revalidates redirects itself); None when refused."""
+    try:
+        return _safe_request("GET", url, headers=UA, _resolver=_resolver, _transport=_transport)
+    except ValueError:
+        return None
+
+
 def description(url: str) -> str | None:
-    """Full posting text for a role URL, from the board's API when we know it, else the page itself."""
+    """Fetch anonymous posting text; Taleo pages without embedded JobPosting data return None."""
     if m := re.match(r"(https://([a-z0-9-]+)\.wd\d+\.myworkdayjobs\.com)/(?:[a-z]{2}-[A-Z]{2}/)?([A-Za-z0-9_-]+)(/job/.+)", url):
         base, tenant, site, path = m.groups()
         r = _safe_request("GET", f"{base}/wday/cxs/{tenant}/{site}{path}",
@@ -522,11 +591,18 @@ def description(url: str) -> str | None:
         if r.status_code == 200:
             j = r.json()
             return "\n".join([j.get("descriptionPlain", "")] + [f"{l['text']}\n{text_of(l['content'])}" for l in j.get("lists", [])])
-    if m := re.match(r"https://apply\.workable\.com/([a-z0-9-]+)/j/([A-Z0-9]+)", url):
+    if m := re.match(r"https://apply\.workable\.com/([a-z0-9-]+)/j/([A-Za-z0-9]+)", url):
         r = _safe_request("GET", f"https://apply.workable.com/api/v2/accounts/{m[1]}/jobs/{m[2]}", headers=UA, timeout=20)
-        if r.status_code == 200:
-            j = r.json()
-            return text_of("\n".join(j.get(k) or "" for k in ("description", "requirements", "benefits")))
+        return _workable_description(r.json()) if r.status_code == 200 else None
+    parts = urlsplit(url)
+    if (parts.scheme == "https" and re.fullmatch(r"career\d*\.successfactors\.(?:com|eu)", parts.hostname or "")
+            and parts.path == "/career"):
+        query = parse_qs(parts.query)
+        company = query.get("company", [""])[0]
+        req = query.get("career_job_req_id", [""])[0]
+        if re.fullmatch(r"[A-Za-z0-9_-]+", company) and req.isdecimal():
+            r = _safe_page(url)
+            return (_jsonld_description(r.text) or _successfactors_description(r.text)) if r and r.status_code == 200 else None
     if m := re.match(r"https://([a-z0-9.-]+\.oraclecloud\.com)/hcmUI/CandidateExperience/[a-z]{2}/sites/(CX(?:_\d+)?)/job/(\d+)", url):
         r = _safe_request("GET", f"https://{m[1]}/hcmRestApi/resources/latest/recruitingCEJobRequisitionDetails",
                           params={"expand": "all", "onlyData": "true", "finder": f'ById;Id="{m[3]}",siteNumber={m[2]}'},
