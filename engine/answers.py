@@ -154,7 +154,7 @@ def answer_all(fields: list[dict], p: dict, resume_text: str, bank: dict | None 
 
 
 def _selfcheck() -> None:
-    p = {"first_name": "Ana", "last_name": "Lee", "email": "a@x.com", "phone": "555", "linkedin": "https://linkedin.com/in/a",
+    p = {"first_name": "Ana", "last_name": "Lee", "email": "a@x.example", "phone": "555", "linkedin": "https://linkedin.com/in/a",
          "city": "Hartford", "state": "CT", "country": "United States", "school": "State U", "degree_type": "Bachelor's",
          "major": "Economics", "graduation": "2028-05", "work_authorization": "unknown", "needs_sponsorship": "unknown",
          "open_to_relocation": True, "heard_about": "Job board", "eeo": "decline", "resume_pdf": "data/resume.pdf"}
