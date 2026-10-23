@@ -52,7 +52,7 @@ def company_hint(sender: str, subject: str) -> str:
     local, _, domain = sender.lower().partition("@")
     if ATS_DOMAINS.search(domain):              # contoso@myworkday.com → the tenant is the employer
         return local.split(".")[0]
-    labels = domain.split(".")                  # talent@talent.wallstreetoasis.com → wallstreetoasis
+    labels = domain.split(".")                  # talent@talent.wallstreetoasis.example → wallstreetoasis
     return labels[-2] if len(labels) >= 2 else domain
 
 
@@ -211,12 +211,12 @@ def _selfcheck() -> None:
     assert sent_at("garbage", b"")                                       # no date anywhere: still a value, no crash
     c = lambda s, sub, sn="": classify(s, sub, sn)
     assert c("contoso@myworkday.com", "Contoso job application: Progress update", "We regret to inform you") == "rejection"
-    assert c("donotreply@northwind.com", "Thank you for applying to Northwind!") == "confirmation"
-    assert c("talent@fabrikam.com", "Action Required:Fabrikam Assessments for completion") == "assessment"
-    assert c("talent@fabrikam.com", "Your Fabrikam Application Status", "invited to complete Fabrikam's recorded interview") == "assessment"
+    assert c("donotreply@northwind.example", "Thank you for applying to Northwind!") == "confirmation"
+    assert c("talent@fabrikam.example", "Action Required:Fabrikam Assessments for completion") == "assessment"
+    assert c("talent@fabrikam.example", "Your Fabrikam Application Status", "invited to complete Fabrikam's recorded interview") == "assessment"
     assert c("noreply@jobright.ai", "SAP just posted a 82% match") == "alert"
-    assert c("x@y.com", "The Morning: Paper towns") is None
-    assert c("p@talent.wideworldimporters.com", "Application Update", "we weren't able to offer you a spot") == "rejection"
+    assert c("x@y.example", "The Morning: Paper towns") is None
+    assert c("p@talent.wideworldimporters.example", "Application Update", "we weren't able to offer you a spot") == "rejection"
     assert title_from("Thank you for submitting an application for the position of Internal Services - Co-Op Intern - "
                       "Finance Strategy & Transformation - Winter 2027, 364303.") == \
         "Internal Services - Co-Op Intern - Finance Strategy & Transformation - Winter 2027"
@@ -229,10 +229,10 @@ def _selfcheck() -> None:
     assert company_hint("contoso@myworkday.com", "Contoso job application: Progress update") == "Contoso"
     assert company_hint("adatum@myworkday.com", "Application Received") == "adatum"
     assert company_hint("tailspinfinancial@myworkday.com", "Your Application with Tailspin") == "Tailspin"
-    assert company_hint("no-reply@us.greenhouse-mail.io", "Thank you for applying to Acme Solutions!") == "Acme Solutions"
+    assert company_hint("no-reply@greenhouse-mail.io", "Thank you for applying to Acme Solutions!") == "Acme Solutions"
     assert company_hint("abbank@myworkday.com", "A&B Bank Application") == "A&B Bank"
-    assert company_hint("talentacquisition.people_organization@litware.com", "An update on your recent Litware application") == "litware"
-    assert company_hint("agcareers.im@ag.com", "ACTION NEEDED – A&G Online Assessment") == "ag"
+    assert company_hint("talentacquisition.people_organization@litware.example", "An update on your recent Litware application") == "litware"
+    assert company_hint("agcareers.im@ag.example", "ACTION NEEDED – A&G Online Assessment") == "ag"
 
 
 if __name__ == "__main__":
