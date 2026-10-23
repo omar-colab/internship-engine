@@ -24,6 +24,10 @@ ALLOWED_DOMAINS = {
     "litware.com",
     "adatum.com",
     "wideworldimporters.com",
+    # ATS/vendor sender domains, no personal data
+    "myworkday.com",
+    "greenhouse-mail.io",
+    "jobright.ai",
 }
 RESTRICTED_SUFFIXES = {".db", ".pdf", ".png"}
 RESTRICTED_FILE_PREFIXES = ("site/", "extension/", "tests/fixtures/")
@@ -60,6 +64,7 @@ def self_check() -> None:
     assert not has_unapproved_email(b"272296338+omar-colab@users.noreply.github.com")
     assert not has_unapproved_email(b"person@northwind.com person@jobs.example")
     assert not has_unapproved_email(b"person@mail.example.com")
+    assert not has_unapproved_email(b"contoso@myworkday.com noreply@greenhouse-mail.io noreply@jobright.ai")
     assert has_unapproved_email(b"person@" + b"unapproved.test")
     assert not has_unapproved_email(b"uses: actions/checkout@v7")
     assert not has_unapproved_email(b"font: opsz@9..96")
