@@ -3,12 +3,19 @@
 All public, no login: Greenhouse / Lever / Ashby posting APIs and Workday's own
 career-site search (the JSON the career page itself calls).
 """
+import ipaddress
+import json
 import re
+import socket
+from urllib.parse import urlencode, urljoin, urlsplit, urlunsplit
 
 import httpx
 
 UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140 Safari/537.36"}
 INTERN = re.compile(r"\bintern(ship)?s?\b|co-?op|summer (analyst|associate|20\d\d)", re.I)
+MAX_FETCH_BYTES = 2 * 1024 * 1024
+MAX_REQUEST_BYTES = 1024 * 1024
+FETCH_TIMEOUT = 15
 BOARD = re.compile(
     r"https?://(?P<wd>[a-z0-9-]+)\.(?P<n>wd\d+)\.myworkdayjobs\.com/(?:[a-z]{2}-[A-Z]{2}/)?(?P<site>[A-Za-z0-9_-]+)"
     r"|greenhouse\.io/embed/job_board(?:/js)?\?for=(?P<ghe>[a-z0-9]+)"
@@ -26,8 +33,130 @@ BOARD = re.compile(
 
 def detect(careers_url: str) -> tuple[str, dict] | None:
     """Read a careers page and return (ats, board) for the first job-board link on it."""
-    r = httpx.get(careers_url, headers=UA, follow_redirects=True, timeout=15)
+    r = _safe_request("GET", careers_url, headers=UA)
     return detect_html(r.text) or detect_url(str(r.url)) or detect_phenom(r.text, str(r.url))
+
+
+def _public_ip(value: str) -> bool:
+    try:
+        address = ipaddress.ip_address(value)
+    except ValueError:
+        return False
+    return (address.is_global and not address.is_reserved and not address.is_multicast
+            and not address.is_unspecified and not address.is_loopback and not address.is_link_local
+            and not (address.version == 6 and address.ipv4_mapped is not None))
+
+
+def _checked_url(url: str, resolver=socket.getaddrinfo) -> tuple[str, str, str]:
+    """Return a URL pinned to a public IP, plus the original TLS and Host name."""
+    if not isinstance(url, str) or not url or len(url) > 4096 or any(c in url for c in "\r\n\x00"):
+        raise ValueError("invalid URL")
+    try:
+        parts = urlsplit(url)
+        host, port = parts.hostname, parts.port
+    except ValueError as e:
+        raise ValueError("invalid URL") from e
+    if parts.scheme.lower() != "https" or not host or parts.username is not None or parts.password is not None or port not in (None, 443):
+        raise ValueError("only public HTTPS URLs on port 443 are allowed")
+    if "%" in host:
+        raise ValueError("scoped IPs are not allowed")
+    try:
+        host = host.encode("idna").decode("ascii").lower().rstrip(".")
+        address = ipaddress.ip_address(host)
+    except ValueError:
+        if not host or len(host) > 253 or not re.fullmatch(r"[a-z0-9.-]+", host) or any(not label or len(label) > 63 for label in host.split(".")):
+            raise ValueError("invalid hostname")
+        try:
+            infos = resolver(host, 443, type=socket.SOCK_STREAM)
+        except OSError as e:
+            raise ValueError("hostname did not resolve") from e
+        addresses = list(dict.fromkeys(info[4][0] for info in infos))
+        if not addresses or any(not _public_ip(item) for item in addresses):
+            raise ValueError("hostname resolves to a non-public address")
+        address = ipaddress.ip_address(addresses[0])
+    if not _public_ip(str(address)):
+        raise ValueError("non-public address")
+    pinned_host = f"[{address}]" if address.version == 6 else str(address)
+    host_header = f"[{host}]" if ":" in host else host
+    pinned_url = urlunsplit(("https", pinned_host, parts.path or "/", parts.query, ""))
+    return pinned_url, host, host_header
+
+
+def _safe_client(timeout=FETCH_TIMEOUT) -> httpx.Client:
+    if not isinstance(timeout, httpx.Timeout):
+        timeout = httpx.Timeout(timeout, connect=min(timeout, 5), read=min(timeout, 5), write=min(timeout, 5), pool=min(timeout, 5))
+    return httpx.Client(transport=httpx.HTTPTransport(retries=0), timeout=timeout,
+                       trust_env=False, follow_redirects=False)
+
+
+def _safe_request(method: str, url: str, *, headers=None, content=None, timeout=FETCH_TIMEOUT,
+                  max_bytes=MAX_FETCH_BYTES, params=None, json_data=None,
+                  _resolver=socket.getaddrinfo, _transport=None, _client=None) -> httpx.Response:
+    """Fetch a public HTTPS URL on pinned IPs, validating every redirect."""
+    method = method.upper()
+    if method not in {"GET", "HEAD", "POST", "OPTIONS"}:
+        raise ValueError("HTTP method is not allowed")
+    if params:
+        parts = urlsplit(url)
+        query = "&".join(part for part in (parts.query, urlencode(params, doseq=True)) if part)
+        url = urlunsplit((parts.scheme, parts.netloc, parts.path, query, parts.fragment))
+    if json_data is not None:
+        if content is not None:
+            raise ValueError("pass either JSON or a request body")
+        content = json.dumps(json_data, separators=(",", ":")).encode()
+        headers = {**(headers or {}), "Content-Type": "application/json"}
+    if content is not None and len(content) > MAX_REQUEST_BYTES:
+        raise ValueError("request body is too large")
+    clean_headers = {k: v for k, v in (headers or {}).items()
+                     if k.lower() not in {"host", "content-length", "transfer-encoding", "connection", "accept-encoding",
+                                          "authorization", "proxy-authorization", "proxy-authenticate", "keep-alive", "upgrade"}
+                     and not k.lower().startswith("proxy-")}
+    clean_headers["Accept-Encoding"] = "identity"
+    timeout = httpx.Timeout(timeout, connect=min(timeout, 5), read=min(timeout, 5), write=min(timeout, 5), pool=min(timeout, 5))
+    client = _client or (httpx.Client(transport=_transport, timeout=timeout, trust_env=False, follow_redirects=False)
+                         if _transport else _safe_client(timeout))
+    try:
+        for hop in range(6):
+            pinned_url, host, host_header = _checked_url(url, _resolver)
+            request_headers = {**clean_headers, "Host": host_header}
+            request = client.build_request(method, pinned_url, headers=request_headers, content=content, timeout=timeout,
+                                           extensions={"sni_hostname": host})
+            response = client.send(request, stream=True, follow_redirects=False)
+            status = response.status_code
+            location = response.headers.get("location")
+            if status in {301, 302, 303, 307, 308} and location:
+                response.close()
+                if hop == 5:
+                    raise ValueError("too many redirects")
+                next_url = urljoin(url, location)
+                old, new = urlsplit(url), urlsplit(next_url)
+                if (old.scheme, old.hostname, old.port or 443) != (new.scheme, new.hostname, new.port or 443):
+                    clean_headers = {k: v for k, v in clean_headers.items()
+                                     if k.lower() in {"user-agent", "accept", "accept-language", "accept-encoding", "content-type"}}
+                url = next_url
+                if status == 303 or (status in {301, 302} and method == "POST"):
+                    method, content = "GET", None
+                    clean_headers = {k: v for k, v in clean_headers.items() if k.lower() != "content-type"}
+                continue
+            try:
+                if response.headers.get("content-encoding", "identity").lower() not in {"", "identity"}:
+                    raise ValueError("compressed responses are not allowed")
+                length = response.headers.get("content-length", "")
+                if length.isdecimal() and int(length) > max_bytes:
+                    raise ValueError("response is too large")
+                body = bytearray()
+                for chunk in response.iter_raw():
+                    if len(body) + len(chunk) > max_bytes:
+                        raise ValueError("response is too large")
+                    body.extend(chunk)
+                final_request = httpx.Request(method, url, headers=clean_headers)
+                return httpx.Response(response.status_code, headers=response.headers, content=bytes(body), request=final_request)
+            finally:
+                response.close()
+        raise ValueError("too many redirects")
+    finally:
+        if _client is None:
+            client.close()
 
 
 def detect_phenom(html: str, url: str) -> tuple[str, dict] | None:
@@ -78,9 +207,9 @@ def workday(company: str, b: dict, query: str = "intern") -> list[dict]:
     base = f"https://{b['tenant']}.{b['wd']}.myworkdayjobs.com"
     out, offset = [], 0
     while offset < 200:                                          # ponytail: 200-role cap per company
-        r = httpx.post(f"{base}/wday/cxs/{b['tenant']}/{b['site']}/jobs",
-                       json={"appliedFacets": {}, "limit": 20, "offset": offset, "searchText": query},
-                       headers={**UA, "Accept": "application/json"}, timeout=20)
+        r = _safe_request("POST", f"{base}/wday/cxs/{b['tenant']}/{b['site']}/jobs",
+                          json_data={"appliedFacets": {}, "limit": 20, "offset": offset, "searchText": query},
+                          headers={**UA, "Accept": "application/json"}, timeout=20)
         r.raise_for_status()
         page = r.json().get("jobPostings", [])
         out += [_role(company, j["title"], j.get("locationsText"), f"{base}/{b['site']}{j['externalPath']}",
@@ -93,19 +222,19 @@ def workday(company: str, b: dict, query: str = "intern") -> list[dict]:
 
 
 def greenhouse(company: str, b: dict) -> list[dict]:
-    jobs = httpx.get(f"https://boards-api.greenhouse.io/v1/boards/{b['token']}/jobs", timeout=20).json()["jobs"]
+    jobs = _safe_request("GET", f"https://boards-api.greenhouse.io/v1/boards/{b['token']}/jobs", timeout=20).json()["jobs"]
     return [_role(company, j["title"], (j.get("location") or {}).get("name"), j["absolute_url"].split("?")[0], "greenhouse")
             for j in jobs if INTERN.search(j["title"])]
 
 
 def lever(company: str, b: dict) -> list[dict]:
-    jobs = httpx.get(f"https://api.lever.co/v0/postings/{b['token']}?mode=json", timeout=20).json()
+    jobs = _safe_request("GET", f"https://api.lever.co/v0/postings/{b['token']}?mode=json", timeout=20).json()
     return [_role(company, j["text"], j.get("categories", {}).get("location"), j["hostedUrl"], "lever")
             for j in jobs if INTERN.search(j["text"])]
 
 
 def ashby(company: str, b: dict) -> list[dict]:
-    jobs = httpx.get(f"https://api.ashbyhq.com/posting-api/job-board/{b['token']}", timeout=20).json()["jobs"]
+    jobs = _safe_request("GET", f"https://api.ashbyhq.com/posting-api/job-board/{b['token']}", timeout=20).json()["jobs"]
     return [_role(company, j["title"], j.get("location"), j["jobUrl"], "ashby") for j in jobs if INTERN.search(j["title"])]
 
 
@@ -116,8 +245,9 @@ def icims(company: str, b: dict, query: str = "intern") -> list[dict]:
     import html as h
     out = []
     for page in range(5):                                        # ponytail: 5 result pages per search
-        r = httpx.get(f"https://{b['host']}/jobs/search", params={"ss": 1, "searchKeyword": query, "in_iframe": 1, "pr": page},
-                      headers=UA, follow_redirects=True, timeout=20)
+        r = _safe_request("GET", f"https://{b['host']}/jobs/search",
+                          params={"ss": 1, "searchKeyword": query, "in_iframe": 1, "pr": page},
+                          headers=UA, timeout=20)
         found = ICIMS_JOB.findall(r.text)
         out += [_role(company, h.unescape(t), None, u, "icims") for u, t in found if INTERN.search(h.unescape(t))]
         if len(found) < 10:
@@ -132,7 +262,8 @@ def ukg(company: str, b: dict, query: str = "intern") -> list[dict]:
             "matchCriteria": {"PreferredJobs": [], "Educations": [], "LicenseAndCertifications": [], "Skills": [],
                               "hasNoLicenses": False, "SkippedSkills": []}}
     base = f"https://{b['board']}"
-    r = httpx.post(f"{base}/JobBoardView/LoadSearchResults", json=body, headers={**UA, "Accept": "application/json"}, timeout=20)
+    r = _safe_request("POST", f"{base}/JobBoardView/LoadSearchResults", json_data=body,
+                      headers={**UA, "Accept": "application/json"}, timeout=20)
     out = []
     for o in r.json().get("opportunities", []):
         loc = (o.get("Locations") or [{}])[0].get("Address") or {}
@@ -144,10 +275,10 @@ def ukg(company: str, b: dict, query: str = "intern") -> list[dict]:
 
 def oracle(company: str, b: dict, query: str = "intern") -> list[dict]:
     """Oracle Cloud HCM candidate experience: the public requisitions REST resource its job site calls."""
-    r = httpx.get(f"https://{b['host']}/hcmRestApi/resources/latest/recruitingCEJobRequisitions",
-                  params={"onlyData": "true", "expand": "requisitionList",
-                          "finder": f"findReqs;siteNumber={b['site']},keyword={query},limit=100"},
-                  headers={**UA, "Accept": "application/json"}, timeout=20)
+    r = _safe_request("GET", f"https://{b['host']}/hcmRestApi/resources/latest/recruitingCEJobRequisitions",
+                      params={"onlyData": "true", "expand": "requisitionList",
+                              "finder": f"findReqs;siteNumber={b['site']},keyword={query},limit=100"},
+                      headers={**UA, "Accept": "application/json"}, timeout=20)
     items = r.json().get("items") or [{}]
     return [_role(company, x["Title"], x.get("PrimaryLocation"),
                   f"https://{b['host']}/hcmUI/CandidateExperience/en/sites/{b['site']}/job/{x['Id']}", "oracle")
@@ -156,8 +287,7 @@ def oracle(company: str, b: dict, query: str = "intern") -> list[dict]:
 
 def phenom(company: str, b: dict, query: str = "intern") -> list[dict]:
     """Phenom sites embed the search results in the page (phApp.ddo). Many apply links point at Workday."""
-    import json
-    r = httpx.get(f"{b['origin']}/{b['locale']}/search-results", params={"keywords": query}, headers=UA, follow_redirects=True, timeout=20)
+    r = _safe_request("GET", f"{b['origin']}/{b['locale']}/search-results", params={"keywords": query}, headers=UA, timeout=20)
     m = re.search(r"phApp\.ddo\s*=\s*(\{.*?\});\s*phApp", r.text, re.S)
     if not m:
         return []
@@ -179,7 +309,7 @@ def _strip(t: str) -> str:
 
 
 def jobvite(company: str, b: dict, query: str = "intern") -> list[dict]:
-    r = httpx.get(f"https://jobs.jobvite.com/{b['token']}/search", params={"q": query}, headers=UA, follow_redirects=True, timeout=20)
+    r = _safe_request("GET", f"https://jobs.jobvite.com/{b['token']}/search", params={"q": query}, headers=UA, timeout=20)
     out = []
     for href, body in re.findall(rf'<a[^>]+href="(/{re.escape(b["token"])}/job/[A-Za-z0-9]+)"[^>]*>(.*?)</a>', r.text, re.S):
         name = re.search(r'jv-job-list-name">(.*?)</div>', body, re.S)
@@ -192,7 +322,7 @@ def jobvite(company: str, b: dict, query: str = "intern") -> list[dict]:
 
 def jazzhr(company: str, b: dict, query: str = "intern") -> list[dict]:
     """JazzHR boards ({company}.applytojob.com) list every opening on one page."""
-    r = httpx.get(f"https://{b['token']}.applytojob.com/apply", headers=UA, follow_redirects=True, timeout=20)
+    r = _safe_request("GET", f"https://{b['token']}.applytojob.com/apply", headers=UA, timeout=20)
     out = []
     for href, title in re.findall(rf'href="(https://{re.escape(b["token"])}\.applytojob\.com/apply/[A-Za-z0-9]+/[^"]+)"[^>]*>(.*?)</a>', r.text, re.S):
         title = _strip(title)
@@ -202,8 +332,9 @@ def jazzhr(company: str, b: dict, query: str = "intern") -> list[dict]:
 
 
 def workable(company: str, b: dict, query: str = "intern") -> list[dict]:
-    r = httpx.post(f"https://apply.workable.com/api/v3/accounts/{b['token']}/jobs",
-                   json={"query": query, "location": [], "department": [], "worktype": [], "remote": []}, headers=UA, timeout=20)
+    r = _safe_request("POST", f"https://apply.workable.com/api/v3/accounts/{b['token']}/jobs",
+                      json_data={"query": query, "location": [], "department": [], "worktype": [], "remote": []},
+                      headers=UA, timeout=20)
     out = []
     for j in (r.json().get("results", []) if r.status_code == 200 else []):
         loc = j.get("location") or {}
@@ -215,8 +346,9 @@ def workable(company: str, b: dict, query: str = "intern") -> list[dict]:
 
 def successfactors(company: str, b: dict, query: str = "intern") -> list[dict]:
     """SuccessFactors' classic career site publishes its whole listing as XML, descriptions included."""
-    r = httpx.get(f"https://{b['host']}/career", params={"company": b["company"], "career_ns": "job_listing_summary", "resultType": "XML"},
-                  headers=UA, follow_redirects=True, timeout=60)
+    r = _safe_request("GET", f"https://{b['host']}/career",
+                      params={"company": b["company"], "career_ns": "job_listing_summary", "resultType": "XML"},
+                      headers=UA, timeout=20, max_bytes=8 * 1024 * 1024)  # shortcut: 8 MiB cap, raise if supported boards need larger XML.
     out = []
     for job in re.findall(r"<Job>(.*?)</Job>", r.text, re.S):
         title = _strip(re.sub(r"^<!\[CDATA\[|\]\]>$", "", (re.search(r"<JobTitle>(.*?)</JobTitle>", job, re.S) or [""," "])[1].strip()))
@@ -240,8 +372,8 @@ SEARCHABLE = {"workday", "icims", "ukg", "oracle", "phenom", "jobvite", "workabl
 
 
 def _selfcheck() -> None:
-    m = BOARD.search('<a href="https://otis.wd504.myworkdayjobs.com/en-US/REC_Ext_Gateway?q=x">')
-    assert (m["wd"], m["n"], m["site"]) == ("otis", "wd504", "REC_Ext_Gateway"), m.groupdict()
+    m = BOARD.search('<a href="https://contoso.wd5.myworkdayjobs.com/en-US/Careers?q=x">')
+    assert (m["wd"], m["n"], m["site"]) == ("contoso", "wd5", "Careers"), m.groupdict()
     assert BOARD.search("https://job-boards.greenhouse.io/drivewealth/jobs/1")["gh"] == "drivewealth"
     assert detect_html('src="//job-boards.greenhouse.io/embed/job_board?for=westmonroe4"') == ("greenhouse", {"token": "westmonroe4"})
     assert detect_html('href="https://careers-berrydunn.icims.com/jobs/intro"') == ("icims", {"host": "careers-berrydunn.icims.com"})
@@ -262,11 +394,90 @@ def _selfcheck() -> None:
     a = '<a href="https://careers-x.icims.com/jobs/4066/summer-2027-consulting-internship/job?in_iframe=1" class="iCIMS_Anchor" title="4066 - Summer 2027 Consulting Internship">'
     assert ICIMS_JOB.findall(a) == [("https://careers-x.icims.com/jobs/4066/summer-2027-consulting-internship/job", "Summer 2027 Consulting Internship")]
     assert INTERN.search("Summer 2027 Internship") and INTERN.search("Co-Op, Strategy") and not INTERN.search("Internal Auditor")
-
-
-if __name__ == "__main__":
-    _selfcheck()
-    print("ok")
+    assert not _public_ip("127.0.0.1") and not _public_ip("169.254.169.254") and not _public_ip("::1")
+    assert not _public_ip("192.0.2.1") and not _public_ip("fd00::1") and _public_ip("8.8.8.8")
+    def dns(host, port, type):
+        return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", port))]
+    def private_dns(host, port, type):
+        return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("8.8.8.8", port)),
+                (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("10.0.0.2", port))]
+    for url in ("http://example.test/", "https://127.0.0.1/", "https://[::1]/", "https://user@example.test/"):
+        try:
+            _checked_url(url, dns)
+            assert False, url
+        except ValueError:
+            pass
+    try:
+        _checked_url("https://example.test/", private_dns)
+        assert False, "mixed public/private DNS answers must be rejected"
+    except ValueError:
+        pass
+    calls = []
+    def redirect(request):
+        calls.append(request)
+        location = "https://contoso.wd5.myworkdayjobs.com/en-US/Careers" if len(calls) == 1 else None
+        return httpx.Response(302 if location else 200, headers={"Location": location} if location else {},
+                              stream=httpx.ByteStream(b"ok"), request=request)
+    response = _safe_request("GET", "https://careers.example/jobs", _resolver=dns,
+                             headers={**UA, "Cookie": "session=fictional", "X-Internal-Test": "fictional"},
+                             _transport=httpx.MockTransport(redirect))
+    assert response.status_code == 200 and str(response.url) == "https://contoso.wd5.myworkdayjobs.com/en-US/Careers"
+    assert detect_url(str(response.url)) == ("workday", {"tenant": "contoso", "wd": "wd5", "site": "Careers"})
+    assert len(calls) == 2 and calls[0].url.host == "93.184.216.34"
+    assert calls[0].headers["host"] == "careers.example" and calls[0].extensions["sni_hostname"] == "careers.example"
+    assert calls[1].headers["host"] == "contoso.wd5.myworkdayjobs.com"
+    assert calls[1].extensions["sni_hostname"] == "contoso.wd5.myworkdayjobs.com"
+    assert calls[1].headers["user-agent"] == UA["User-Agent"]
+    assert "cookie" not in calls[1].headers and "x-internal-test" not in calls[1].headers
+    for location, resolver, reason in (("https://127.0.0.1/", dns, "loopback redirect"),
+                                       ("https://private.example/", private_dns, "private redirect"),
+                                       ("http://boards.example/", dns, "HTTP redirect")):
+        try:
+            _safe_request("GET", "https://careers.example/jobs", _resolver=resolver,
+                          _transport=httpx.MockTransport(lambda req, loc=location: httpx.Response(
+                              302, headers={"Location": loc}, stream=httpx.ByteStream(b""), request=req)))
+            assert False, f"{reason} must be refused"
+        except ValueError:
+            pass
+    def six_redirects(request):
+        calls.append(request)
+        return httpx.Response(302, headers={"Location": "/next"}, stream=httpx.ByteStream(b""), request=request)
+    calls = []
+    try:
+        _safe_request("GET", "https://careers.example/jobs", _resolver=dns,
+                      _transport=httpx.MockTransport(six_redirects))
+        assert False, "sixth redirect must be refused"
+    except ValueError:
+        assert len(calls) == 6
+    def json_request(request):
+        assert request.method == "POST" and request.url.params["page"] == "2"
+        assert json.loads(request.content) == {"query": "intern"}
+        return httpx.Response(200, stream=httpx.ByteStream(b"{}"), request=request)
+    _safe_request("POST", "https://careers.example/jobs", params={"page": 2}, json_data={"query": "intern"},
+                  _resolver=dns, _transport=httpx.MockTransport(json_request))
+    for redirect_status in (301, 302, 303):
+        post_redirect_calls = []
+        def post_redirect(request):
+            post_redirect_calls.append(request)
+            if len(post_redirect_calls) == 1:
+                return httpx.Response(redirect_status, headers={"Location": "/search"}, stream=httpx.ByteStream(b""), request=request)
+            assert request.method == "GET" and not request.content and "content-type" not in request.headers
+            return httpx.Response(200, stream=httpx.ByteStream(b"{}"), request=request)
+        _safe_request("POST", "https://careers.example/jobs", json_data={"query": "intern"}, _resolver=dns,
+                      _transport=httpx.MockTransport(post_redirect))
+        assert len(post_redirect_calls) == 2
+    try:
+        _safe_request("GET", "https://careers.example/jobs", _resolver=dns, max_bytes=2,
+                      _transport=httpx.MockTransport(lambda req: httpx.Response(200, stream=httpx.ByteStream(b"too big"), request=req)))
+        assert False, "oversized response must be rejected"
+    except ValueError:
+        pass
+    try:
+        _safe_request("GET", "https://careers.example/jobs", _resolver=dns,
+                      _transport=httpx.MockTransport(lambda req: httpx.Response(200, headers={"Content-Encoding": "gzip"}, stream=httpx.ByteStream(b"x"), request=req)))
+        assert False, "compressed response must be rejected"
+    except ValueError:
+        pass
 
 
 # ---- descriptions ---------------------------------------------------------------------------------
@@ -298,30 +509,36 @@ def description(url: str) -> str | None:
     """Full posting text for a role URL, from the board's API when we know it, else the page itself."""
     if m := re.match(r"(https://([a-z0-9-]+)\.wd\d+\.myworkdayjobs\.com)/(?:[a-z]{2}-[A-Z]{2}/)?([A-Za-z0-9_-]+)(/job/.+)", url):
         base, tenant, site, path = m.groups()
-        r = httpx.get(f"{base}/wday/cxs/{tenant}/{site}{path}", headers={**UA, "Accept": "application/json"}, timeout=20)
+        r = _safe_request("GET", f"{base}/wday/cxs/{tenant}/{site}{path}",
+                          headers={**UA, "Accept": "application/json"}, timeout=20)
         if r.status_code == 200:
             return text_of(r.json().get("jobPostingInfo", {}).get("jobDescription", "")) or None
     if m := re.match(r"https://(?:boards|job-boards)\.greenhouse\.io/([a-z0-9]+)/jobs/(\d+)", url):
-        r = httpx.get(f"https://boards-api.greenhouse.io/v1/boards/{m[1]}/jobs/{m[2]}", timeout=20)
+        r = _safe_request("GET", f"https://boards-api.greenhouse.io/v1/boards/{m[1]}/jobs/{m[2]}", timeout=20)
         if r.status_code == 200:
             return text_of(r.json().get("content", ""))
     if m := re.match(r"https://jobs\.lever\.co/([a-z0-9-]+)/([0-9a-f-]{36})", url):
-        r = httpx.get(f"https://api.lever.co/v0/postings/{m[1]}/{m[2]}", timeout=20)
+        r = _safe_request("GET", f"https://api.lever.co/v0/postings/{m[1]}/{m[2]}", timeout=20)
         if r.status_code == 200:
             j = r.json()
             return "\n".join([j.get("descriptionPlain", "")] + [f"{l['text']}\n{text_of(l['content'])}" for l in j.get("lists", [])])
     if m := re.match(r"https://apply\.workable\.com/([a-z0-9-]+)/j/([A-Z0-9]+)", url):
-        r = httpx.get(f"https://apply.workable.com/api/v2/accounts/{m[1]}/jobs/{m[2]}", headers=UA, timeout=20)
+        r = _safe_request("GET", f"https://apply.workable.com/api/v2/accounts/{m[1]}/jobs/{m[2]}", headers=UA, timeout=20)
         if r.status_code == 200:
             j = r.json()
             return text_of("\n".join(j.get(k) or "" for k in ("description", "requirements", "benefits")))
     if m := re.match(r"https://([a-z0-9.-]+\.oraclecloud\.com)/hcmUI/CandidateExperience/[a-z]{2}/sites/(CX(?:_\d+)?)/job/(\d+)", url):
-        r = httpx.get(f"https://{m[1]}/hcmRestApi/resources/latest/recruitingCEJobRequisitionDetails",
-                      params={"expand": "all", "onlyData": "true", "finder": f'ById;Id="{m[3]}",siteNumber={m[2]}'},
-                      headers={**UA, "Accept": "application/json"}, timeout=20)
+        r = _safe_request("GET", f"https://{m[1]}/hcmRestApi/resources/latest/recruitingCEJobRequisitionDetails",
+                          params={"expand": "all", "onlyData": "true", "finder": f'ById;Id="{m[3]}",siteNumber={m[2]}'},
+                          headers={**UA, "Accept": "application/json"}, timeout=20)
         items = r.json().get("items") if r.status_code == 200 else None
         if items:
             d = items[0]
             return text_of("\n".join(d.get(k) or "" for k in ("ExternalDescriptionStr", "ExternalResponsibilitiesStr", "ExternalQualificationsStr")))
-    r = httpx.get(url, headers=UA, follow_redirects=True, timeout=20)
+    r = _safe_request("GET", url, headers=UA)
     return _jsonld_description(r.text) if r.status_code == 200 else None
+
+
+if __name__ == "__main__":
+    _selfcheck()
+    print("ok")
