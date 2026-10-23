@@ -3,11 +3,9 @@
     uv run python -m engine digest        # writes data/digest/<date>.md and shows a notification
 """
 import json
-import shutil
-import subprocess
 from datetime import date, datetime, timedelta
 
-from . import db, score
+from . import db, platform, score
 
 APPLIED = ("submitted", "assessment", "interview", "offer", "rejected", "ghosted")
 REPLY_EVENTS = ("assessment", "interview", "rejection", "reply")
@@ -65,10 +63,8 @@ def contacts_due(con) -> list[dict]:
 
 
 def notify(title: str, text: str) -> None:
-    """macOS notification. Text goes in as an argument, never into the script: company names come from job boards."""
-    if shutil.which("osascript"):
-        subprocess.run(["osascript", "-e", "on run argv", "-e", "display notification (item 1 of argv) with title (item 2 of argv)",
-                        "-e", "end run", text, title], capture_output=True)
+    """Send a desktop notification when the platform provides one."""
+    platform.notify(title, text)
 
 
 def new_match_alert() -> int:
@@ -151,15 +147,6 @@ def _selfcheck() -> None:
     assert funnel(con, "track")["ai-consulting"]["applied"] == 2
     fu = follow_ups(con)
     assert [x["company"] for x in fu] == ["B"] and fu[0]["action"] == "follow_up", fu
-    calls, real = [], (subprocess.run, shutil.which)
-    subprocess.run, shutil.which = (lambda a, **k: calls.append(a)), (lambda n: "/usr/bin/osascript")
-    evil = 'Contoso" with title "x"\ndo shell script "touch /tmp/pwned'
-    notify("Internship Engine", evil)
-    shutil.which = lambda n: None
-    notify("Internship Engine", evil)                        # no osascript (Linux, Windows): quietly nothing
-    subprocess.run, shutil.which = real
-    assert len(calls) == 1 and calls[0][-2:] == [evil, "Internship Engine"], calls
-    assert not any(evil in a for a in calls[0][:-2]), "listing text leaked into AppleScript source"
 
 
 if __name__ == "__main__":

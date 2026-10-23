@@ -29,7 +29,7 @@ your resume, tracker and email never leave it.
 
 ## Set up
 
-Needs macOS or Linux, Chrome, and [uv](https://docs.astral.sh/uv/). Claude Code is optional for the assisted `/setup` flow.
+Needs macOS, Linux, or Windows, Chrome, and [uv](https://docs.astral.sh/uv/). Claude Code is optional for the assisted `/setup` flow.
 
 ```sh
 git clone https://github.com/omar-colab/internship-engine
@@ -56,6 +56,13 @@ uv run python -m engine schedule                 # every morning at 7:00, inbox 
 
 **Inbox (optional):** `uv run python -m engine gmail` stores a Gmail app password in your macOS Keychain. The listener
 reads your inbox and never sends, labels or deletes anything.
+
+### Linux / Windows
+
+On Linux, `schedule` installs systemd user timers; on Windows, it registers Task Scheduler jobs. `schedule off` removes
+the jobs on any platform. Gmail credentials use the system keyring on Linux and Windows (a Secret Service keyring is
+needed on Linux); macOS continues to use Keychain. Desktop alerts use `notify-send` on Linux and Windows toast
+notifications when the platform supports them.
 
 **Warm leads (optional):** put LinkedIn's connections export at `data/contacts.csv`.
 

@@ -4,8 +4,8 @@
   find | expire | resolve | score | warm    one step
   listen             read the inbox over IMAP (read-only) and update statuses
   import <mail.json> same, from emails Claude pulled with its Gmail connector
-  gmail              save a Gmail app password to the macOS Keychain
-  schedule [off]     install / remove the launchd timers
+  gmail              save a Gmail app password to the OS credential store
+  schedule [off]     install / remove the OS scheduled jobs
   fill <id> [--dry-run]   open the posting, fill what your profile backs, stop before Submit
   digest             this week in one page (data/digest/) + a notification; Sundays at 18:00 when scheduled
   resume variants | tailor <id> | check <file.json> | check-text <file.txt>   honest resumes and cover letters
