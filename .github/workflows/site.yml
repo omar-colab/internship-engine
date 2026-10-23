@@ -20,7 +20,7 @@ jobs:
     environment: { name: github-pages, url: "${{ steps.d.outputs.page_url }}" }
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
       - run: uv sync
       - name: Build the shared feed
         run: INTERNSHIP_ENGINE_DATA="$RUNNER_TEMP/data" uv run python -m engine feed-build
