@@ -1,0 +1,23 @@
+<!doctype html>
+<html><body>
+  <h1>Business Intern · Contoso</h1>
+  <form>
+    <section id="step-one">
+      <label for="first_name">First Name *</label><input id="first_name" name="first_name" required>
+      <label for="last_name">Last Name *</label><input id="last_name" name="last_name" required>
+      <label for="email">Email *</label><input id="email" name="email" type="email" required>
+      <button id="continue" type="button">Save and Continue</button>
+    </section>
+    <section id="step-two" hidden>
+      <label for="motivation">Why are you interested in working at Contoso?</label>
+      <textarea id="motivation" name="motivation" required></textarea>
+      <button type="submit">Submit application</button>
+    </section>
+  </form>
+  <script>
+    document.getElementById('continue').addEventListener('click', () => {
+      document.getElementById('step-one').hidden = true;
+      document.getElementById('step-two').hidden = false;
+    });
+  </script>
+</body></html>

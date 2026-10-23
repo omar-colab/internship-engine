@@ -1,0 +1,39 @@
+<!doctype html>
+<html><body>
+  <h1>Design Intern · Fabrikam</h1>
+  <form>
+    <label for="email">Email *</label><input id="email" name="email" type="email" required>
+    <label id="school-label" for="school">School *</label>
+    <div class="select-shell"><div class="select__control">
+      <input id="school" role="combobox" aria-labelledby="school-label" aria-controls="school-menu" aria-expanded="false" autocomplete="off">
+    </div></div>
+    <div id="school-menu" role="listbox" hidden>
+      <div role="option">Northwind College</div>
+      <div role="option">State University</div>
+      <div role="option">Fabrikam Institute</div>
+    </div>
+    <label for="why">What interests you about Fabrikam?</label><textarea id="why" name="why" required></textarea>
+    <button type="submit">Submit application</button>
+  </form>
+  <script>
+    const input = document.getElementById('school');
+    const menu = document.getElementById('school-menu');
+    const show = () => { menu.hidden = false; input.setAttribute('aria-expanded', 'true'); filter(); };
+    const filter = () => {
+      for (const option of menu.querySelectorAll('[role=option]'))
+        option.hidden = !option.textContent.toLowerCase().includes(input.value.toLowerCase());
+    };
+    input.addEventListener('click', show);
+    input.addEventListener('keydown', event => {
+      if (event.key === 'ArrowDown') show();
+      if (event.key === 'Escape') { menu.hidden = true; input.setAttribute('aria-expanded', 'false'); }
+    });
+    input.addEventListener('input', filter);
+    for (const option of menu.querySelectorAll('[role=option]')) option.addEventListener('click', () => {
+      input.value = option.textContent;
+      menu.hidden = true;
+      input.setAttribute('aria-expanded', 'false');
+      input.dispatchEvent(new Event('change', {bubbles: true}));
+    });
+  </script>
+</body></html>
