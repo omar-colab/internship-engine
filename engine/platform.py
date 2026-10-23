@@ -21,8 +21,11 @@ def get_secret() -> tuple[str, str]:
         password = subprocess.run(["security", "find-generic-password", "-s", KEYCHAIN, "-w"], capture_output=True, text=True).stdout.strip()
         return (match[1] if match else ""), password
     import keyring
-    address = keyring.get_password(KEYCHAIN, "address")
-    password = keyring.get_password(KEYCHAIN, "password")
+    try:
+        address = keyring.get_password(KEYCHAIN, "address")
+        password = keyring.get_password(KEYCHAIN, "password")
+    except keyring.errors.NoKeyringError:
+        return "", ""
     return address or "", password or ""
 
 
@@ -172,6 +175,21 @@ def _selfcheck() -> None:
         globals()["sys_platform"], shutil.which, subprocess.run = actual
     assert len(calls) == 1 and calls[0][-2:] == ['Contoso"\ndo shell script "bad', "Internship Engine"]
     assert not any('Contoso"' in arg for arg in calls[0][:-2])
+
+    import tempfile
+    from unittest.mock import patch
+    import keyring
+    import engine.platform as platform_module
+    with tempfile.TemporaryDirectory() as temp:
+        home = Path(temp)
+        with patch.object(platform_module, "sys_platform", return_value="linux"), \
+             patch.object(platform_module.db, "DATA", home / "data"), \
+             patch.object(Path, "home", return_value=home), \
+             patch.object(platform_module.shutil, "which", return_value="/uv"), \
+             patch.object(platform_module.subprocess, "run"), \
+             patch.object(keyring, "get_password", side_effect=keyring.errors.NoKeyringError), \
+             patch.dict(platform_module.os.environ, {"GMAIL_ADDRESS": "", "GMAIL_APP_PASSWORD": ""}):
+            assert platform_module.schedule_install() == ["daily", "digest"]
 
 
 if __name__ == "__main__":
