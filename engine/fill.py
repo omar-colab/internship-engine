@@ -173,6 +173,7 @@ def prep(role_id: int, headed: bool = True, upload: bool = True, profile: dict |
     with sync_playwright() as pw:
         # a persistent profile keeps your logins (Workday, etc.) between runs; it lives in data/, never committed
         ctx = pw.chromium.launch_persistent_context(str(db.DATA / "browser"), headless=not headed, viewport={"width": 1280, "height": 900})
+        read_form.guard(ctx)                               # public https only, every redirect hop and subresource
         page = ctx.pages[0] if ctx.pages else ctx.new_page()
         page.goto(role["url"], wait_until="load")
         page.wait_for_timeout(2500)                       # some boards never go network-idle (analytics polling)

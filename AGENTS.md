@@ -50,7 +50,7 @@ Need to touch a file you don't own? Say so in the issue and keep the change mini
 uv sync && uv run playwright install chromium
 for m in engine.ats engine.feed engine.finder engine.listener engine.resolve engine.score engine.warm \
          engine.answers engine.report engine.resume engine.shared engine.insight engine.server; do uv run python -m $m; done
-uv run python -m engine.fill --selfcheck
+uv run python -m engine.fill --selfcheck && uv run python -m engine.read_form --selfcheck
 ```
 
 Network-dependent checks belong in a manual script, not in a module's self-check.

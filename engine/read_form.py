@@ -8,14 +8,55 @@ It never types into or submits anything.
 
     uv run python -m engine.read_form <posting-url> [--headed]
 """
+import ipaddress
 import json
 import re
+import socket
 import sys
+from urllib.parse import urljoin, urlsplit
 
 from playwright.sync_api import Page, sync_playwright
 
 APPLY = re.compile(r"^\s*(apply|apply now|apply manually|apply for this job|start application|start your application)\s*$", re.I)   # never "Autofill with Resume": it uploads your file
 FIELDS = "input:not([type=hidden]):not([type=submit]), textarea, select, [role=combobox]"
+
+
+def allowed(url: str, _resolve=socket.getaddrinfo) -> bool:
+    """Public HTTPS only: posting URLs come from shared feeds, so one could point at your router or this laptop."""
+    u = urlsplit(url)
+    if u.scheme in ("data", "blob") or url == "about:blank":
+        return True
+    if u.scheme != "https" or not u.hostname or u.port not in (None, 443):
+        return False
+    try:
+        ips = {i[4][0].split("%")[0] for i in _resolve(u.hostname, 443, type=socket.SOCK_STREAM)}
+    except (OSError, UnicodeError):
+        return False
+    return bool(ips) and all(ipaddress.ip_address(ip).is_global for ip in ips)
+
+
+def guard(target, _resolve=socket.getaddrinfo) -> None:
+    """Check every request a page or context makes. Navigations take redirects one hop at a time, each hop
+    rechecked, because the browser would otherwise follow a public URL's redirect to a private one unchecked."""
+    # ponytail: checks DNS, then Chromium resolves again; a rebinding attacker could still race it. Pin via proxy if it matters.
+    seen: dict[str, bool] = {}
+    def ok(url: str) -> bool:
+        host = urlsplit(url).hostname or url
+        if host not in seen or url.startswith(("data:", "blob:")):
+            seen[host] = allowed(url, _resolve)
+        return seen[host]
+    def check(route):
+        req = route.request
+        if not ok(req.url):
+            return route.abort("blockedbyclient")
+        if not req.is_navigation_request():
+            return route.continue_()
+        r = route.fetch(max_redirects=0)
+        loc = r.headers.get("location")
+        if 300 <= r.status < 400 and loc and not ok(urljoin(req.url, loc)):
+            return route.abort("blockedbyclient")
+        route.fulfill(response=r)
+    target.route("**/*", check)
 
 
 def reveal_form(page: Page, max_clicks: int = 3) -> int:
@@ -119,6 +160,7 @@ def main(url: str, headed: bool = False) -> None:
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=not headed)
         page = browser.new_page()
+        guard(page)
         page.goto(url, wait_until="networkidle")
         clicks = reveal_form(page)
         fields = read_form(page)
@@ -126,5 +168,36 @@ def main(url: str, headed: bool = False) -> None:
     print(json.dumps({"url": url, "apply_clicks": clicks, "fields": fields}, indent=1, ensure_ascii=False))
 
 
-if __name__ == "__main__":
+def _selfcheck() -> None:
+    fake = {"jobs.contoso.example": "203.0.113.9", "intranet.fabrikam.example": "10.0.0.7", "rebind.example": "127.0.0.1",
+            "v6.northwind.example": "fe80::1%en0", "board.tailspin.example": "8.8.8.8"}
+    def dns(host, *_a, **_k):
+        if host not in fake:
+            raise socket.gaierror(host)
+        return [(0, 0, 0, "", (fake[host], 443))]
+    assert allowed("https://board.tailspin.example/jobs/1", dns)
+    assert not allowed("https://jobs.contoso.example/x", dns)          # TEST-NET: reserved, not global
+    assert not allowed("http://board.tailspin.example/", dns)          # https only
+    assert not allowed("https://board.tailspin.example:8443/", dns)    # 443 only
+    for bad in ("https://intranet.fabrikam.example/", "https://rebind.example/", "https://v6.northwind.example/",
+                "https://127.0.0.1/", "https://[::1]/", "https://unknown.example/", "file:///etc/passwd", "javascript:alert(1)"):
+        assert not allowed(bad, dns), bad
+    assert allowed("about:blank") and allowed("data:text/html,x")
+    with sync_playwright() as p:
+        b = p.chromium.launch()
+        page = b.new_page()
+        guard(page, dns)
+        for bad in ("http://127.0.0.1:8765/api/state", "https://intranet.fabrikam.example/"):
+            try:
+                page.goto(bad)
+                raise AssertionError(f"navigated to {bad}")
+            except Exception as e:
+                assert "BLOCKED_BY_CLIENT" in str(e) or "blocked" in str(e).lower(), e
+        b.close()
+
+
+if __name__ == "__main__" and sys.argv[1:] == ["--selfcheck"]:
+    _selfcheck()
+    print("ok")
+elif __name__ == "__main__":
     main(sys.argv[1], "--headed" in sys.argv)

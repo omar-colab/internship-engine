@@ -13,6 +13,7 @@ jobs:
             uv run python -m $m
           done
           uv run python -m engine.fill --selfcheck
+          uv run python -m engine.read_form --selfcheck
       - name: Offline form-fill regression fixtures
         run: uv run python -m unittest discover -s tests -p test_fill_offline.py
       - run: node --check extension/content.js && node --check extension/background.js && node --check extension/popup.js
