@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Northwind — Product Intern</title>
+<form>
+  <label for="short-answer">What interests you about Northwind?</label>
+  <input id="short-answer" name="short_answer" type="text" value="Fictional short answer">
+
+  <label for="essay">Why are you interested in Northwind?</label>
+  <textarea id="essay" name="essay">Fictional essay sentinel</textarea>
+
+  <label for="resume">Resume</label>
+  <input id="resume" name="resume" type="file">
+
+  <label for="account-password">Account password</label>
+  <input id="account-password" name="account_password" type="password" value="password sentinel">
+
+  <div class="combo">
+    <label id="team-label" for="team">Preferred team</label>
+    <input id="team" name="team" role="combobox" aria-labelledby="team-label" aria-controls="team-options">
+    <div id="team-options" role="listbox">
+      <div role="option">Northwind</div>
+      <div role="option">Tailspin</div>
+    </div>
+  </div>
+
+  <button type="submit">Submit application</button>
+</form>

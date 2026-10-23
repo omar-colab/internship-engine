@@ -5,6 +5,7 @@
   "description": "Fit scores, one-click save, and honest autofill for internship applications. Talks only to the engine on your own laptop.",
   "permissions": ["storage"],
   "host_permissions": ["http://127.0.0.1:8765/*"],
+  "content_security_policy": { "extension_pages": "script-src 'self'; object-src 'none'" },
   "background": { "service_worker": "background.js" },
   "action": { "default_popup": "popup.html", "default_title": "Internship Engine" },
   "content_scripts": [{
