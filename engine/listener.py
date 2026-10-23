@@ -18,7 +18,7 @@ import re
 import sys
 from datetime import datetime, timedelta
 
-from . import db
+from . import db, platform
 
 ALERT_SENDERS = re.compile(r"jobright\.ai|jobalert\.indeed|jobs-listings@linkedin|wellfound|handshake|simplify\.jobs", re.I)
 RULES = [  # first match wins; order matters (a rejection often says "thank you for applying")
@@ -143,34 +143,27 @@ def run(messages: list[dict]) -> dict:
     return counts
 
 
-KEYCHAIN = "internship-engine-gmail"
-
-
 def gmail_login() -> tuple[str, str]:
-    """Env vars win (CI, Linux); on a Mac the app password lives in the login Keychain, never in a file."""
+    """Env vars win (CI); otherwise read the OS credential store."""
     if os.environ.get("GMAIL_APP_PASSWORD"):
         return os.environ["GMAIL_ADDRESS"], os.environ["GMAIL_APP_PASSWORD"]
-    import subprocess
-    acct = re.search(r'"acct"<blob>="([^"]+)"', subprocess.run(["security", "find-generic-password", "-s", KEYCHAIN],
-                                                              capture_output=True, text=True).stdout)
-    pw = subprocess.run(["security", "find-generic-password", "-s", KEYCHAIN, "-w"], capture_output=True, text=True).stdout.strip()
-    if not (acct and pw):
+    address, password = platform.get_secret()
+    if not (address and password):
         raise SystemExit("No Gmail app password yet. Run: uv run python -m engine gmail")
-    return acct[1], pw
+    return address, password
 
 
 def save_gmail_login() -> None:
     """Interactive: ask once, test the login, store it in the Keychain."""
     import getpass
-    import subprocess
     address = input("Gmail address: ").strip()
     print("Create an app password at https://myaccount.google.com/apppasswords (needs 2-Step Verification).")
     pw = getpass.getpass("App password (16 letters, spaces ok): ").replace(" ", "")
     box = imaplib.IMAP4_SSL("imap.gmail.com")
     box.login(address, pw)                                     # fails loudly here, before anything is saved
     box.logout()
-    subprocess.run(["security", "add-generic-password", "-U", "-s", KEYCHAIN, "-a", address, "-w", pw], check=True)
-    print("Saved to your login Keychain. The listener can read your inbox now (read-only).")
+    platform.set_secret(address, pw)
+    print("Saved to your OS credential store. The listener can read your inbox now (read-only).")
 
 
 def sent_at(header: str | None, meta: bytes = b"") -> str:
