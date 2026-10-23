@@ -5,7 +5,41 @@
     <label for="first_name">First Name *</label><input id="first_name" name="first_name" required>
     <label for="last_name">Last Name *</label><input id="last_name" name="last_name" required>
     <label for="email">Email *</label><input id="email" name="email" type="email" required>
+    <label for="phone">Phone *</label><input id="phone" name="phone" type="tel" required>
+    <label id="school-label" for="school">School *</label>
+    <div class="select-shell"><div class="select__control">
+      <input id="school" role="combobox" aria-labelledby="school-label" aria-controls="school-menu" aria-expanded="false" aria-required="true" autocomplete="off">
+    </div>
+      <div id="school-menu" role="listbox" hidden>
+        <div role="option">Contoso College</div>
+        <div role="option">State U</div>
+        <div role="option">Your University</div>
+        <div role="option">Fabrikam Institute</div>
+      </div>
+    </div>
     <label for="why">Why do you want to join Contoso?</label><textarea id="why" name="why" required></textarea>
+    <label for="resume">Resume</label><input id="resume" name="resume" type="file" accept="application/pdf">
     <button type="submit">Submit application</button>
   </form>
+  <script>
+    const phone = document.getElementById("phone");
+    phone.addEventListener("input", () => {
+      const digits = phone.value.replace(/\D/g, "").slice(0, 10);
+      if (digits.length === 10) phone.value = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+    });
+    const school = document.getElementById("school");
+    const menu = document.getElementById("school-menu");
+    const show = () => { menu.hidden = false; school.setAttribute("aria-expanded", "true"); };
+    school.addEventListener("click", show);
+    school.addEventListener("keydown", event => {
+      if (event.key === "ArrowDown") show();
+      if (event.key === "Escape") { menu.hidden = true; school.setAttribute("aria-expanded", "false"); }
+    });
+    for (const option of menu.querySelectorAll("[role=option]")) option.addEventListener("click", () => {
+      school.value = option.textContent;
+      menu.hidden = true;
+      school.setAttribute("aria-expanded", "false");
+      school.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+  </script>
 </body></html>

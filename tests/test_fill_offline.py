@@ -65,7 +65,7 @@ class OfflineFillTests(unittest.TestCase):
 
     def test_greenhouse(self):
         page = self.open_fixture("greenhouse.html")
-        self.assertEqual(self.fill_visible_fields(page), (3, ["Why do you want to join Contoso?"]))
+        self.assertEqual(self.fill_visible_fields(page), (5, ["Why do you want to join Contoso?"]))
         self.assertIsNone(fill.next_step(page))
         self.assert_safe(page)
 
