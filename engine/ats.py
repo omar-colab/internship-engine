@@ -401,7 +401,7 @@ def _selfcheck() -> None:
     def private_dns(host, port, type):
         return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("8.8.8.8", port)),
                 (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("10.0.0.2", port))]
-    for url in ("http://example.test/", "https://127.0.0.1/", "https://[::1]/", "https://user@example.test/"):
+    for url in ("http://example.test/", "https://127.0.0.1/", "https://[::1]/", "https://user@contoso.example/"):
         try:
             _checked_url(url, dns)
             assert False, url
