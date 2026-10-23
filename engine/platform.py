@@ -4,6 +4,7 @@ import os
 import plistlib
 import shutil
 import subprocess
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from . import db
@@ -66,9 +67,10 @@ def systemd_text(job: str, uv: str, root: str) -> tuple[str, str]:
 
 def task_xml(job: str, uv: str, root: str) -> str:
     schedule = {"daily": '<CalendarTrigger><StartBoundary>2026-01-01T07:00:00</StartBoundary><ScheduleByDay><DaysInterval>1</DaysInterval></ScheduleByDay></CalendarTrigger>',
-                "listen": '<TimeTrigger><Repetition><Interval>PT2H</Interval><StopAtDurationEnd>false</StopAtDurationEnd></Repetition><StartBoundary>2026-01-01T00:00:00</StartBoundary></TimeTrigger>',
+                "listen": f'<TimeTrigger><Repetition><Interval>PT2H</Interval><StopAtDurationEnd>false</StopAtDurationEnd></Repetition><StartBoundary>{datetime.now().isoformat(timespec="seconds")}</StartBoundary></TimeTrigger>',
                 "digest": '<CalendarTrigger><StartBoundary>2026-01-04T18:00:00</StartBoundary><ScheduleByWeek><WeeksInterval>1</WeeksInterval><DaysOfWeek><Sunday/></DaysOfWeek></ScheduleByWeek></CalendarTrigger>'}[job]
-    return f'<?xml version="1.0" encoding="UTF-16"?><Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task"><Triggers>{schedule}</Triggers><Principals><Principal id="Author"><LogonType>InteractiveToken</LogonType><RunLevel>LeastPrivilege</RunLevel></Principal></Principals><Settings><MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy></Settings><Actions Context="Author"><Exec><Command>{html.escape(uv)}</Command><Arguments>run python -m engine {job}</Arguments><WorkingDirectory>{html.escape(root)}</WorkingDirectory></Exec></Actions></Task>'
+    start_when_available = "<StartWhenAvailable>true</StartWhenAvailable>" if job == "listen" else ""
+    return f'<?xml version="1.0" encoding="UTF-16"?><Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task"><Triggers>{schedule}</Triggers><Principals><Principal id="Author"><LogonType>InteractiveToken</LogonType><RunLevel>LeastPrivilege</RunLevel></Principal></Principals><Settings>{start_when_available}<MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy></Settings><Actions Context="Author"><Exec><Command>{html.escape(uv)}</Command><Arguments>run python -m engine {job}</Arguments><WorkingDirectory>{html.escape(root)}</WorkingDirectory></Exec></Actions></Task>'
 
 
 def schedule_install() -> list[str]:
@@ -164,6 +166,10 @@ def _selfcheck() -> None:
         task = task_xml(job, "/uv", "/repo")
         assert "<Command>/uv</Command>" in task and f"engine {job}" in task
         assert {"daily": "07:00:00", "listen": "PT2H", "digest": "<Sunday/>"}[job] in task
+        if job == "listen":
+            boundary = datetime.fromisoformat(task.split("<StartBoundary>", 1)[1].split("</StartBoundary>", 1)[0])
+            assert datetime.now() - timedelta(seconds=5) <= boundary <= datetime.now()
+            assert "<StartWhenAvailable>true</StartWhenAvailable>" in task
     calls = []
     actual = sys_platform, shutil.which, subprocess.run
     try:
