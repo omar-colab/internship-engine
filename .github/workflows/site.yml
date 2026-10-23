@@ -24,7 +24,7 @@ jobs:
       - run: uv sync
       - name: Build the shared feed
         run: INTERNSHIP_ENGINE_DATA="$RUNNER_TEMP/data" uv run python -m engine feed-build
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v3
         with: { path: site }
       - id: d
