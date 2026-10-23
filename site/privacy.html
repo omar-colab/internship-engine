@@ -5,9 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Privacy — Internship Engine</title>
   <meta name="description" content="How the Internship Engine Chrome extension handles your data.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-    body { max-width: 760px; margin: 48px auto; padding: 0 20px; color: #10162E; font: 17px/1.6 system-ui, sans-serif; }
-    h1, h2 { line-height: 1.2; } a { color: #2335F5; }
+    :root { color-scheme: light; --page:#FFFFFF; --section:#F6F9FC; --sheet:#FFFFFF; --ink:#0A2540; --ink-2:#425466; --ink-3:#697386; --line:#E3E8EE; --blue:#635BFF; --font:"Inter Tight",ui-sans-serif,system-ui,-apple-system,sans-serif; }
+    @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme:dark; --page:#061B31; --section:#081F38; --sheet:#0C2A48; --ink:#F6F9FC; --ink-2:#ADBDCC; --ink-3:#8098B0; --line:#1C3D5E; --blue:#8C86FF; } }
+    :root[data-theme="dark"] { color-scheme:dark; --page:#061B31; --section:#081F38; --sheet:#0C2A48; --ink:#F6F9FC; --ink-2:#ADBDCC; --ink-3:#8098B0; --line:#1C3D5E; --blue:#8C86FF; }
+    * { box-sizing:border-box; }
+    html, body { margin:0; }
+    body { max-width:760px; margin:64px auto; padding:0 24px; color:var(--ink); background:var(--page); font:17px/1.65 var(--font); -webkit-font-smoothing:antialiased; }
+    main { background:var(--sheet); border:1px solid var(--line); border-radius:12px; padding:40px 44px; }
+    h1, h2 { line-height:1.2; letter-spacing:-.03em; font-weight:600; }
+    h1 { font-size:42px; margin:28px 0 10px; }
+    h2 { font-size:23px; margin:34px 0 8px; }
+    p { color:var(--ink-2); }
+    a { color:var(--blue); }
+    :focus-visible { outline:3px solid var(--blue); outline-offset:4px; border-radius:4px; }
+    code { color:var(--ink); background:var(--section); padding:2px 5px; border-radius:4px; overflow-wrap:anywhere; }
+    @media (max-width:560px) { body { margin:24px auto; padding:0 16px; } main { padding:24px 20px; } h1 { font-size:36px; } }
   </style>
 </head>
 <body>
