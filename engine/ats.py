@@ -7,7 +7,7 @@ import ipaddress
 import json
 import re
 import socket
-from urllib.parse import urlencode, urlsplit, urlunsplit
+from urllib.parse import urlencode, urljoin, urlsplit, urlunsplit
 
 import httpx
 
@@ -92,7 +92,7 @@ def _safe_client(timeout=FETCH_TIMEOUT) -> httpx.Client:
 def _safe_request(method: str, url: str, *, headers=None, content=None, timeout=FETCH_TIMEOUT,
                   max_bytes=MAX_FETCH_BYTES, params=None, json_data=None,
                   _resolver=socket.getaddrinfo, _transport=None, _client=None) -> httpx.Response:
-    """Fetch a public HTTPS URL on a pinned IP without following redirects."""
+    """Fetch a public HTTPS URL on pinned IPs, validating every redirect."""
     method = method.upper()
     if method not in {"GET", "HEAD", "POST", "OPTIONS"}:
         raise ValueError("HTTP method is not allowed")
@@ -107,34 +107,53 @@ def _safe_request(method: str, url: str, *, headers=None, content=None, timeout=
         headers = {**(headers or {}), "Content-Type": "application/json"}
     if content is not None and len(content) > MAX_REQUEST_BYTES:
         raise ValueError("request body is too large")
-    pinned_url, host, host_header = _checked_url(url, _resolver)
     clean_headers = {k: v for k, v in (headers or {}).items()
                      if k.lower() not in {"host", "content-length", "transfer-encoding", "connection", "accept-encoding",
                                           "authorization", "proxy-authorization", "proxy-authenticate", "keep-alive", "upgrade"}
                      and not k.lower().startswith("proxy-")}
-    clean_headers.update({"Host": host_header, "Accept-Encoding": "identity"})
+    clean_headers["Accept-Encoding"] = "identity"
     timeout = httpx.Timeout(timeout, connect=min(timeout, 5), read=min(timeout, 5), write=min(timeout, 5), pool=min(timeout, 5))
-    original_request = httpx.Request(method, url, headers=clean_headers)
     client = _client or (httpx.Client(transport=_transport, timeout=timeout, trust_env=False, follow_redirects=False)
                          if _transport else _safe_client(timeout))
     try:
-        request = client.build_request(method, pinned_url, headers=clean_headers, content=content, timeout=timeout,
-                                       extensions={"sni_hostname": host})
-        response = client.send(request, stream=True, follow_redirects=False)
-        try:
-            if response.headers.get("content-encoding", "identity").lower() not in {"", "identity"}:
-                raise ValueError("compressed responses are not allowed")
-            length = response.headers.get("content-length", "")
-            if length.isdecimal() and int(length) > max_bytes:
-                raise ValueError("response is too large")
-            body = bytearray()
-            for chunk in response.iter_raw():
-                if len(body) + len(chunk) > max_bytes:
+        for hop in range(6):
+            pinned_url, host, host_header = _checked_url(url, _resolver)
+            request_headers = {**clean_headers, "Host": host_header}
+            request = client.build_request(method, pinned_url, headers=request_headers, content=content, timeout=timeout,
+                                           extensions={"sni_hostname": host})
+            response = client.send(request, stream=True, follow_redirects=False)
+            status = response.status_code
+            location = response.headers.get("location")
+            if status in {301, 302, 303, 307, 308} and location:
+                response.close()
+                if hop == 5:
+                    raise ValueError("too many redirects")
+                next_url = urljoin(url, location)
+                old, new = urlsplit(url), urlsplit(next_url)
+                if (old.scheme, old.hostname, old.port or 443) != (new.scheme, new.hostname, new.port or 443):
+                    clean_headers = {k: v for k, v in clean_headers.items()
+                                     if k.lower() in {"user-agent", "accept", "accept-language", "accept-encoding", "content-type"}}
+                url = next_url
+                if status == 303 or (status in {301, 302} and method == "POST"):
+                    method, content = "GET", None
+                    clean_headers = {k: v for k, v in clean_headers.items() if k.lower() != "content-type"}
+                continue
+            try:
+                if response.headers.get("content-encoding", "identity").lower() not in {"", "identity"}:
+                    raise ValueError("compressed responses are not allowed")
+                length = response.headers.get("content-length", "")
+                if length.isdecimal() and int(length) > max_bytes:
                     raise ValueError("response is too large")
-                body.extend(chunk)
-            return httpx.Response(response.status_code, headers=response.headers, content=bytes(body), request=original_request)
-        finally:
-            response.close()
+                body = bytearray()
+                for chunk in response.iter_raw():
+                    if len(body) + len(chunk) > max_bytes:
+                        raise ValueError("response is too large")
+                    body.extend(chunk)
+                final_request = httpx.Request(method, url, headers=clean_headers)
+                return httpx.Response(response.status_code, headers=response.headers, content=bytes(body), request=final_request)
+            finally:
+                response.close()
+        raise ValueError("too many redirects")
     finally:
         if _client is None:
             client.close()
@@ -353,8 +372,8 @@ SEARCHABLE = {"workday", "icims", "ukg", "oracle", "phenom", "jobvite", "workabl
 
 
 def _selfcheck() -> None:
-    m = BOARD.search('<a href="https://otis.wd504.myworkdayjobs.com/en-US/REC_Ext_Gateway?q=x">')
-    assert (m["wd"], m["n"], m["site"]) == ("otis", "wd504", "REC_Ext_Gateway"), m.groupdict()
+    m = BOARD.search('<a href="https://contoso.wd5.myworkdayjobs.com/en-US/Careers?q=x">')
+    assert (m["wd"], m["n"], m["site"]) == ("contoso", "wd5", "Careers"), m.groupdict()
     assert BOARD.search("https://job-boards.greenhouse.io/drivewealth/jobs/1")["gh"] == "drivewealth"
     assert detect_html('src="//job-boards.greenhouse.io/embed/job_board?for=westmonroe4"') == ("greenhouse", {"token": "westmonroe4"})
     assert detect_html('href="https://careers-berrydunn.icims.com/jobs/intro"') == ("icims", {"host": "careers-berrydunn.icims.com"})
@@ -396,18 +415,57 @@ def _selfcheck() -> None:
     calls = []
     def redirect(request):
         calls.append(request)
-        return httpx.Response(302, headers={"Location": "https://127.0.0.1/"}, stream=httpx.ByteStream(b""), request=request)
+        location = "https://contoso.wd5.myworkdayjobs.com/en-US/Careers" if len(calls) == 1 else None
+        return httpx.Response(302 if location else 200, headers={"Location": location} if location else {},
+                              stream=httpx.ByteStream(b"ok"), request=request)
     response = _safe_request("GET", "https://careers.example/jobs", _resolver=dns,
+                             headers={**UA, "Cookie": "session=fictional", "X-Internal-Test": "fictional"},
                              _transport=httpx.MockTransport(redirect))
-    assert response.status_code == 302 and len(calls) == 1
-    assert calls[0].url.host == "93.184.216.34" and calls[0].headers["host"] == "careers.example"
-    assert calls[0].extensions["sni_hostname"] == "careers.example"
+    assert response.status_code == 200 and str(response.url) == "https://contoso.wd5.myworkdayjobs.com/en-US/Careers"
+    assert detect_url(str(response.url)) == ("workday", {"tenant": "contoso", "wd": "wd5", "site": "Careers"})
+    assert len(calls) == 2 and calls[0].url.host == "93.184.216.34"
+    assert calls[0].headers["host"] == "careers.example" and calls[0].extensions["sni_hostname"] == "careers.example"
+    assert calls[1].headers["host"] == "contoso.wd5.myworkdayjobs.com"
+    assert calls[1].extensions["sni_hostname"] == "contoso.wd5.myworkdayjobs.com"
+    assert calls[1].headers["user-agent"] == UA["User-Agent"]
+    assert "cookie" not in calls[1].headers and "x-internal-test" not in calls[1].headers
+    for location, resolver, reason in (("https://127.0.0.1/", dns, "loopback redirect"),
+                                       ("https://private.example/", private_dns, "private redirect"),
+                                       ("http://boards.example/", dns, "HTTP redirect")):
+        try:
+            _safe_request("GET", "https://careers.example/jobs", _resolver=resolver,
+                          _transport=httpx.MockTransport(lambda req, loc=location: httpx.Response(
+                              302, headers={"Location": loc}, stream=httpx.ByteStream(b""), request=req)))
+            assert False, f"{reason} must be refused"
+        except ValueError:
+            pass
+    def six_redirects(request):
+        calls.append(request)
+        return httpx.Response(302, headers={"Location": "/next"}, stream=httpx.ByteStream(b""), request=request)
+    calls = []
+    try:
+        _safe_request("GET", "https://careers.example/jobs", _resolver=dns,
+                      _transport=httpx.MockTransport(six_redirects))
+        assert False, "sixth redirect must be refused"
+    except ValueError:
+        assert len(calls) == 6
     def json_request(request):
         assert request.method == "POST" and request.url.params["page"] == "2"
         assert json.loads(request.content) == {"query": "intern"}
         return httpx.Response(200, stream=httpx.ByteStream(b"{}"), request=request)
     _safe_request("POST", "https://careers.example/jobs", params={"page": 2}, json_data={"query": "intern"},
                   _resolver=dns, _transport=httpx.MockTransport(json_request))
+    for redirect_status in (301, 302, 303):
+        post_redirect_calls = []
+        def post_redirect(request):
+            post_redirect_calls.append(request)
+            if len(post_redirect_calls) == 1:
+                return httpx.Response(redirect_status, headers={"Location": "/search"}, stream=httpx.ByteStream(b""), request=request)
+            assert request.method == "GET" and not request.content and "content-type" not in request.headers
+            return httpx.Response(200, stream=httpx.ByteStream(b"{}"), request=request)
+        _safe_request("POST", "https://careers.example/jobs", json_data={"query": "intern"}, _resolver=dns,
+                      _transport=httpx.MockTransport(post_redirect))
+        assert len(post_redirect_calls) == 2
     try:
         _safe_request("GET", "https://careers.example/jobs", _resolver=dns, max_bytes=2,
                       _transport=httpx.MockTransport(lambda req: httpx.Response(200, stream=httpx.ByteStream(b"too big"), request=req)))
