@@ -202,25 +202,25 @@
   root.innerHTML = `<style>
     :host { all: initial; }
     .pill { position: fixed; right: 20px; bottom: 20px; z-index: 2147483647; font: 500 13px/1.4 ui-sans-serif, -apple-system, "Segoe UI", sans-serif;
-      color: #F4F6FF; background: #0D1430; border: 1px solid #2A3566; border-radius: 16px; box-shadow: 0 18px 50px -12px rgba(13,20,48,.55);
+      color: #F6F9FC; background: #0A2540; border: 1px solid #1E4268; border-radius: 16px; box-shadow: 0 18px 50px -12px rgba(10,37,64,.55);
       width: 300px; overflow: hidden; }
     .head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; }
-    .logo { width: 22px; height: 22px; border-radius: 7px; background: #2335F5; display: grid; place-items: center; font-weight: 800; font-size: 12px; }
+    .logo { width: 22px; height: 22px; border-radius: 7px; background: #635BFF; display: grid; place-items: center; font-weight: 800; font-size: 12px; }
     .title { flex: 1; font-weight: 700; letter-spacing: -.01em; }
     .sig { display: flex; gap: 2px; align-items: flex-end; height: 16px; }
-    .sig i { width: 4px; border-radius: 2px; background: #2A3566; }
-    .sig i.on { background: #7C8CFF; }
+    .sig i { width: 4px; border-radius: 2px; background: #1E4268; }
+    .sig i.on { background: #A5A0FF; }
     .body { padding: 0 14px 14px; }
-    .why { color: #AEB6DA; font-size: 12px; margin: 0 0 10px; }
+    .why { color: #ADBDCC; font-size: 12px; margin: 0 0 10px; }
     .note { color: #FFB86B; font-size: 12px; margin: 0 0 10px; }
     .row { display: flex; gap: 8px; }
     button { all: unset; cursor: pointer; flex: 1; text-align: center; font-weight: 700; font-size: 13px; padding: 9px 10px; border-radius: 10px;
-      background: #1B2550; color: #F4F6FF; }
-    button.go { background: #2335F5; }
-    button:focus-visible { outline: 2px solid #7C8CFF; outline-offset: 2px; }
-    ul { margin: 8px 0 0; padding-left: 16px; color: #D6DBF5; font-size: 12px; max-height: 180px; overflow: auto; }
+      background: #16365A; color: #F6F9FC; }
+    button.go { background: #635BFF; }
+    button:focus-visible { outline: 2px solid #A5A0FF; outline-offset: 2px; }
+    ul { margin: 8px 0 0; padding-left: 16px; color: #E3E8EE; font-size: 12px; max-height: 180px; overflow: auto; }
     li { margin: 3px 0; }
-    .muted { color: #8C94BD; font-size: 12px; }
+    .muted { color: #8FA3B8; font-size: 12px; }
     .min .body { display: none; }
   </style>
   <div class="pill" role="region" aria-label="Internship Engine">
