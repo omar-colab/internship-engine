@@ -21,6 +21,16 @@ Permission justifications:
 - `host_permissions` for `127.0.0.1:8765`: connect to the local engine the user runs on their computer.
 - Content-script match patterns: read and fill the supported job-board pages only after the user visits them.
 
+### Draft screenshots
+
+Regenerate these with `uv run python scripts/store_screenshots.py` (Playwright Chromium required). The script seeds a scratch tracker
+with fictional data and uses the existing fictional Greenhouse form fixture; it never reads `data/`.
+
+![Today dashboard](../site/store/today.png)
+![Jobs for you with role details](../site/store/jobs.png)
+![Applications board](../site/store/applications.png)
+![Extension panel on a fictional form](../site/store/extension-panel.png)
+
 ## Before submitting
 
 1. Confirm the store developer account is owned by the project maintainer and has two-step verification enabled.
