@@ -1,7 +1,7 @@
 """Employer job boards: detect which one a company uses, then list its intern roles.
 
 All public, no login: Greenhouse / Lever / Ashby posting APIs and Workday's own
-career-site search (the JSON the career page itself calls).
+career-site search (the JSON the career page itself calls), including Taleo.
 """
 import ipaddress
 import json
@@ -28,7 +28,8 @@ BOARD = re.compile(
     r"|https?://(?P<sfhost>career\d*\.successfactors\.(?:com|eu))/careers?\?(?:[^\"'\s<>]*?&(?:amp;)?)?company=(?P<sfco>[A-Za-z0-9_-]+)"
     r"|https?://(?P<orahost>[a-z0-9.-]+\.oraclecloud\.com)(?::443)?/hcmUI/CandidateExperience/[a-z]{2}/sites/(?P<orasite>CX(?:_\d+)?)"
     r"|https?://jobs\.lever\.co/(?P<lever>[a-z0-9-]+)"
-    r"|https?://jobs\.ashbyhq\.com/(?P<ashby>[a-z0-9-]+)")
+    r"|https?://jobs\.ashbyhq\.com/(?P<ashby>[a-z0-9-]+)"
+    r"|https?://(?P<taleo>[A-Za-z0-9-]+\.taleo\.net)/careersection/(?P<taleo_section>[A-Za-z0-9_-]+)/(?:jobsearch|default)\.ftl")
 
 
 def detect(careers_url: str) -> tuple[str, dict] | None:
@@ -192,6 +193,8 @@ def detect_html(html: str) -> tuple[str, dict] | None:
             return "successfactors", {"host": m["sfhost"], "company": m["sfco"]}
         if m["orahost"]:
             return "oracle", {"host": m["orahost"], "site": m["orasite"]}
+        if m["taleo"]:
+            return "taleo", {"host": m["taleo"].lower(), "section": m["taleo_section"]}
         for ats in ("ghe", "gh", "lever", "ashby"):
             if m[ats]:
                 return {"gh": "greenhouse", "ghe": "greenhouse"}.get(ats, ats), {"token": m[ats]}
@@ -285,6 +288,85 @@ def oracle(company: str, b: dict, query: str = "intern") -> list[dict]:
             for x in items[0].get("requisitionList", []) if INTERN.search(x["Title"])]
 
 
+def _taleo_roles(company: str, b: dict, rows: list[dict]) -> list[dict]:
+    from urllib.parse import quote
+
+    out = []
+    for item in rows:
+        columns = item.get("column") or []
+        try:
+            title_index = int(item.get("linkedColumn", 0))
+        except (TypeError, ValueError):
+            title_index = 0
+        title = str(columns[title_index]).strip() if 0 <= title_index < len(columns) else ""
+        job = item.get("contestNo") or item.get("jobId")
+        if not job or not title or not INTERN.search(title):
+            continue
+        places = []
+        for index in item.get("locationsColumns") or []:
+            if not isinstance(index, int) or not 0 <= index < len(columns):
+                continue
+            value = columns[index]
+            if isinstance(value, str):
+                try:
+                    value = json.loads(value)
+                except ValueError:
+                    pass
+            if isinstance(value, list):
+                places.extend(str(v).strip() for v in value if v)
+            elif value:
+                places.append(str(value).strip())
+        location = ", ".join(dict.fromkeys(p for p in places if p)) or None
+        url = f"https://{b['host']}/careersection/{b['section']}/jobdetail.ftl?job={quote(str(job), safe='')}&lang=en"
+        out.append(_role(company, title, location, url, "taleo"))
+    return out
+
+
+def taleo(company: str, b: dict, query: str = "intern") -> list[dict]:
+    """Use the public Career Section's own anonymous JSON search endpoint."""
+    import datetime
+
+    host = str(b.get("host", "")).lower()
+    section = str(b.get("section", ""))
+    if not re.fullmatch(r"[a-z0-9-]+\.taleo\.net", host) or not re.fullmatch(r"[A-Za-z0-9_-]+", section):
+        raise ValueError("invalid Taleo host or career section")
+    base = f"https://{host}"
+    headers = {**UA, "Accept": "application/json"}
+    page = _safe_request("GET", f"{base}/careersection/{section}/jobsearch.ftl", params={"lang": "en"},
+                         headers=headers, timeout=20)
+    if page.status_code != 200:
+        page.raise_for_status()
+        raise RuntimeError(f"Taleo career page returned HTTP {page.status_code}")
+    portal = re.search(r"\bportalNo\s*:\s*['\"](\d+)['\"]", page.text)
+    if not portal:
+        raise ValueError("Taleo career page did not expose a public portal ID")
+    now = datetime.datetime.now().astimezone()
+    offset = now.utcoffset()
+    headers.update({"tz": str(int(-offset.total_seconds() / 60)) if offset else "0",
+                    "tzname": now.tzname() or "UTC"})
+    out = []
+    for page_no in range(1, 9):                    # shortcut: cap at 8 pages, raise if target boards need deeper searches
+        response = _safe_request(
+            "POST", f"{base}/careersection/rest/jobboard/searchjobs",
+            params={"lang": "en", "portal": portal[1]},
+            json_data={"fieldData": {"fields": {"KEYWORD": query}, "valid": True}, "pageNo": page_no},
+            headers=headers, timeout=20)
+        if response.status_code != 200:
+            response.raise_for_status()
+            raise RuntimeError(f"Taleo search returned HTTP {response.status_code}")
+        data = response.json()
+        if data.get("careerSectionUnAvailable"):
+            raise RuntimeError("Taleo career section is unavailable")
+        rows = data.get("requisitionList") or []
+        out.extend(_taleo_roles(company, {"host": host, "section": section}, rows))
+        paging = data.get("pagingData") or {}
+        page_size = int(paging.get("pageSize") or len(rows))
+        total = int(paging.get("totalCount") or len(rows))
+        if not rows or not page_size or page_no * page_size >= total:
+            break
+    return out
+
+
 def phenom(company: str, b: dict, query: str = "intern") -> list[dict]:
     """Phenom sites embed the search results in the page (phApp.ddo). Many apply links point at Workday."""
     r = _safe_request("GET", f"{b['origin']}/{b['locale']}/search-results", params={"keywords": query}, headers=UA, timeout=20)
@@ -367,8 +449,8 @@ def successfactors(company: str, b: dict, query: str = "intern") -> list[dict]:
 
 LIST = {"workday": workday, "greenhouse": greenhouse, "lever": lever, "ashby": ashby, "icims": icims,
         "ukg": ukg, "oracle": oracle, "phenom": phenom, "jobvite": jobvite, "jazzhr": jazzhr, "workable": workable,
-        "successfactors": successfactors}
-SEARCHABLE = {"workday", "icims", "ukg", "oracle", "phenom", "jobvite", "workable"}   # keyword search: one title at a time
+        "successfactors": successfactors, "taleo": taleo}
+SEARCHABLE = {"workday", "icims", "ukg", "oracle", "phenom", "jobvite", "workable", "taleo"}   # keyword search: one title at a time
 
 
 def _selfcheck() -> None:
@@ -389,8 +471,24 @@ def _selfcheck() -> None:
         ("successfactors", {"host": "career4.successfactors.com", "company": "Gallo"})
     assert detect_html("https://career012.successfactors.eu/career?company=paccarinc&amp;site=V") == \
         ("successfactors", {"host": "career012.successfactors.eu", "company": "paccarinc"})
+    assert detect_html("https://hdr.taleo.net/careersection/ex/jobsearch.ftl?lang=en") == \
+        ("taleo", {"host": "hdr.taleo.net", "section": "ex"})
+    assert LIST["taleo"] is taleo and "taleo" in SEARCHABLE
     assert detect_phenom("<script src=//cdn.phenompeople.com/x.js>", "https://careers.cboe.com/us/en/home") == \
         ("phenom", {"origin": "https://careers.cboe.com", "locale": "us/en"})
+    listed = _taleo_roles("HDR", {"host": "hdr.taleo.net", "section": "ex"}, [
+        {"contestNo": "196867", "column": ["Interior Design Intern", '["United States-Washington-Seattle"]', "Oct 22, 2026"],
+         "linkedColumn": 0, "locationsColumns": [1]},
+        {"contestNo": "197329", "column": ["Senior Roadway Engineer"], "linkedColumn": 0},
+    ])
+    assert len(listed) == 1 and listed[0]["title"] == "Interior Design Intern" and \
+        listed[0]["location"] == "United States-Washington-Seattle" and \
+        listed[0]["url"].endswith("jobdetail.ftl?job=196867&lang=en"), listed
+    try:
+        taleo("HDR", {"host": "127.0.0.1", "section": "ex"})
+        raise AssertionError("invalid Taleo host accepted")
+    except ValueError:
+        pass
     a = '<a href="https://careers-x.icims.com/jobs/4066/summer-2027-consulting-internship/job?in_iframe=1" class="iCIMS_Anchor" title="4066 - Summer 2027 Consulting Internship">'
     assert ICIMS_JOB.findall(a) == [("https://careers-x.icims.com/jobs/4066/summer-2027-consulting-internship/job", "Summer 2027 Consulting Internship")]
     assert INTERN.search("Summer 2027 Internship") and INTERN.search("Co-Op, Strategy") and not INTERN.search("Internal Auditor")

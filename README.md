@@ -10,7 +10,7 @@ your resume, tracker and email never leave it.
 
 | | |
 |---|---|
-| **Find** | Reads Workday, Greenhouse, Lever, Ashby, iCIMS, UKG, Oracle Cloud, Phenom, SuccessFactors, Jobvite, JazzHR and Workable boards directly, plus public internship lists. Any company it meets once gets watched from then on. |
+| **Find** | Reads Workday, Greenhouse, Lever, Ashby, iCIMS, UKG, Oracle Cloud, Phenom, SuccessFactors, Jobvite, JazzHR, Workable and Taleo boards directly, plus public internship lists. Any company it meets once gets watched from then on. |
 | **Rank** | Fetches every posting in full and scores it 1–5 against your resume with a one-line reason. Graduate-only roles, the wrong class year and past seasons are hidden. |
 | **Fill** | Clicks through to the real form, opens every dropdown to read hidden options, types into search-as-you-type fields, attaches your resume, verifies each answer and refills what the page wiped. Works from the dashboard (a browser window it drives) or the Chrome extension (on the page you're on). Hits a sign-in wall (Workday)? It waits while you sign in, then keeps going. |
 | **Your answers** | Answer a question once and it's reused when the same question, word for word, comes back. On a dropdown it's used only if your answer is one of the choices. Essays come back as a draft for you to edit, never filled. SSN, birth date, bank and login answers are never saved. |
