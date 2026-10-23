@@ -41,6 +41,7 @@ create table if not exists companies (
 # columns added after Phase 1; connect() adds any that an older data/engine.db is missing
 MIGRATIONS = {
     "roles": {"description": "text", "homepage": "text", "eligible": "integer", "eligible_why": "text",
+              "checked_on": "text",
               "warm": "text", "outreach": "text", "resolved": "text", "resume_variant": "text", "pay": "text", "keywords": "text"},
     "companies": {"homepage": "text", "checked_on": "text"},
 }

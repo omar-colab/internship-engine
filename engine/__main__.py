@@ -1,7 +1,7 @@
 """uv run python -m engine <command>
 
-  daily              find → resolve → score → warm (what the 7:00 run does)
-  find | resolve | score | warm    one step
+  daily              find → expire → resolve → score → warm (what the 7:00 run does)
+  find | expire | resolve | score | warm    one step
   listen             read the inbox over IMAP (read-only) and update statuses
   import <mail.json> same, from emails Claude pulled with its Gmail connector
   gmail              save a Gmail app password to the macOS Keychain
@@ -17,16 +17,16 @@
 import json
 import sys
 
-from . import db, finder, listener, resolve, schedule, score, server, warm
+from . import db, expire, finder, listener, resolve, schedule, score, server, warm
 
 cmd, args = (sys.argv[1] if len(sys.argv) > 1 else "serve"), sys.argv[2:]
 out = lambda x: print(json.dumps(x, indent=1))
 if cmd == "daily":
-    out({"find": finder.run(), "resolve": resolve.run(), "score": score.run(), "warm": warm.run()})
+    out({"find": finder.run(), "expire": expire.run(), "resolve": resolve.run(), "score": score.run(), "warm": warm.run()})
     from . import report
     report.new_match_alert()
-elif cmd in ("find", "resolve", "score", "warm"):
-    out({"find": finder, "resolve": resolve, "score": score, "warm": warm}[cmd].run())
+elif cmd in ("find", "expire", "resolve", "score", "warm"):
+    out({"find": finder, "expire": expire, "resolve": resolve, "score": score, "warm": warm}[cmd].run())
 elif cmd == "listen":
     recent = db.connect().execute("select 1 from runs where job = 'listen' and started > datetime('now', '-3 days')").fetchone()
     out(listener.run(listener.fetch_imap(days=3 if recent else 14)))   # every 2h: just the new mail; after a gap: catch up
