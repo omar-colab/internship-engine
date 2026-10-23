@@ -7,7 +7,7 @@ import ipaddress
 import json
 import re
 import socket
-from urllib.parse import quote, urlencode, urljoin, urlsplit, urlunsplit
+from urllib.parse import urlencode, urljoin, urlsplit, urlunsplit
 
 import httpx
 
