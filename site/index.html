@@ -23,7 +23,9 @@ a { color: inherit; }
 .wrap { max-width: 1140px; margin: 0 auto; padding: 0 28px; }
 
 /* hero: night */
-.top { background: var(--night); color: #fff; padding: 22px 0 0; overflow: hidden; }
+.top { position: relative; isolation: isolate; background: var(--night); color: #fff; padding: 22px 0 0; overflow: hidden; }
+.top::before { content: ""; position: absolute; z-index: -1; width: min(68vw, 850px); aspect-ratio: 1; top: -12rem; right: -19rem; border-radius: 50%; background: radial-gradient(circle, rgba(82, 101, 255, .32), rgba(82, 101, 255, 0) 68%); filter: blur(8px); animation: glow-drift 9s ease-in-out infinite alternate; pointer-events: none; }
+.top > .wrap { position: relative; }
 .bar { display: flex; align-items: center; justify-content: space-between; }
 .logo { display: flex; gap: 10px; align-items: center; font: 700 17px/1 var(--display); letter-spacing: -.02em; text-decoration: none; }
 .mark { width: 30px; height: 30px; border-radius: 9px; background: var(--blue); display: grid; place-items: end center; padding-bottom: 6px; }
@@ -35,20 +37,25 @@ a { color: inherit; }
 .bar nav a { text-decoration: none; }
 .bar nav a:hover { color: #fff; }
 .hero { display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px; align-items: center; padding: 70px 0 0; }
+.hero-copy { animation: rise-in 650ms cubic-bezier(.2,.75,.2,1) both; }
 h1 { font: 800 68px/.98 var(--display); letter-spacing: -.045em; margin: 0 0 22px; }
 .sub { font-size: 19px; color: var(--night-ink); max-width: 34ch; margin: 0 0 30px; }
 .cta { display: flex; gap: 12px; flex-wrap: wrap; }
 .btn { display: inline-flex; align-items: center; gap: 8px; font: 700 15px/1 var(--body); padding: 15px 20px; border-radius: 12px; text-decoration: none; }
-.btn.go { background: var(--blue); color: #fff; }
-.btn.go:hover { filter: brightness(1.1); }
+.btn.go { background: var(--blue); color: #fff; box-shadow: 0 8px 26px -10px rgba(101,119,255,.9); transition: transform .2s ease, box-shadow .2s ease, filter .2s ease; }
+.btn.go:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 12px 30px -9px rgba(101,119,255,.95); }
 .btn.ghost { color: #fff; box-shadow: inset 0 0 0 1px var(--night-line); }
 .btn.ghost:hover { box-shadow: inset 0 0 0 1px var(--night-ink); }
 .free { margin-top: 16px; font-size: 14px; color: var(--night-ink); }
 
 /* the product, drawn: a ranked list rising out of the hero */
-.shot { background: var(--sheet); color: var(--ink); border-radius: 18px 18px 0 0; box-shadow: 0 -30px 80px -30px rgba(35,53,245,.55); padding: 8px 0 0; align-self: end; }
+.shot { background: var(--sheet); color: var(--ink); border-radius: 18px 18px 0 0; box-shadow: 0 -30px 80px -30px rgba(35,53,245,.55); padding: 8px 0 0; align-self: end; animation: rise-in 750ms 90ms cubic-bezier(.2,.75,.2,1) both; }
 .shot .item { display: grid; grid-template-columns: 40px 1fr auto; gap: 14px; align-items: center; padding: 15px 18px; border-top: 1px solid var(--line); }
 .shot .item:first-child { border-top: 0; }
+.shot .item { animation: rise-in 520ms both; }
+.shot .item:nth-child(2) { animation-delay: 100ms; }
+.shot .item:nth-child(3) { animation-delay: 180ms; }
+.shot .item:nth-child(4) { animation-delay: 260ms; }
 .mono { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; font: 700 16px/1 var(--display); color: #fff; }
 .co { font-size: 12px; color: var(--ink-2); font-weight: 600; }
 .ti { font: 700 15.5px/1.25 var(--display); letter-spacing: -.01em; }
@@ -60,12 +67,17 @@ h1 { font: 800 68px/.98 var(--display); letter-spacing: -.045em; margin: 0 0 22p
 section { padding: 96px 0; }
 h2 { font: 800 44px/1.02 var(--display); letter-spacing: -.035em; margin: 0 0 16px; max-width: 18ch; }
 .lead { font-size: 19px; color: var(--ink-2); max-width: 56ch; margin: 0 0 44px; }
+.motion-ready [data-reveal], .motion-ready .feats > .feat, .motion-ready .rules > .rule { opacity: 0; transform: translateY(18px); transition: opacity 560ms ease, transform .24s ease, box-shadow .24s ease; }
+.motion-ready [data-reveal].is-visible, .motion-ready .feats > .feat.is-visible, .motion-ready .rules > .rule.is-visible { opacity: 1; transform: translateY(0); }
+.motion-ready .feats > .feat:nth-child(even) { transition-delay: 80ms; }
+.motion-ready .steps > [data-reveal]:nth-child(2), .motion-ready .rules > .rule:nth-child(2) { transition-delay: 90ms; }
 .nums { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border-radius: 18px; overflow: hidden; box-shadow: 0 0 0 1px var(--line); }
 .nums div { background: var(--sheet); padding: 28px 24px; }
 .nums b { display: block; font: 800 48px/1 var(--display); letter-spacing: -.045em; color: var(--blue); }
 .nums span { display: block; margin-top: 8px; font-size: 15px; color: var(--ink-2); }
 .feats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-.feat { background: var(--sheet); border-radius: 18px; padding: 30px; box-shadow: 0 0 0 1px var(--line); }
+.feat { background: var(--sheet); border-radius: 18px; padding: 30px; box-shadow: 0 0 0 1px var(--line); transition: transform .24s ease, box-shadow .24s ease; }
+.feat:hover { transform: translateY(-3px); box-shadow: 0 14px 34px -26px rgba(35,53,245,.62), 0 0 0 1px #D2D8FF; }
 .feat h3 { font: 700 23px/1.15 var(--display); letter-spacing: -.02em; margin: 0 0 10px; }
 .feat p { margin: 0; color: var(--ink-2); }
 .feat.big { grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 34px; align-items: center; background: var(--night); color: #fff; box-shadow: none; }
@@ -85,7 +97,8 @@ td.us { color: var(--ink); }
 td.them { color: var(--ink-2); }
 
 .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; counter-reset: s; }
-.step { background: var(--sheet); border-radius: 18px; padding: 28px; box-shadow: 0 0 0 1px var(--line); }
+.step { background: var(--sheet); border-radius: 18px; padding: 28px; box-shadow: 0 0 0 1px var(--line); transition: transform .24s ease, box-shadow .24s ease; }
+.step:hover { transform: translateY(-3px); box-shadow: 0 14px 34px -26px rgba(35,53,245,.62), 0 0 0 1px #D2D8FF; }
 .step::before { counter-increment: s; content: counter(s); display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: var(--blue); color: #fff; font: 700 16px/1 var(--display); margin-bottom: 16px; }
 .step h3 { font: 700 21px/1.2 var(--display); margin: 0 0 8px; letter-spacing: -.02em; }
 .step p { margin: 0 0 12px; color: var(--ink-2); font-size: 15.5px; }
@@ -102,6 +115,11 @@ pre code { background: none; color: inherit; padding: 0; }
 .rule p { margin: 0; color: var(--night-ink); font-size: 15.5px; }
 footer { padding: 40px 0 60px; color: var(--ink-3); font-size: 14px; }
 footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+
+@keyframes rise-in { from { opacity: 0; transform: translateY(18px) scale(.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes glow-drift { from { transform: translate3d(-12px,0,0) scale(.96); opacity: .72; } to { transform: translate3d(8px,14px,0) scale(1.04); opacity: 1; } }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } .btn.go:hover, .feat:hover, .step:hover { transform: none; } }
 
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr; gap: 40px; padding-top: 44px; }
@@ -125,7 +143,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wr
       <nav aria-label="Sections"><a href="#how">How it works</a><a href="#compare">Compared to JobRight</a><a href="#start">Get started</a></nav>
     </div>
     <div class="hero">
-      <div>
+      <div class="hero-copy">
         <h1>Apply to the internships that fit. Skip the forms.</h1>
         <p class="sub">Finds roles on employers' own job boards, ranks them against your resume, and fills the applications other autofills give up on. You click Submit.</p>
         <div class="cta"><a class="btn go" href="#start">Set it up in 10 minutes</a><a class="btn ghost" href="#how">See how it works</a></div>
@@ -150,7 +168,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wr
     <div class="wrap">
       <h2>One morning's run, on one laptop.</h2>
       <p class="lead">Read straight from the companies' own job boards, not from a list that was already a week old.</p>
-      <div class="nums">
+      <div class="nums" data-reveal>
         <div><b>1,223</b><span>internships found</span></div>
         <div><b>79</b><span>employer job boards read directly</span></div>
         <div><b>162</b><span>scored 4 or 5 against one resume</span></div>
@@ -189,7 +207,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wr
     <div class="wrap">
       <h2>What's different from JobRight.</h2>
       <p class="lead">JobRight is good at volume. This is built for aim, honesty and keeping your data.</p>
-      <table>
+      <table data-reveal>
         <thead><tr><th></th><th>Internship Engine</th><th>JobRight</th></tr></thead>
         <tr><td>Where roles come from</td><td class="us">Employers' own job boards, checked every morning</td><td class="them">Its own database; reviewers say listings lag</td></tr>
         <tr><td>Match score</td><td class="us">1 to 5 with the reason, plus hard eligibility checks</td><td class="them">A percentage</td></tr>
@@ -218,17 +236,29 @@ footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wr
       <h2>Set it up in about ten minutes.</h2>
       <p class="lead">You need a Mac or Linux laptop, Chrome, and uv. Claude Code is optional for assisted setup.</p>
       <div class="steps">
-        <div class="step"><h3>Get the engine</h3><p>Clone the repo, install it, and copy the example profile.</p><pre><code>git clone https://github.com/omar-colab/internship-engine
+        <div class="step" data-reveal><h3>Get the engine</h3><p>Clone the repo, install it, and copy the example profile.</p><pre><code>git clone https://github.com/omar-colab/internship-engine
 cd internship-engine
 uv sync
 mkdir -p data
 cp profile.example.json data/profile.json</code></pre></div>
-        <div class="step"><h3>Tell it about you</h3><p>Edit <code>data/profile.json</code> with your information. Or use Claude Code's optional <code>/setup</code> flow to build the profile from your resume and run your first search.</p></div>
-        <div class="step"><h3>Add the extension</h3><p><a href="https://github.com/omar-colab/internship-engine/releases/latest">Download the latest GitHub Release</a>, extract it, and load the folder containing <code>manifest.json</code> from <code>chrome://extensions</code> with Developer mode on. Paste your token from <code>engine token</code>.</p></div>
+        <div class="step" data-reveal><h3>Tell it about you</h3><p>Edit <code>data/profile.json</code> with your information. Or use Claude Code's optional <code>/setup</code> flow to build the profile from your resume and run your first search.</p></div>
+        <div class="step" data-reveal><h3>Add the extension</h3><p><a href="https://github.com/omar-colab/internship-engine/releases/latest">Download the latest GitHub Release</a>, extract it, and load the folder containing <code>manifest.json</code> from <code>chrome://extensions</code> with Developer mode on. Paste your token from <code>engine token</code>.</p></div>
       </div>
     </div>
   </section>
 </main>
 <footer><div class="wrap"><span>Internship Engine · MIT licensed · Built by students, for students.</span><span><a href="privacy.html">Privacy</a> · Not affiliated with JobRight.</span></div></footer>
+<script>
+if (!matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window) {
+  const observer = new IntersectionObserver(entries => {
+    for (const entry of entries) if (entry.isIntersecting) {
+      entry.target.classList.add("is-visible");
+      observer.unobserve(entry.target);
+    }
+  }, { threshold: 0.12, rootMargin: "0px 0px -24px 0px" });
+  document.documentElement.classList.add("motion-ready");
+  document.querySelectorAll("[data-reveal], .feats > .feat, .rules > .rule").forEach(el => observer.observe(el));
+}
+</script>
 </body>
 </html>
