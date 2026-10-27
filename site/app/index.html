@@ -138,7 +138,7 @@ dialog { border: 0; padding: 0; border-radius: 16px; background: var(--sheet); c
 dialog::backdrop { background: rgba(6,27,49,.45); backdrop-filter: blur(3px); }
 dialog .in { position: relative; padding: 24px; display: grid; gap: 14px; }
 
-.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); opacity: 0; background: var(--ink); color: var(--page); padding: 10px 16px; border-radius: 999px; font-weight: 500; font-size: 14px; transition: .2s ease; pointer-events: none; z-index: 50; }
+.toast { position: fixed; left: 50%; top: 76px; transform: translateX(-50%) translateY(-12px); opacity: 0; background: var(--ink); color: var(--page); padding: 10px 16px; border-radius: 999px; font-weight: 500; font-size: 14px; transition: .2s ease; pointer-events: none; z-index: 50; }
 .toast.show { opacity: 1; transform: translateX(-50%); }
 
 .job h3 button { all: unset; cursor: pointer; }
@@ -169,7 +169,7 @@ kbd { font: 12px var(--font); border: 1px solid var(--line); border-bottom-width
   main { padding-bottom: 110px; }
   .btn.sm, nav.tabs button, .chip { min-height: 44px; }
   .icon-btn, .avatar { width: 44px; height: 44px; }
-  .toast { bottom: calc(84px + env(safe-area-inset-bottom)); }
+  .toast { top: auto; bottom: calc(84px + env(safe-area-inset-bottom)); }
 }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
@@ -214,20 +214,21 @@ kbd { font: 12px var(--font); border: 1px solid var(--line); border-bottom-width
 // Everything a visitor enters lives in this browser only (localStorage). No account, no server.
 const KEY = "ie.app.v1";
 const FIELDS = {
-  software: ["Software", /\b(software|developer|swe|sde|backend|back-end|frontend|front-end|full[- ]?stack|web|mobile|ios|android|devops|cloud|platform|site reliability|programm|\bsw\b|\bit\b|information technology|infrastructure|servicenow|technology|cloud|systems administrator)/],
-  data: ["Data & AI", /\b(data|analytics?|analyst|machine learning|\bml\b|\bai\b|artificial intelligence|scien|statistic|quant|power bi|\bbi\b|insights|business intelligence)/],
-  finance: ["Finance & accounting", /\b(financ|accounting|accountant|audit|tax|treasury|invest|banking|credit|risk|actuar|fp&a|wealth|capital markets)/],
-  consulting: ["Consulting & business", /\b(consult|strategy|transformation|advisory|business analyst|business intern|leadership development|rotational|general management)/],
-  product: ["Product & design", /\b(product|design|ux|ui\b|user experience|research)/],
-  marketing: ["Marketing & sales", /\b(marketing|sales|brand|communications|social media|content|public relations|growth|copywrit|photograph|community|merchandis|business development|partnership|customer success|e-?commerce)/],
-  ops: ["Operations & supply chain", /\b(operations|supply chain|logistics|procurement|sourcing|planning|inventory|operational excellence|project manag|program manag|order|customer support|construction|facilities)/],
-  engineering: ["Engineering (hardware)", /\b(mechanical|electrical|manufactur|chemical|civil|industrial|aerospace|hardware|process engineer|quality engineer|systems engineer|engineer(ing)? intern|aero|robotic|autonomy|gnc|r&d|research and development|test engineer|machinist|multiphysics|packaging|motor|architect|environmental|safety|hse|mechatronic|controls|power systems|transmission|relay|wind|energy|utilit|electric|substation|lab testing)/],
-  people: ["HR & people", /\b(human resources|\bhr\b|people|talent|recruit)/],
-  health: ["Healthcare & science", /\b(pharm|clinical|health|biolog|chemi|medical|nurs|patient|scientist|laborator|biotech|life science)/],
+  software: ["Software", /\b(software|developer|swe|sde|backend|back-end|frontend|front-end|full[- ]?stack|web|mobile|ios|android|devops|cloud|platform|site reliability|programm|\bsw\b|\bit\b|information technology|infrastructure|servicenow|technology|systems administrator|information systems|business systems|application develop|technologist)/],
+  data: ["Data & AI", /\b(data|analytics?|analyst|machine learning|\bml\b|\bai\b|artificial intelligence|scien|statistic|quant|power bi|\bbi\b|insights|business intelligence|geographic information|\bgis\b|research assistant)/],
+  finance: ["Finance & accounting", /\b(financ|accounting|accountant|audit|tax|treasury|invest|banking|credit|risk|actuar|fp&a|wealth|capital markets|claims|underwrit|insurance|lending|loan|branch intern|trust|assurance|pricing|payroll|retirement|trade desk|real estate|private equity|fund|private client|endowment)/],
+  consulting: ["Consulting & business", /\b(consult|strategy|transformation|advisory|business analyst|business intern|leadership development|rotational|general management|management intern|performance improvement|corporate development|business intern|business\/)/],
+  product: ["Product & design", /\b(product (manag|design|owner|market|defin|analy|develop)|technical product|design|ux|ui\b|user experience|user research)/],
+  marketing: ["Marketing & sales", /\b(marketing|sales|brand|communications|social media|content|public relations|growth|copywrit|photograph|community|merchandis|business development|partnership|customer success|e-?commerce|go-to-market|customer experience|dealer|market research|strateg|events?\b)/],
+  ops: ["Operations & supply chain", /\b(operations|supply chain|logistics|procurement|sourcing|planning|inventory|operational excellence|project manag|program manag|order|customer support|construction|facilities|contracts|supplier|network expansion|production|estimat|ops\b|project coordinat|process improvement|land planner)/],
+  engineering: ["Engineering (hardware)", /\b(mechanical|electrical|manufactur|chemical|civil|industrial|aerospace|hardware|process engineer|quality engineer|systems engineer|engineer(ing)? intern|aero|robotic|autonomy|gnc|r&d|research and development|test engineer|machinist|multiphysics|packaging|motor|architect|environmental|safety|hse|mechatronic|controls|power systems|transmission|relay|wind|energy|utilit|electric|substation|lab testing|nuclear|mechanic|mining|ready mix|eh&s)/],
+  people: ["HR & people", /\b(human resources|\bhr\b|people|talent|recruit|learning|change management)/],
+  health: ["Healthcare & science", /\b(pharm|clinical|health|biolog|chemi|medical|nurs|patient|(?<!data )scientist|laborator|biotech|life science)/],
   policy: ["Policy, legal & government", /\b(legal|law\b|policy|government|congressional|public affairs|regulatory|compliance)/],
-  cyber: ["Cybersecurity", /\b(cyber|security|infosec)/],
+  cyber: ["Cybersecurity", /\b(cyber|security|infosec|identity|access management|\biam\b)/],
 };
 const STAGES = [["saved","Saved"],["applied","Applied"],["oa","Assessment"],["interview","Interview"],["offer","Offer"],["rejected","Closed"]];
+const LANE_HINT = { saved: "Hit Save on any job.", applied: "Apply, then confirm you sent it.", oa: "Got a test? Drag the card here.", interview: "Booked a call? Drag it here.", offer: "The good part.", rejected: "Rejections and closed roles." };
 const GRAD_ONLY = /\b(ph\.?d|mba|master'?s|graduate student|grad student|doctoral|postdoc|law student|\bjd\b|medical student)\b/i;
 const FOLLOW_DAYS = 14;
 const CHECKS = [["tailored", "Resume tailored"], ["referral", "Asked for a referral"], ["thanks", "Followed up / thank-you sent"]];
@@ -266,7 +267,7 @@ async function loadFeed() {
     const d = await r.json();
     FEED_BUILT = d.built || "";
     const seenUrls = new Set(S.seen);
-    FEED = (d.roles || []).filter(r => r && safeUrl(r.url) && typeof r.title === "string" && r.title).map(r => ({ ...r, company: String(r.company || "Unknown") })).map(r => ({ ...r, fields: fieldsOf(r.title, r.skills) }));
+    FEED = (d.roles || []).filter(r => r && safeUrl(r.url) && typeof r.title === "string" && r.title).map(r => ({ ...r, company: String(r.company || "Unknown"), location: calm(r.location) })).map(r => ({ ...r, fields: fieldsOf(r.title, r.skills) }));
     // first_seen comes from the feed builder (#48); until then, "new" means new since this visitor's last visit.
     // The oldest first_seen is the day tracking began (every role got it at once), so it never means new.
     const oldest = FEED.reduce((m, r) => r.first_seen && r.first_seen < m ? r.first_seen : m, "9999");
@@ -284,6 +285,7 @@ async function loadFeed() {
     FEED = [...groups.values()];
   } catch { FEED = []; }
 }
+const calm = s => typeof s === "string" && /[A-Z]{4}/.test(s) && s === s.toUpperCase() ? s.toLowerCase().replace(/\b[a-z]/g, c => c.toUpperCase()).replace(/\b([A-Z][a-z])\b(?=\s*(,|$|-))/g, m => m.toUpperCase()) : s;
 // A title like "Intern" says nothing; then the skills the posting asks for decide.
 const SKILL_FIELDS = { python: "data", sql: "data", tableau: "data", "power bi": "data", "machine learning": "data", statistics: "data",
   javascript: "software", java: "software", "c++": "software", git: "software", aws: "software",
@@ -313,7 +315,7 @@ function scoreNow(r) {
   const hit = r.fields.filter(f => (p.fields || []).includes(f));
   if (hit.length) { s += 2; why.push(FIELDS[hit[0]][0]); }
   const locs = (r.locs || [r]).map(l => (l.location || "").toLowerCase());
-  const place = (p.places || []).find(pl => pl && locs.some(l => l.includes(pl.toLowerCase())));
+  const place = (p.places || []).find(pl => pl && locs.some(l => placeHit(pl, l)));
   if (locs.some(l => /remote/.test(l))) { s += 1; why.push("remote"); }
   else if (place) { s += 1; why.push("in " + place); }
   const sk = skillMatch(r);
@@ -357,8 +359,17 @@ function skillMatchNow(r, res) {
 function placeOk(r, remoteOnly) {
   return (r.locs || [r]).some(({ location }) => {
     const loc = (location || "").toLowerCase();
-    return /remote/.test(loc) || !remoteOnly && (S.profile.places || []).some(pl => loc.includes(pl.toLowerCase()));
+    return /remote/.test(loc) || !remoteOnly && (S.profile.places || []).some(pl => pl && placeHit(pl, loc));
   });
+}
+// What people type vs. what boards write: "NYC" vs "New York, NY", "Bay Area" vs "San Jose".
+const METROS = [["new york", "nyc", "manhattan", "brooklyn", "jersey city", "hoboken"], ["san francisco", "sf", "bay area", "san jose", "palo alto", "mountain view", "sunnyvale", "menlo park", "oakland"],
+  ["los angeles", "santa monica", "irvine"], ["washington", "dc", "d.c.", "arlington", "mclean", "reston", "bethesda"], ["boston", "cambridge"], ["dallas", "fort worth", "irving", "plano"],
+  ["chicago"], ["seattle", "redmond", "bellevue"], ["atlanta"], ["philadelphia", "philly"], ["minneapolis", "st. paul", "saint paul"], ["denver", "boulder"], ["houston"], ["austin"]];
+function placeHit(pl, loc) {
+  const want = pl.toLowerCase().trim(), metro = METROS.find(m => m.includes(want));
+  // Short aliases ("la", "sf", "dc") only count as whole words so "la" never matches "Atlanta".
+  return (metro || [want]).some(a => a.length <= 3 ? new RegExp(`(^|[^a-z])${a.replace(".", "\\.")}([^a-z]|$)`).test(loc) : loc.includes(a));
 }
 const moreLocs = r => r.locs?.length > 1 ? ` +${r.locs.length - 1} more` : "";
 function initials(name) { return (name || "?").split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase(); }
@@ -699,7 +710,7 @@ function renderTracker() {
       <div class="card stat"><b>${sent.filter(a => a.status === "applied" && daysSince(a.updated) >= FOLLOW_DAYS).length}</b><span>to follow up</span></div></div>` : ""}
     <div class="board">${STAGES.map(([k, label]) => {
       const here = apps.filter(a => a.status === k).sort((a, b) => b.updated.localeCompare(a.updated));
-      return `<section class="lane" data-stage="${k}"><h3><span>${label}</span><span>${here.length}</span></h3>${here.map(appCard).join("")}</section>`;
+      return `<section class="lane" data-stage="${k}"><h3><span>${label}</span><span>${here.length}</span></h3>${here.length ? here.map(appCard).join("") : `<p class="muted" style="font-size:13px;margin:4px 0 0">${LANE_HINT[k]}</p>`}</section>`;
     }).join("")}</div>`;
   view.querySelectorAll(".lane").forEach(lane => {
     lane.addEventListener("dragover", e => { e.preventDefault(); lane.classList.add("over"); });
