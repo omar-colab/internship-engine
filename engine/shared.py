@@ -65,8 +65,15 @@ def _previous_feed() -> dict[str, dict] | None:
 def _auth_flags(description: str) -> list[str]:
     text = description or ""
     flags = []
-    if re.search(r"\b(?:u\.?s\.?\s+)?citizenship\s+(?:is\s+)?required\b|\b(?:requires?|requiring) (?:u\.?s\.? )?citizenship\b|\bmust be (?:a )?(?:u\.?s\.? )?citizen\b(?! or)|\bsecurity clearance (?:is )?required\b|\bmust (?:be able to )?obtain (?:and maintain )?(?:a )?security clearance\b", text, re.I):
-        flags.append("citizen")
+    # citizen: US citizens only (clearance work). us_person: citizen OR permanent resident (export control/ITAR).
+    for m in re.finditer(r"\b(?:u\.?s\.?\s+)?citizenship\b[^.\n]{0,80}?\brequired\b(?!:?\s*no\b)|\b(?:requires?|requiring) (?:u\.?s\.? )?citizenship\b|\bmust be (?:a )?(?:u\.?s\.? )?citizen\b|\bsecurity clearance (?:is )?required\b|\b(?:obtain|maintain|hold|possess)\b[^\n]{0,40}?\bsecurity clearance\b|\bu\.?s\.? persons?\b", text, re.I):
+        window = text[max(0, m.start() - 150): m.end() + 150]
+        if re.search(r"permanent resident|green card|lawful permanent|\bu\.?s\.? persons?\b|refugee|asylee|\bor be an?\b", window, re.I) \
+                and not re.search(r"clearance", m.group(0), re.I):
+            flags.append("us_person")
+        else:
+            flags.append("citizen")
+        break
     no_sponsor = re.search(r"\b(?:will not|cannot|can't|does not|do not|unable to|not able to) sponsor\b|\bno (?:visa )?sponsorship (?:is )?available\b|\b(?:visa )?sponsorship (?:is )?not available\b|(?<!with or )\bwithout (?:the need for )?(?:(?:employer|visa) )?sponsorship\b|\bmust be authorized to work without sponsorship\b|\b(?:does|do|will) not (?:provide|offer) (?:visa )?sponsorship\b|\bwill not require sponsorship\b", text, re.I)
     if no_sponsor:
         flags.append("no_sponsor")
@@ -204,10 +211,14 @@ if __name__ == "__main__":
     assert _first_seen_by_url({"roles": "invalid"}) == {}
     fictional = "Contoso requires U.S. citizenship. No visa sponsorship is available. Graduating in 2027 or 2028. Use SQL. $20/hr - $30/hr."
     assert _auth_flags(fictional) == ["citizen", "no_sponsor"]
+    assert _auth_flags("Employees must be a U.S. citizen, lawful U.S. permanent resident (i.e., green card holder).") == ["us_person"]
+    assert _auth_flags("U.S. Citizenship, Lawful Permanent Residency, or Refugee/Asylee Status Required.") == ["us_person"]
+    assert _auth_flags("US Citizenship Required: No. Job description follows.") == []
+    assert _auth_flags("This position requires the ability to obtain and maintain a U.S. Government security clearance.") == ["citizen"]
     assert _auth_flags("Northwind offers visa sponsorship.") == ["sponsor"]
     assert _auth_flags("Fabrikam does not provide visa sponsorship.") == ["no_sponsor"]
     assert _auth_flags("Fabrikam may sponsor some roles.") == []
-    assert _auth_flags("You must be a U.S. citizen or permanent resident.") == []
+    assert _auth_flags("You must be a U.S. citizen or permanent resident.") == ["us_person"]
     assert _auth_flags("Authorized to work in the US with or without sponsorship.") == []
     assert _auth_flags("Must be authorized to work without sponsorship.") == ["no_sponsor"]
     assert _graduation_years("Graduating in 2027 or 2028; class of 2029.") == [2027, 2028, 2029]
