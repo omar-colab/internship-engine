@@ -1,0 +1,590 @@
+{
+  "software": [
+    {
+      "q": "Explain the difference between a process and a thread.",
+      "tip": "A good answer distinguishes independent processes from threads that share process memory."
+    },
+    {
+      "q": "What happens after you enter a URL in a browser?",
+      "tip": "A good answer traces DNS, a connection, an HTTP request, and a rendered response."
+    },
+    {
+      "q": "How would you debug a program that returns the wrong result?",
+      "tip": "A good answer uses a reproducible case, debugging tools, and a verified fix."
+    },
+    {
+      "q": "How do arrays and linked lists differ?",
+      "tip": "A good answer compares access, insertion, and memory tradeoffs accurately."
+    },
+    {
+      "q": "What does an HTTP status code tell a client?",
+      "tip": "A good answer explains status code classes and gives a relevant example."
+    },
+    {
+      "q": "How do you use version control on a team project?",
+      "tip": "A good answer describes focused commits, branches, and resolving changes collaboratively."
+    },
+    {
+      "q": "What is an API, and how might one service use it?",
+      "tip": "A good answer describes a defined interface for exchanging requests and responses."
+    },
+    {
+      "q": "How would you test a function that validates input?",
+      "tip": "A good answer covers typical, invalid, and boundary cases."
+    },
+    {
+      "q": "How do authentication and authorization differ?",
+      "tip": "A good answer separates proving identity from deciding what that identity may do."
+    },
+    {
+      "q": "Describe a programming project and your contribution to it.",
+      "tip": "A good answer makes the candidate’s own contribution and learning clear."
+    }
+  ],
+  "data": [
+    {
+      "q": "How do the mean and median differ?",
+      "tip": "A good answer explains how outliers affect the mean more than the median."
+    },
+    {
+      "q": "What are primary and foreign keys in a database?",
+      "tip": "A good answer explains row identification and relationships between tables."
+    },
+    {
+      "q": "How would you use SQL to find duplicate records?",
+      "tip": "A good answer groups by relevant fields and checks for counts greater than one."
+    },
+    {
+      "q": "How do correlation and causation differ?",
+      "tip": "A good answer avoids claiming that association alone proves a cause."
+    },
+    {
+      "q": "How would you handle missing values in a dataset?",
+      "tip": "A good answer checks why values are missing before choosing to exclude or impute them."
+    },
+    {
+      "q": "What does a confidence interval communicate?",
+      "tip": "A good answer describes uncertainty around an estimate without overclaiming."
+    },
+    {
+      "q": "How would you check if data can answer a research question?",
+      "tip": "A good answer checks definitions, coverage, quality, and possible bias."
+    },
+    {
+      "q": "What is overfitting in a predictive model?",
+      "tip": "A good answer explains that training-specific patterns may generalize poorly."
+    },
+    {
+      "q": "How would you explain an analysis to a nontechnical audience?",
+      "tip": "A good answer presents the finding, context, and limits in plain language."
+    },
+    {
+      "q": "Describe a time you used data to support a decision.",
+      "tip": "A good answer links the question, evidence, analysis, and decision transparently."
+    }
+  ],
+  "finance": [
+    {
+      "q": "How are the three main financial statements connected?",
+      "tip": "A good answer relates profit, financial position, and cash movement."
+    },
+    {
+      "q": "How do revenue and cash collected differ?",
+      "tip": "A good answer distinguishes earned sales from the timing of cash receipts."
+    },
+    {
+      "q": "How would you calculate gross margin?",
+      "tip": "A good answer divides gross profit by revenue and states its basis."
+    },
+    {
+      "q": "What is working capital, and why does it matter?",
+      "tip": "A good answer relates current assets and liabilities to short-term operations."
+    },
+    {
+      "q": "How does depreciation affect financial statements?",
+      "tip": "A good answer notes expense and asset changes and its generally noncash nature."
+    },
+    {
+      "q": "How do a budget and a forecast differ?",
+      "tip": "A good answer distinguishes a planned target from an updated estimate."
+    },
+    {
+      "q": "How would you check a spreadsheet model for errors?",
+      "tip": "A good answer uses formula review, reconciliations, and sensible input checks."
+    },
+    {
+      "q": "What does time value of money mean?",
+      "tip": "A good answer explains why money available sooner can be worth more later."
+    },
+    {
+      "q": "How can rising accounts receivable affect cash flow?",
+      "tip": "A good answer recognizes that recorded sales may not yet have produced cash."
+    },
+    {
+      "q": "Tell me about a time accuracy mattered in your work.",
+      "tip": "A good answer shows careful checking and ownership of corrections."
+    }
+  ],
+  "consulting": [
+    {
+      "q": "How would you break down an unfamiliar business problem?",
+      "tip": "A good answer clarifies the goal and divides the problem into testable parts."
+    },
+    {
+      "q": "A client’s costs rose; what would you investigate first?",
+      "tip": "A good answer asks about scope and separates price, volume, and mix drivers."
+    },
+    {
+      "q": "How would you estimate demand with limited data?",
+      "tip": "A good answer states assumptions, builds a transparent estimate, and checks its range."
+    },
+    {
+      "q": "How do you choose what analysis to do first under a deadline?",
+      "tip": "A good answer prioritizes work by decision impact and information value."
+    },
+    {
+      "q": "What makes a recommendation useful to a client?",
+      "tip": "A good answer connects evidence to a feasible action and its tradeoffs."
+    },
+    {
+      "q": "How would you respond if a client disputed your findings?",
+      "tip": "A good answer listens, checks evidence, and explains uncertainty respectfully."
+    },
+    {
+      "q": "How would you present a complex analysis to a busy audience?",
+      "tip": "A good answer leads with the conclusion and supports it clearly."
+    },
+    {
+      "q": "What is a hypothesis, and how does it structure analysis?",
+      "tip": "A good answer treats it as a testable starting point that evidence can change."
+    },
+    {
+      "q": "How would you work with a teammate who prefers another approach?",
+      "tip": "A good answer seeks shared goals and compares approaches using evidence."
+    },
+    {
+      "q": "Tell me about a time you learned an unfamiliar topic quickly.",
+      "tip": "A good answer shows a focused learning process and practical application."
+    }
+  ],
+  "product": [
+    {
+      "q": "How would you decide which user problem to address first?",
+      "tip": "A good answer considers user impact, evidence, effort, and strategic fit."
+    },
+    {
+      "q": "How does a product requirement differ from a solution idea?",
+      "tip": "A good answer separates the user need from one possible implementation."
+    },
+    {
+      "q": "How would you measure whether a feature is useful?",
+      "tip": "A good answer defines a user outcome and a relevant measure before launch."
+    },
+    {
+      "q": "How would you gather feedback about a product?",
+      "tip": "A good answer uses neutral questions and combines behavior with user input."
+    },
+    {
+      "q": "What would you include in a simple product experiment?",
+      "tip": "A good answer states a hypothesis, audience, measure, and decision rule."
+    },
+    {
+      "q": "How would you prioritize two valuable requests with limited time?",
+      "tip": "A good answer compares impact, evidence, cost, and dependencies openly."
+    },
+    {
+      "q": "What is a product roadmap for?",
+      "tip": "A good answer describes direction and priorities while allowing adjustment."
+    },
+    {
+      "q": "How would you make a feature more accessible?",
+      "tip": "A good answer considers keyboard, screen reader, contrast, and varied user needs."
+    },
+    {
+      "q": "How would you work with design and engineering to refine a feature?",
+      "tip": "A good answer shows shared problem framing and early cross-role feedback."
+    },
+    {
+      "q": "What product or tool would you improve, and why?",
+      "tip": "A good answer names a user need and supports it with observations."
+    }
+  ],
+  "marketing": [
+    {
+      "q": "How would you identify an audience for a campaign?",
+      "tip": "A good answer uses audience needs and evidence instead of broad assumptions."
+    },
+    {
+      "q": "How do reach and engagement differ?",
+      "tip": "A good answer distinguishes exposure from audience interaction."
+    },
+    {
+      "q": "How would you evaluate whether a campaign met its goal?",
+      "tip": "A good answer ties measures to the goal and considers a baseline."
+    },
+    {
+      "q": "What is a brand value proposition?",
+      "tip": "A good answer states who it serves, the value offered, and its distinction."
+    },
+    {
+      "q": "How would you improve a piece of marketing copy?",
+      "tip": "A good answer clarifies audience and action, then edits for accuracy and clarity."
+    },
+    {
+      "q": "What would you consider before running an A/B test?",
+      "tip": "A good answer defines a change, meaningful outcome, and fair comparison."
+    },
+    {
+      "q": "How would you respond to negative feedback on social media?",
+      "tip": "A good answer stays professional, verifies facts, and follows response guidance."
+    },
+    {
+      "q": "How can customer research inform a campaign?",
+      "tip": "A good answer uses research to shape messages while noting its limits."
+    },
+    {
+      "q": "How would you adapt a message for different channels?",
+      "tip": "A good answer preserves the core message while fitting each audience and format."
+    },
+    {
+      "q": "Tell me about a time you persuaded someone with a presentation.",
+      "tip": "A good answer explains the audience, message choice, and response honestly."
+    }
+  ],
+  "ops": [
+    {
+      "q": "How would you map a process to find delays?",
+      "tip": "A good answer traces steps, handoffs, wait times, and available evidence."
+    },
+    {
+      "q": "How do efficiency and effectiveness differ?",
+      "tip": "A good answer distinguishes resource use from achieving the intended result."
+    },
+    {
+      "q": "How would you prioritize orders if inventory were limited?",
+      "tip": "A good answer applies clear criteria such as commitments, urgency, and constraints."
+    },
+    {
+      "q": "What is a bottleneck in a process?",
+      "tip": "A good answer identifies a constrained step that limits overall flow."
+    },
+    {
+      "q": "How would you investigate a recurring operational error?",
+      "tip": "A good answer seeks process causes and verifies the pattern before proposing a fix."
+    },
+    {
+      "q": "What would you track to see if a process is improving?",
+      "tip": "A good answer chooses measures tied to quality, time, or cost and sets a baseline."
+    },
+    {
+      "q": "How would you respond if a project dependency were delayed?",
+      "tip": "A good answer communicates early, assesses impact, and revises next steps."
+    },
+    {
+      "q": "What does continuous improvement mean to you?",
+      "tip": "A good answer describes evidence-based changes and checks their results."
+    },
+    {
+      "q": "How would you handle conflicting stakeholder priorities?",
+      "tip": "A good answer clarifies deadlines and impact, then aligns on tradeoffs."
+    },
+    {
+      "q": "Tell me about a time you organized work with many moving parts.",
+      "tip": "A good answer shows a practical system for tracking tasks and follow-through."
+    }
+  ],
+  "engineering": [
+    {
+      "q": "How would you troubleshoot a device that fails intermittently?",
+      "tip": "A good answer reproduces the failure, records conditions, and tests one cause at a time."
+    },
+    {
+      "q": "How do stress and strain differ?",
+      "tip": "A good answer distinguishes force per area from deformation relative to original size."
+    },
+    {
+      "q": "Why do engineering drawings specify tolerances?",
+      "tip": "A good answer explains allowable variation and its effect on fit and function."
+    },
+    {
+      "q": "What is a factor of safety used for?",
+      "tip": "A good answer explains design margin and recognizes assumptions and standards."
+    },
+    {
+      "q": "How would you choose a material for a component?",
+      "tip": "A good answer weighs properties, environment, manufacturability, and cost."
+    },
+    {
+      "q": "What is the purpose of a prototype?",
+      "tip": "A good answer describes testing assumptions before committing to a final design."
+    },
+    {
+      "q": "How would you document a test so another person could repeat it?",
+      "tip": "A good answer records setup, method, conditions, instruments, and results."
+    },
+    {
+      "q": "How do verification and validation differ?",
+      "tip": "A good answer distinguishes meeting specifications from meeting user needs."
+    },
+    {
+      "q": "What would you do if test results contradicted your expectation?",
+      "tip": "A good answer checks setup and data before revising the explanation."
+    },
+    {
+      "q": "Describe a technical project and a design decision you made.",
+      "tip": "A good answer explains constraints, options, and decision reasoning."
+    }
+  ],
+  "people": [
+    {
+      "q": "How would you help make a job description clear and inclusive?",
+      "tip": "A good answer uses essential role criteria and plain, accessible language."
+    },
+    {
+      "q": "How do onboarding and orientation differ?",
+      "tip": "A good answer distinguishes initial introduction from support toward role readiness."
+    },
+    {
+      "q": "How would you protect confidential employee information?",
+      "tip": "A good answer limits access, follows policy, and avoids sharing private details."
+    },
+    {
+      "q": "How would you respond to an employee question you cannot answer?",
+      "tip": "A good answer listens, avoids guessing, and finds the right policy or contact."
+    },
+    {
+      "q": "What makes interview questions fair and useful?",
+      "tip": "A good answer ties questions to role criteria and applies them consistently."
+    },
+    {
+      "q": "How might you assess whether a training session worked?",
+      "tip": "A good answer considers learning goals and evidence of later application."
+    },
+    {
+      "q": "What is a workplace accommodation?",
+      "tip": "A good answer describes support that enables access through appropriate processes."
+    },
+    {
+      "q": "How would you organize recruiting with multiple interviewers?",
+      "tip": "A good answer coordinates schedules, consistent criteria, and timely communication."
+    },
+    {
+      "q": "How would you handle sensitive feedback from a colleague?",
+      "tip": "A good answer listens privately, responds respectfully, and follows procedures."
+    },
+    {
+      "q": "Tell me about a time you helped a group work well together.",
+      "tip": "A good answer shows actions that supported collaboration."
+    }
+  ],
+  "cyber": [
+    {
+      "q": "What is multi-factor authentication, and why is it useful?",
+      "tip": "A good answer explains distinct proof types that reduce account takeover risk."
+    },
+    {
+      "q": "How would you recognize a possible phishing message?",
+      "tip": "A good answer checks sender, links, urgency, and requests, then reports appropriately."
+    },
+    {
+      "q": "What is the principle of least privilege?",
+      "tip": "A good answer gives users only the access needed for their tasks."
+    },
+    {
+      "q": "How do a vulnerability and a threat differ?",
+      "tip": "A good answer distinguishes a weakness from something that could exploit it."
+    },
+    {
+      "q": "What would you do first if an account seemed compromised?",
+      "tip": "A good answer follows incident procedures and promptly alerts the security team."
+    },
+    {
+      "q": "Why are software updates important for security?",
+      "tip": "A good answer notes updates can fix known weaknesses as well as add features."
+    },
+    {
+      "q": "How would you explain encryption to a nontechnical colleague?",
+      "tip": "A good answer describes making data unreadable without the appropriate key."
+    },
+    {
+      "q": "What are security logs useful for?",
+      "tip": "A good answer explains their role in investigation when collected and protected."
+    },
+    {
+      "q": "How would you handle data access you do not need for your work?",
+      "tip": "A good answer avoids unnecessary access and follows approved requests."
+    },
+    {
+      "q": "Tell me about a time you noticed a risk or prevented a mistake.",
+      "tip": "A good answer shows careful observation and responsible escalation or correction."
+    }
+  ],
+  "health": [
+    {
+      "q": "Why is accurate documentation important in a lab or clinic?",
+      "tip": "A good answer connects clear records to continuity, safety, and traceability."
+    },
+    {
+      "q": "How do a symptom and a sign differ?",
+      "tip": "A good answer distinguishes a reported experience from an observed finding."
+    },
+    {
+      "q": "How would you reduce sample mix-ups in a lab?",
+      "tip": "A good answer follows labeling and verification procedures at each handoff."
+    },
+    {
+      "q": "What does informed consent mean?",
+      "tip": "A good answer recognizes voluntary agreement based on understandable information."
+    },
+    {
+      "q": "What would you do with a result that seems inconsistent?",
+      "tip": "A good answer checks procedure and records and consults a supervisor before concluding."
+    },
+    {
+      "q": "Why are control samples used in an experiment?",
+      "tip": "A good answer explains how controls assess whether a procedure behaves as expected."
+    },
+    {
+      "q": "How would you protect patient or research participant privacy?",
+      "tip": "A good answer limits access and shares information only through approved channels."
+    },
+    {
+      "q": "What is a hypothesis in a scientific study?",
+      "tip": "A good answer describes a testable explanation evaluated with evidence."
+    },
+    {
+      "q": "How would you report a possible safety concern?",
+      "tip": "A good answer reports facts promptly and follows the established safety process."
+    },
+    {
+      "q": "Tell me about a time you followed a detailed procedure carefully.",
+      "tip": "A good answer shows consistency and explains how accuracy was checked."
+    }
+  ],
+  "policy": [
+    {
+      "q": "How do law, regulation, and policy differ?",
+      "tip": "A good answer distinguishes legislation, rules under authority, and organizational guidance."
+    },
+    {
+      "q": "How would you assess effects of a proposed policy?",
+      "tip": "A good answer identifies affected groups, outcomes, tradeoffs, and evidence gaps."
+    },
+    {
+      "q": "What makes a source reliable for a policy brief?",
+      "tip": "A good answer checks authority, methods, date, and relevance."
+    },
+    {
+      "q": "How would you summarize a complex issue for a public official?",
+      "tip": "A good answer presents the decision, evidence, options, and uncertainty clearly."
+    },
+    {
+      "q": "What is a stakeholder, and how would you identify them?",
+      "tip": "A good answer includes groups affected by or able to influence a decision."
+    },
+    {
+      "q": "How would you compare two policy options?",
+      "tip": "A good answer applies consistent criteria and explains tradeoffs and assumptions."
+    },
+    {
+      "q": "Why can public comment be part of policymaking?",
+      "tip": "A good answer explains how feedback can reveal impacts and inform decisions."
+    },
+    {
+      "q": "How would you check support for a claim in a policy memo?",
+      "tip": "A good answer traces it to credible evidence and represents it accurately."
+    },
+    {
+      "q": "What is compliance’s role in a regulated environment?",
+      "tip": "A good answer connects applicable requirements with responsible operations."
+    },
+    {
+      "q": "Tell me about researching an issue with competing viewpoints.",
+      "tip": "A good answer represents sources fairly and explains how evidence shaped conclusions."
+    }
+  ],
+  "behavioral": [
+    {
+      "q": "Tell me about a time you worked with a team to meet a difficult goal. What was your role and result?",
+      "tip": "A good answer separates the context, personal actions, and outcome."
+    },
+    {
+      "q": "Describe a time you made a mistake. What did you do next?",
+      "tip": "A good answer takes responsibility, explains the correction, and shares what changed."
+    },
+    {
+      "q": "Tell me about a time you received difficult feedback.",
+      "tip": "A good answer shows openness, a specific response, and learning."
+    },
+    {
+      "q": "Describe a time you managed competing deadlines.",
+      "tip": "A good answer explains how priorities were set and expectations communicated."
+    },
+    {
+      "q": "Tell me about a time you faced an unclear assignment.",
+      "tip": "A good answer shows how they clarified the goal and took a sensible first step."
+    },
+    {
+      "q": "Describe a disagreement with a teammate and how you handled it.",
+      "tip": "A good answer shows respectful listening and focus on resolving the work issue."
+    },
+    {
+      "q": "Tell me about a time you took initiative without being asked.",
+      "tip": "A good answer gives a concrete action and explains its useful impact."
+    },
+    {
+      "q": "Describe a time you learned a new skill for a project.",
+      "tip": "A good answer explains the learning approach and how the skill was applied."
+    },
+    {
+      "q": "Tell me about a time you helped someone struggling with a task.",
+      "tip": "A good answer shows empathy while respecting the other person’s needs."
+    },
+    {
+      "q": "Describe a time plans changed unexpectedly. How did you adapt?",
+      "tip": "A good answer shows composure, communication, and practical adjustment."
+    },
+    {
+      "q": "Tell me about a time evidence changed a decision you made.",
+      "tip": "A good answer connects evidence to the choice and acknowledges its limits."
+    },
+    {
+      "q": "Describe an accomplishment you are proud of and your contribution.",
+      "tip": "A good answer gives specific actions and credits collaborators accurately."
+    }
+  ],
+  "questions_to_ask": [
+    {
+      "q": "What would a successful intern contribute in the first few weeks?",
+      "tip": "A good answer clarifies early expectations and priorities."
+    },
+    {
+      "q": "What projects might an intern support on this team?",
+      "tip": "A good answer gives a clearer picture of likely work and ownership."
+    },
+    {
+      "q": "How is feedback usually shared with interns?",
+      "tip": "A good answer reveals how coaching and progress conversations work."
+    },
+    {
+      "q": "How does the team collaborate across roles or departments?",
+      "tip": "A good answer explains working relationships and communication."
+    },
+    {
+      "q": "What skills would be most useful for someone starting in this role?",
+      "tip": "A good answer identifies useful preparation and learning areas."
+    },
+    {
+      "q": "How do interns learn about the organization’s work?",
+      "tip": "A good answer describes onboarding, mentorship, or exposure to the work."
+    },
+    {
+      "q": "What is a current challenge the team is working through?",
+      "tip": "A good answer can reveal the team’s priorities and context."
+    },
+    {
+      "q": "What are the next steps and expected timeline for interviews?",
+      "tip": "A good answer clarifies the process and when to expect an update."
+    }
+  ]
+}
