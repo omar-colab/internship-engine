@@ -98,7 +98,8 @@ def _safe_client(timeout=FETCH_TIMEOUT) -> httpx.Client:
 
 def _safe_request(method: str, url: str, *, headers=None, content=None, timeout=FETCH_TIMEOUT,
                   max_bytes=MAX_FETCH_BYTES, params=None, json_data=None,
-                  _resolver=socket.getaddrinfo, _transport=None, _client=None) -> httpx.Response:
+                  _resolver=socket.getaddrinfo, _transport=None, _client=None,
+                  _follow_redirects=True) -> httpx.Response:
     """Fetch a public HTTPS URL on pinned IPs, validating every redirect."""
     method = method.upper()
     if method not in {"GET", "HEAD", "POST", "OPTIONS"}:
@@ -131,7 +132,7 @@ def _safe_request(method: str, url: str, *, headers=None, content=None, timeout=
             response = client.send(request, stream=True, follow_redirects=False)
             status = response.status_code
             location = response.headers.get("location")
-            if status in {301, 302, 303, 307, 308} and location:
+            if _follow_redirects and status in {301, 302, 303, 307, 308} and location:
                 response.close()
                 if hop == 5:
                     raise ValueError("too many redirects")
@@ -675,6 +676,13 @@ def _selfcheck() -> None:
     assert calls[1].extensions["sni_hostname"] == "contoso.wd5.myworkdayjobs.com"
     assert calls[1].headers["user-agent"] == UA["User-Agent"]
     assert "cookie" not in calls[1].headers and "x-internal-test" not in calls[1].headers
+    calls = []
+    response = _safe_request("GET", "https://careers.example/short", _resolver=dns, _follow_redirects=False,
+                             _transport=httpx.MockTransport(lambda req: calls.append(req) or httpx.Response(
+                                 302, headers={"Location": "https://jobs.lever.co/contoso"},
+                                 stream=httpx.ByteStream(b""), request=req)))
+    assert response.status_code == 302 and response.headers["location"] == "https://jobs.lever.co/contoso"
+    assert len(calls) == 1 and calls[0].url.host == "93.184.216.34"
     for location, resolver, reason in (("https://127.0.0.1/", dns, "loopback redirect"),
                                        ("https://private.example/", private_dns, "private redirect"),
                                        ("http://boards.example/", dns, "HTTP redirect")):
