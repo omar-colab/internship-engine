@@ -429,7 +429,7 @@ function renderToday() {
         <section class="card" style="padding:18px"><h2>Follow up</h2>${due.length ? due.slice(0, 6).map(a => `<div style="padding:8px 0;border-top:1px solid var(--line)"><b style="font-size:14px">${esc(a.company)}</b><div class="muted" style="font-size:13px">${esc(a.title)} · applied ${daysSince(a.applied || a.updated)}d ago</div></div>`).join("") : `<p class="muted" style="margin:0">Nothing's gone quiet. Applications with no news for ${FOLLOW_DAYS} days show up here.</p>`}</section>
         <section class="card" style="padding:18px"><h2>Coming up</h2>${live.length ? live.map(a => `<div style="padding:8px 0;border-top:1px solid var(--line)"><b style="font-size:14px">${esc(a.company)}</b> <span class="tag">${a.status === "oa" ? "Assessment" : "Interview"}</span><div class="muted" style="font-size:13px">${esc(a.title)}${a.when ? " · " + esc(new Date(a.when).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })) : ""}</div></div>`).join("") : `<p class="muted" style="margin:0">Assessments and interviews you move on the tracker show up here.</p>`}</section>
         <section class="card" style="padding:18px"><h2>Searching with friends?</h2><p class="muted" style="margin:0 0 12px">Send them the link. Everyone gets their own private tracker.</p><button class="btn sm" id="invite">Share the app</button></section>
-        <section class="card" style="padding:18px"><h2>Fill forms faster</h2><p class="muted" style="margin:0 0 12px">The Chrome extension fills the application form on the page you're on, and never clicks Submit.</p><a class="btn sm" href="https://github.com/omar-colab/internship-engine/releases/latest" target="_blank" rel="noopener">Get the extension</a></section>
+        <section class="card" style="padding:18px"><h2>Fill forms faster</h2>${extVersion ? `<p class="muted" style="margin:0 0 12px"><b style="color:var(--green)">Extension connected.</b> It fills forms with your autofill details and adds what you apply to here.</p>${p.autofill?.email ? "" : `<button class="btn sm" id="me2">Add autofill details</button>`}` : `<p class="muted" style="margin:0 0 12px">The Chrome extension fills the application form on the page you're on, and never clicks Submit.</p><a class="btn sm" href="https://github.com/omar-colab/internship-engine/releases/latest" target="_blank" rel="noopener">Get the extension</a>`}</section>
       </aside>
     </div>`;
 }
@@ -529,6 +529,14 @@ function onboarding(step) {
       <p class="lede">Paste the text of your resume and roles that match your skills rank higher. It never leaves this browser.</p>
       <label class="drop">Upload your resume PDF <span class="muted">— or paste the text below</span><input type="file" id="pdfIn" accept="application/pdf" hidden></label>
       <textarea class="t" id="resume" placeholder="Paste your resume text here">${esc(p.resume)}</textarea>`,
+    () => { const a = p.autofill || {}, f = (id, label, type = "text", ac = "") => `<label class="f">${label}<input class="t" id="af_${id}" type="${type}" autocomplete="${ac}" maxlength="120" value="${esc(a[id] || "")}"></label>`;
+      return `<h1>Autofill details <span class="muted" style="font-weight:500">(optional)</span></h1>
+      <p class="lede">With the Chrome extension, these fill application forms for you. Stored in this browser and handed only to your extension.</p>
+      <div class="grid2">${f("last_name", "Last name", "text", "family-name")}${f("email", "Email", "email", "email")}${f("phone", "Phone", "tel", "tel")}${f("linkedin", "LinkedIn URL", "url", "url")}
+      ${f("city", "City", "text", "address-level2")}${f("state", "State (e.g. NY)", "text", "address-level1")}${f("school", "School", "text", "organization")}${f("major", "Major")}
+      <label class="f">Degree<select class="t" id="af_degree_type">${["Bachelor's", "Associate's", "Master's"].map(d => `<option ${d === (a.degree_type || "Bachelor's") ? "selected" : ""}>${d}</option>`).join("")}</select></label>
+      <label class="f">Graduation month<select class="t" id="af_month">${["05", "06", "08", "12", "01", "03"].map(m => `<option value="${m}" ${m === (a.graduation || "-05").slice(5) ? "selected" : ""}>${new Date(2000, m - 1).toLocaleString([], { month: "long" })}</option>`).join("")}</select></label></div>
+      <p class="muted" style="font-size:13px;margin:14px 0 0">Demographic questions are always answered "decline to self-identify". SSN, birth date and passwords are never stored or filled.</p>`; },
   ];
   view.innerHTML = `<form class="card welcome" id="ob" novalidate>
     <div class="step-dots">${steps.map((_, i) => `<i class="${i <= step ? "on" : ""}"></i>`).join("")}</div>
@@ -538,13 +546,18 @@ function onboarding(step) {
   const collect = () => {
     if ($("#name")) Object.assign(p, { name: $("#name").value.trim(), year: +$("#year").value, auth: $("#auth").value, goal: Math.max(1, +$("#goal").value || 10) });
     if ($("#places")) Object.assign(p, { fields: [...view.querySelectorAll("input[name=field]:checked")].map(i => i.value), places: $("#places").value.split(",").map(s => s.trim()).filter(Boolean) });
+    if ($("#af_email")) {
+      const v = id => $("#af_" + id).value.trim();
+      p.autofill = Object.fromEntries(["last_name", "email", "phone", "linkedin", "city", "state", "school", "major", "degree_type"].map(k => [k, v(k)]));
+      p.autofill.graduation = `${p.year}-${$("#af_month").value}`;
+    }
     if ($("#resume")) Object.assign(p, { resume: $("#resume").value.slice(0, 20000), resumeWords: [...new Set(words($("#resume").value))] });
   };
   $("#ob").addEventListener("submit", e => {
     e.preventDefault(); collect();
     if (step === 0 && !p.name) return $("#name").focus();
     if (step < steps.length - 1) { stash = p; return onboarding(step + 1); }
-    S.profile = p; save(); stash = null; tab = "today"; render(); counts();
+    S.profile = p; save(); stash = null; tab = "today"; render(); counts(); sendProfile();
     toast(editing ? "Saved." : `Welcome, ${p.name}!`);
   });
   $("#pdfIn")?.addEventListener("change", async e => {
@@ -558,6 +571,34 @@ function onboarding(step) {
   $("#reset")?.addEventListener("click", () => { if (confirm("Erase your profile and tracker from this browser? Download a Backup first if you want to keep them.")) { localStorage.removeItem(KEY); location.reload(); } });
 }
 let stash = null;
+
+// ---------- bridge to the Chrome extension (protocol in issue #60) ----------
+const APP = "internship-engine-app", EXT = "internship-engine-ext";
+let extVersion = "";
+const post = msg => window.postMessage({ source: APP, ...msg }, location.origin);
+function sendProfile() {
+  const p = S.profile, a = p?.autofill;
+  if (!extVersion || !p) return;
+  const [first_name, ...rest] = p.name.split(/\s+/);
+  post({ type: "profile", profile: { ...(a || {}), first_name, last_name: a?.last_name || rest.join(" "), country: "United States",
+    work_authorization: p.auth || "", needs_sponsorship: p.auth === "sponsor", eeo: "decline", resume_text: p.resume || "" } });
+}
+window.addEventListener("message", e => {
+  const m = e.data;
+  if (e.source !== window || e.origin !== location.origin || m?.source !== EXT) return;
+  if (m.type === "hello") { extVersion = String(m.version || "1"); sendProfile(); if (tab === "today" && S.profile) renderToday(); }
+  if (m.type === "events" && Array.isArray(m.events)) {
+    const done = [];
+    for (const ev of m.events.slice(0, 200)) {
+      if (!ev || !safeUrl(ev.url) || !["saved", "applied"].includes(ev.kind)) continue;
+      const prev = S.apps[ev.url];
+      if (!(prev && ev.kind === "saved")) track({ company: String(ev.company || "Unknown").slice(0, 120), title: String(ev.title || "Application").slice(0, 200), location: "", url: ev.url, ...prev }, prev && prev.status !== "saved" && ev.kind === "applied" ? prev.status : ev.kind);
+      done.push(ev.id);
+    }
+    post({ type: "ack", ids: done });
+    if (done.length) { toast(`${done.length} update${done.length > 1 ? "s" : ""} from the extension.`); if (S.profile) render(); }
+  }
+});
 
 // A calendar file the viewer imports themselves; floating local time, 1 hour, 1-day reminder.
 function downloadIcs(a) {
@@ -598,7 +639,7 @@ async function pdfText(file) {
 document.addEventListener("click", e => {
   const sib = e.target.closest("[data-sib]");
   if (sib) { e.preventDefault(); return openJob(FEED.find(x => x.url === sib.dataset.sib)); }
-  const t = e.target.closest("[data-tab],[data-go],[data-act],#me,#addApp,#exportBtn,#theme,#invite");
+  const t = e.target.closest("[data-tab],[data-go],[data-act],#me,#me2,#addApp,#exportBtn,#theme,#invite");
   if (!t) return;
   if (t.id === "theme") {
     const dark = matchMedia("(prefers-color-scheme: dark)").matches;
@@ -611,7 +652,7 @@ document.addEventListener("click", e => {
     return navigator.clipboard.writeText(url).then(() => toast("Link copied — send it to a friend."), () => toast(url));
   }
   if (t.dataset.tab || t.dataset.go) { tab = t.dataset.tab || t.dataset.go; return render(); }
-  if (t.id === "me") { tab = "profile"; stash = null; return render(); }
+  if (t.id === "me" || t.id === "me2") { tab = "profile"; stash = null; return render(); }
   if (t.id === "addApp") { const f = $("#addForm"); f.reset(); f.status.innerHTML = STAGES.map(([k, l]) => `<option value="${k}" ${k === "applied" ? "selected" : ""}>${l}</option>`).join(""); return $("#addDlg").showModal(); }
   if (t.id === "exportBtn") {
     const a = document.createElement("a");
@@ -677,7 +718,7 @@ $("#addDlg").addEventListener("close", () => {
 if (S.theme) document.documentElement.dataset.theme = S.theme;
 (async () => {
   view.innerHTML = `<div class="empty">Loading today's internships…</div>`;
-  await loadFeed(); counts(); render();
+  await loadFeed(); counts(); render(); post({ type: "hello" });
 })();
 </script>
 </body>
