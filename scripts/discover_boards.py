@@ -131,6 +131,28 @@ def _board_key(board: dict) -> str:
     return json.dumps({k: v for k, v in board.items() if k != "name"}, sort_keys=True)
 
 
+def resolve_redirects(rows: list[tuple[str, str]], get=None) -> list[tuple[str, str]]:
+    """Links that aren't a job board (list shorteners) → their one-hop redirect target. The target page is never loaded."""
+    from engine import ats
+    from urllib.parse import urljoin
+    get = get or (lambda url: ats._safe_request("GET", url, timeout=10, max_bytes=1024,
+                                                _follow_redirects=False))
+
+    def one(row):
+        name, href = row
+        if _ATS_LINK.search(href):
+            return row
+        try:
+            target = get(href).headers.get("location", "")
+        except Exception:
+            return None
+        target = urljoin(href, target) if target else ""
+        return (name, target) if _ATS_LINK.search(target) else None
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        return [r for r in pool.map(one, rows) if r]
+
+
 def discover(rows: list[tuple[str, str]], existing: list[dict]) -> tuple[list[dict], dict]:
     from engine import ats, finder
 
@@ -233,6 +255,12 @@ def main() -> int:
         except RuntimeError as error:
             assert "bot wall" in str(error)
         assert len(calls) == 1, calls
+        class Hop:
+            def __init__(self, location): self.headers = {"location": location}
+        hops = {"https://short.example/a": "https://jobs.lever.co/contoso/1", "https://short.example/b": "https://contoso.example/careers"}
+        assert resolve_redirects([("Contoso", "https://short.example/a"), ("Northwind", "https://short.example/b"),
+                                  ("Fabrikam", "https://boards.greenhouse.io/fabrikam/jobs/2")], get=lambda u: Hop(hops[u])) == \
+            [("Contoso", "https://jobs.lever.co/contoso/1"), ("Fabrikam", "https://boards.greenhouse.io/fabrikam/jobs/2")]
         print("board discovery self-check passed")
         return 0
 
@@ -248,7 +276,7 @@ def main() -> int:
             missing.append(str(error))
     if not rows:
         raise RuntimeError("no internship-list rows parsed; missing sources: " + "; ".join(missing))
-    boards, counts = discover(rows, current)
+    boards, counts = discover(resolve_redirects(list(dict.fromkeys(rows))), current)
     if not args.dry_run and boards:
         merged = current + boards
         merged.sort(key=lambda board: board["name"].lower())
