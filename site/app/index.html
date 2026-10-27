@@ -219,17 +219,19 @@ const FIELDS = {
   finance: ["Finance & accounting", /\b(financ|accounting|accountant|audit|tax|treasury|invest|banking|credit|risk|actuar|fp&a|wealth|capital markets|claims|underwrit|insurance|lending|loan|branch intern|trust|assurance|pricing|payroll|retirement|trade desk|real estate|private equity|fund|private client|endowment)/],
   consulting: ["Consulting & business", /\b(consult|strategy|transformation|advisory|business analyst|business intern|leadership development|rotational|general management|management intern|performance improvement|corporate development|business intern|business\/)/],
   product: ["Product & design", /\b(product (manag|design|owner|market|defin|analy|develop)|technical product|design|ux|ui\b|user experience|user research)/],
-  marketing: ["Marketing & sales", /\b(marketing|sales|brand|communications|social media|content|public relations|growth|copywrit|photograph|community|merchandis|business development|partnership|customer success|e-?commerce|go-to-market|customer experience|dealer|market research|strateg|events?\b)/],
+  marketing: ["Marketing & sales", /\b(marketing|sales|brand|communications|social media|content|public relations|growth|copywrit|photograph|community (manag|engag)|merchandis|business development|partnership|customer success|e-?commerce|go-to-market|customer experience|dealer|market research|strateg|events?\b)/],
   ops: ["Operations & supply chain", /\b(operations|supply chain|logistics|procurement|sourcing|planning|inventory|operational excellence|project manag|program manag|order|customer support|construction|facilities|contracts|supplier|network expansion|production|estimat|ops\b|project coordinat|process improvement|land planner)/],
   engineering: ["Engineering (hardware)", /\b(mechanical|electrical|manufactur|chemical|civil|industrial|aerospace|hardware|process engineer|quality engineer|systems engineer|engineer(ing)? intern|aero|robotic|autonomy|gnc|r&d|research and development|test engineer|machinist|multiphysics|packaging|motor|architect|environmental|safety|hse|mechatronic|controls|power systems|transmission|relay|wind|energy|utilit|electric|substation|lab testing|nuclear|mechanic|mining|ready mix|eh&s)/],
   people: ["HR & people", /\b(human resources|\bhr\b|people|talent|recruit|learning|change management)/],
   health: ["Healthcare & science", /\b(pharm|clinical|health|biolog|chemi|medical|nurs|patient|(?<!data )scientist|laborator|biotech|life science)/],
-  policy: ["Policy, legal & government", /\b(legal|law\b|policy|government|congressional|public affairs|regulatory|compliance)/],
+  policy: ["Policy, legal & government", /\b(legal|law\b|policy|government|congressional|public affairs|regulatory|compliance|community development|economic development)/],
   cyber: ["Cybersecurity", /\b(cyber|security|infosec|identity|access management|\biam\b)/],
 };
 const STAGES = [["saved","Saved"],["applied","Applied"],["oa","Assessment"],["interview","Interview"],["offer","Offer"],["rejected","Closed"]];
 const LANE_HINT = { saved: "Hit Save on any job.", applied: "Apply, then confirm you sent it.", oa: "Got a test? Move the card here.", interview: "Booked a call? Move it here.", offer: "The good part.", rejected: "Rejections and closed roles." };
-const GRAD_ONLY = /\b(ph\.?d|mba|master'?s|graduate student|grad student|doctoral|postdoc|law student|\bjd\b|medical student)\b/i;
+// "Graduate Intern" / "Grad Intern" means grad school, not "graduating"; "Undergraduate/Graduate" welcomes both.
+const GRAD_ONLY = /\b(ph\.?d|mba|master'?s|graduate student|grad student|doctoral|postdoc|law student|\bjd\b|medical student|grad(uate)? (intern|internship|co-?op)|graduate level|pre-grad)\b/i;
+const gradOnly = t => GRAD_ONLY.test(t) && !/undergrad/i.test(t);
 const FOLLOW_DAYS = 14;
 const CHECKS = [["tailored", "Resume tailored"], ["referral", "Asked for a referral"], ["thanks", "Followed up / thank-you sent"]];
 const SEASONS = [["Summer", /summer/i], ["Fall", /\b(fall|autumn)\b/i], ["Spring", /spring/i], ["Winter", /winter/i], ["Co-op", /co-?op\b/i]];
@@ -335,7 +337,7 @@ function scoreNow(r) {
 // Hard eligibility: shown as the reason, hidden from lists unless "Show ineligible" is on.
 function blocker(r) {
   const p = S.profile || {}, auth = r.auth || [];
-  if (GRAD_ONLY.test(r.title)) return "grad school only";
+  if (gradOnly(r.title)) return "grad school only";
   if (auth.includes("citizen") && p.auth && p.auth !== "citizen") return "US citizens only";
   if (auth.includes("us_person") && p.auth === "sponsor") return "US citizens and permanent residents only";
   if (r.years?.length && p.year && !r.years.includes(+p.year)) return "for the class of " + r.years.join(" or ");
