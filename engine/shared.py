@@ -23,7 +23,7 @@ FEED_URL = "https://omar-colab.github.io/internship-engine/feed.json"
 FRESH_HOURS = 36
 ENRICHMENT_BUDGET = 12 * 60
 ENRICHMENT_FIELDS = ("skills", "pay", "auth", "years", "summary")
-ENRICHMENT_VERSION = 2          # bump when a parser changes: every role is re-enriched once instead of carrying old values
+ENRICHMENT_VERSION = 3          # bump when a parser changes: every role is re-enriched once instead of carrying old values
 
 
 def load_boards() -> list[dict]:
