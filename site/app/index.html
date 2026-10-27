@@ -747,7 +747,7 @@ function onboarding(step) {
   const steps = [
     () => `<h1>${editing ? "Your profile" : "Hey! Let's find your internship."}</h1>
       <p class="lede">${editing ? "Change anything; your matches update right away." : "Two quick questions and you'll see today's roles ranked for you. No account — everything stays in this browser."}</p>
-      ${editing || !FEED.length ? "" : `<div class="chips" style="margin:-8px 0 22px"><span class="tag">${FEED.reduce((n, r) => n + (r.locs?.length || 1), 0).toLocaleString()} internships today</span><span class="tag">${new Set(FEED.map(r => r.company)).size.toLocaleString()} employers</span><span class="tag">straight from their own job boards</span></div>`}
+      ${editing || !FEED.length ? "" : `<div class="chips" style="margin:-8px 0 22px"><span class="tag">${FEED.length.toLocaleString()} internships today</span><span class="tag">${new Set(FEED.map(r => r.company)).size.toLocaleString()} employers</span><span class="tag">straight from their own job boards</span></div>`}
       <div class="grid2"><label class="f">First name<input class="t" id="name" required maxlength="40" value="${esc(p.name)}" autocomplete="given-name"></label>
       <label class="f">Graduating<select class="t" id="year">${[0,1,2,3,4].map(i => { const y = new Date().getFullYear() + i; return `<option ${y == p.year ? "selected" : ""}>${y}</option>`; }).join("")}</select></label></div>
       <label class="f" style="margin-top:14px">Work authorization <span class="muted" style="font-weight:400">— hides roles you can't take</span><select class="t" id="auth">
