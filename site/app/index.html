@@ -533,7 +533,7 @@ function results() {
     (!q.season || season(x.r.title).startsWith(q.season)) &&
     (q.where === "any" || placeOk(x.r, q.where === "remote")) &&
     (!needle || `${x.r.company} ${x.r.title} ${x.r.location}`.toLowerCase().includes(needle)));
-  const by = { fit: (a, b) => b.s - a.s || NEW.has(b.r.url) - NEW.has(a.r.url), new: (a, b) => NEW.has(b.r.url) - NEW.has(a.r.url) || String(b.r.posted || "").localeCompare(String(a.r.posted || "")), company: (a, b) => a.r.company.localeCompare(b.r.company) }[q.sort];
+  const by = { fit: (a, b) => b.s - a.s || NEW.has(b.r.url) - NEW.has(a.r.url), new: (a, b) => NEW.has(b.r.url) - NEW.has(a.r.url) || String(b.r.posted || b.r.first_seen || "").localeCompare(String(a.r.posted || a.r.first_seen || "")), company: (a, b) => a.r.company.localeCompare(b.r.company) }[q.sort];
   rows.sort(by);
   $("#results").innerHTML = `<p class="muted" style="margin:0 0 10px">${rows.length.toLocaleString()} roles</p>
     <div class="list">${rows.slice(0, q.shown).map(x => jobRow(x.r)).join("") || `<div class="card empty">No roles match. Try "All fields" or a shorter search.</div>`}</div>
