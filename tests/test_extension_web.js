@@ -5,7 +5,7 @@ const answers = require("../extension/web_answers.js");
 const ROOT = require("node:path").resolve(__dirname, "..");
 
 const profile = {
-  first_name: "Fictional", last_name: "Applicant", email: "applicant@example.invalid", phone: "555-0100",
+  first_name: "Fictional", last_name: "Applicant", email: "applicant@contoso.example", phone: "555-0100",
   linkedin: "https://linkedin.example.invalid/in/applicant", city: "Hartford", state: "CT", country: "United States",
   school: "Contoso University", degree_type: "Bachelor's", major: "Economics", graduation: "2028-05",
   work_authorization: "unknown", needs_sponsorship: "unknown", open_to_relocation: true,
