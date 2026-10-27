@@ -586,7 +586,10 @@ function sendProfile() {
 window.addEventListener("message", e => {
   const m = e.data;
   if (e.source !== window || e.origin !== location.origin || m?.source !== EXT) return;
-  if (m.type === "hello") { extVersion = String(m.version || "1"); sendProfile(); if (tab === "today" && S.profile) renderToday(); }
+  if (m.type === "hello") {
+    // The extension loads after this page; whichever hello came first, answering once lets queued events flow.
+    if (!extVersion) post({ type: "hello" });
+    extVersion = String(m.version || "1"); sendProfile(); if (tab === "today" && S.profile) renderToday(); }
   if (m.type === "events" && Array.isArray(m.events)) {
     const done = [];
     for (const ev of m.events.slice(0, 200)) {
