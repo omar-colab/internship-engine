@@ -392,7 +392,7 @@ function skillGaps(all) {
   if (!top.length) return "";
   const max = top[0][1];
   return `<section class="card" style="padding:18px"><h2>What to learn next</h2>
-    <p class="muted" style="margin:0 0 12px;font-size:13.5px">Skills your resume doesn't show, ranked by how many of your ${n} matching roles ask for them.</p>
+    <p class="muted" style="margin:0 0 12px;font-size:13.5px">Skills your resume doesn't show, ranked by how many of your ${n.toLocaleString()} matching roles ask for them.</p>
     ${top.map(([k, c]) => `<div style="margin:8px 0"><div style="display:flex;justify-content:space-between;font-size:14px"><b>${esc(k)}</b><span class="muted">${c} role${c > 1 ? "s" : ""}</span></div>
       <div style="height:6px;border-radius:3px;background:var(--line);margin-top:4px"><div style="height:100%;width:${Math.round(c / max * 100)}%;border-radius:3px;background:var(--blue)"></div></div></div>`).join("")}
     <p class="muted" style="margin:10px 0 0;font-size:12.5px">Already know one? Add it to your resume, honestly, and your matches update.</p></section>`;
@@ -495,6 +495,12 @@ function counts() {
   const n = Object.values(S.apps).filter(a => a.status !== "rejected").length;
   const c = $("#trackCount"); c.hidden = !n; c.textContent = n;
 }
+// Same match score → more of the asked skills you have → newer → posted sooner.
+function tiebreak(x) {
+  const sk = skillMatch(x.r);
+  return (sk ? sk.have.length / sk.asked.length : 0) + (NEW.has(x.r.url) ? 0.5 : 0);
+}
+const byFit = (a, b) => b.s - a.s || tiebreak(b) - tiebreak(a) || String(b.r.first_seen || "").localeCompare(String(a.r.first_seen || ""));
 function ranked() {
   return FEED.map(r => ({ r, ...score(r) })).filter(x => !S.hidden.includes(x.r.url));
 }
@@ -502,7 +508,7 @@ function ranked() {
 function renderToday() {
   const p = S.profile, apps = Object.values(S.apps);
   const all = ranked();
-  const strong = all.filter(x => x.s >= 4 && !S.apps[x.r.url]).sort((a, b) => b.s - a.s || NEW.has(b.r.url) - NEW.has(a.r.url));
+  const strong = all.filter(x => x.s >= 4 && !S.apps[x.r.url]).sort(byFit);
   const fresh = all.filter(x => NEW.has(x.r.url) && x.s >= 3).length;
   const weekAgo = Date.now() - 7 * 864e5;
   const thisWeek = apps.filter(a => a.applied && new Date(a.applied).getTime() >= weekAgo).length;
@@ -561,7 +567,7 @@ function results() {
     (!q.season || season(x.r.title).startsWith(q.season)) &&
     (q.where === "any" || placeOk(x.r, q.where === "remote")) &&
     (!needle || `${x.r.company} ${x.r.title} ${x.r.location}`.toLowerCase().includes(needle)));
-  const by = { fit: (a, b) => b.s - a.s || NEW.has(b.r.url) - NEW.has(a.r.url), new: (a, b) => NEW.has(b.r.url) - NEW.has(a.r.url) || String(b.r.posted || b.r.first_seen || "").localeCompare(String(a.r.posted || a.r.first_seen || "")), company: (a, b) => a.r.company.localeCompare(b.r.company) }[q.sort];
+  const by = { fit: byFit, new: (a, b) => NEW.has(b.r.url) - NEW.has(a.r.url) || String(b.r.posted || b.r.first_seen || "").localeCompare(String(a.r.posted || a.r.first_seen || "")), company: (a, b) => a.r.company.localeCompare(b.r.company) }[q.sort];
   rows.sort(by);
   $("#results").innerHTML = `<p class="muted" style="margin:0 0 10px">${rows.length.toLocaleString()} roles</p>
     <div class="list">${rows.slice(0, q.shown).map(x => jobRow(x.r)).join("") || `<div class="card empty">No roles match. Try "All fields" or a shorter search.</div>`}</div>
