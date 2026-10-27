@@ -38,6 +38,7 @@ def main():
                     page.locator('label.chip', has=page.locator('input[value="finance"]')).click()
                     page.locator("#places").fill("Fabrikam City")
                     page.get_by_role("button", name="Continue").click()
+                    page.get_by_role("button", name="Continue").click()
                     page.get_by_role("button", name="Show my matches").click()
                     page.locator(".job").first.wait_for()
                     assert page.locator(".job").count() >= 1
