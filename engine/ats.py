@@ -765,6 +765,15 @@ def _selfcheck() -> None:
     assert _jsonld_description((fixtures / "taleo.html").read_text()) is None
     assert _icims_description('<div class="iCIMS_InfoMsg iCIMS_InfoMsg_Job"><p>Contoso <b>fictional</b> role.</p><script>ignored()</script></div>') == \
         "Contoso fictional role."
+    page = ('<div class="jv-meta">Northwind</div><div class="jv-job-detail-description"><h3>Description</h3>'
+            '<div><p>Northwind <b>data</b> intern.</p></div><script>x()</script></div><div class="jv-job-detail-description">2nd</div>')
+    assert _block_description(page, "class", "jv-job-detail-description") == "Description Northwind data intern."
+    assert _block_description("<div class='row'><div class='col description' id=\"job-description\"><p>Fabrikam co-op.</p></div></div>",
+                              "id", "job-description") == "Fabrikam co-op."
+    assert _block_description("<div class='other'>no</div>", "id", "job-description") is None
+    ukg_page = '<script>new US.Opportunity.CandidateOpportunityDetail({"Title":"Intern","Description":"\\u003cp\\u003eTailspin \\u0026 SQL\\u003c/p\\u003e","Links":[]});</script>'
+    assert _ukg_description(ukg_page) == "Tailspin & SQL"
+    assert _ukg_description("<html>no data</html>") is None and _ukg_description("CandidateOpportunityDetail({bad") is None
 
 
 # ---- descriptions ---------------------------------------------------------------------------------
@@ -859,6 +868,53 @@ def _icims_description(html: str) -> str | None:
     return text_of(" ".join(parser.parts)) or None
 
 
+class _BlockText(HTMLParser):
+    """Text of the first <div> whose `attr` (id, or a class token) equals `value`, nested divs included."""
+    def __init__(self, attr: str, value: str):
+        super().__init__()
+        self.attr, self.value = attr, value
+        self.depth = self.skip = 0
+        self.parts = []
+
+    def handle_starttag(self, tag, attrs):
+        if self.depth and tag == "div":
+            self.depth += 1
+        elif not self.depth and not self.parts and tag == "div" and self.value in (dict(attrs).get(self.attr) or "").split():
+            self.depth = 1
+        if self.depth and tag in {"script", "style"}:
+            self.skip += 1
+
+    def handle_endtag(self, tag):
+        if self.depth and self.skip and tag in {"script", "style"}:
+            self.skip -= 1
+        if self.depth and tag == "div":
+            self.depth -= 1
+
+    def handle_data(self, data):
+        if self.depth and not self.skip:
+            self.parts.append(data)
+
+
+def _block_description(html: str, attr: str, value: str) -> str | None:
+    parser = _BlockText(attr, value)
+    parser.feed(html)
+    return text_of(" ".join(parser.parts)) or None
+
+
+def _ukg_description(html: str) -> str | None:
+    """UKG detail pages boot their script with the posting's JSON: CandidateOpportunityDetail({...})."""
+    start = html.find("CandidateOpportunityDetail(")
+    if start < 0:
+        return None
+    try:
+        data, _ = json.JSONDecoder().raw_decode(html, start + len("CandidateOpportunityDetail("))
+    except ValueError:
+        return None
+    if not isinstance(data, dict):
+        return None
+    return text_of(data.get("Description") or "") or None
+
+
 def _safe_page(url: str, *, _resolver=socket.getaddrinfo, _transport=None) -> httpx.Response | None:
     """A detail page via the guarded fetch (it revalidates redirects itself); None when refused."""
     try:
@@ -915,6 +971,18 @@ def description(url: str) -> str | None:
         if items:
             d = items[0]
             return text_of("\n".join(d.get(k) or "" for k in ("ExternalDescriptionStr", "ExternalResponsibilitiesStr", "ExternalQualificationsStr")))
+    # These three serve the posting as plain HTML; JSON-LD only sometimes, so read the description block too.
+    if parts.scheme == "https" and re.fullmatch(r"recruiting2?\.ultipro\.com", parts.hostname or "") and parts.path.endswith("/OpportunityDetail"):
+        r = _safe_page(url)
+        return _ukg_description(r.text) if r and r.status_code == 200 else None
+    if parts.scheme == "https" and parts.hostname == "jobs.jobvite.com" and "/job/" in parts.path:
+        r = _safe_page(url)
+        return (_jsonld_description(r.text) or _block_description(r.text, "class", "jv-job-detail-description")) \
+            if r and r.status_code == 200 else None
+    if parts.scheme == "https" and (parts.hostname or "").endswith(".applytojob.com") and parts.path.startswith("/apply/"):
+        r = _safe_page(url)
+        return (_jsonld_description(r.text) or _block_description(r.text, "id", "job-description")) \
+            if r and r.status_code == 200 else None
     r = _safe_request("GET", url, headers=UA)
     return _jsonld_description(r.text) if r.status_code == 200 else None
 
