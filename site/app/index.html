@@ -214,15 +214,17 @@ kbd { font: 12px var(--font); border: 1px solid var(--line); border-bottom-width
 // Everything a visitor enters lives in this browser only (localStorage). No account, no server.
 const KEY = "ie.app.v1";
 const FIELDS = {
-  software: ["Software", /\b(software|developer|swe|sde|backend|back-end|frontend|front-end|full[- ]?stack|web|mobile|ios|android|devops|cloud|platform|site reliability|programm)/],
-  data: ["Data & AI", /\b(data|analytics?|analyst|machine learning|\bml\b|\bai\b|artificial intelligence|scien|statistic|quant)/],
+  software: ["Software", /\b(software|developer|swe|sde|backend|back-end|frontend|front-end|full[- ]?stack|web|mobile|ios|android|devops|cloud|platform|site reliability|programm|\bsw\b|\bit\b|information technology|infrastructure|servicenow|technology|cloud|systems administrator)/],
+  data: ["Data & AI", /\b(data|analytics?|analyst|machine learning|\bml\b|\bai\b|artificial intelligence|scien|statistic|quant|power bi|\bbi\b|insights|business intelligence)/],
   finance: ["Finance & accounting", /\b(financ|accounting|accountant|audit|tax|treasury|invest|banking|credit|risk|actuar|fp&a|wealth|capital markets)/],
-  consulting: ["Consulting & strategy", /\b(consult|strategy|transformation|advisory|business analyst)/],
+  consulting: ["Consulting & business", /\b(consult|strategy|transformation|advisory|business analyst|business intern|leadership development|rotational|general management)/],
   product: ["Product & design", /\b(product|design|ux|ui\b|user experience|research)/],
-  marketing: ["Marketing & sales", /\b(marketing|sales|brand|communications|social media|content|public relations|growth)/],
-  ops: ["Operations & supply chain", /\b(operations|supply chain|logistics|procurement|sourcing|planning|inventory)/],
-  engineering: ["Engineering (hardware)", /\b(mechanical|electrical|manufactur|chemical|civil|industrial|aerospace|hardware|process engineer|quality engineer)/],
+  marketing: ["Marketing & sales", /\b(marketing|sales|brand|communications|social media|content|public relations|growth|copywrit|photograph|community|merchandis|business development|partnership|customer success|e-?commerce)/],
+  ops: ["Operations & supply chain", /\b(operations|supply chain|logistics|procurement|sourcing|planning|inventory|operational excellence|project manag|program manag|order|customer support|construction|facilities)/],
+  engineering: ["Engineering (hardware)", /\b(mechanical|electrical|manufactur|chemical|civil|industrial|aerospace|hardware|process engineer|quality engineer|systems engineer|engineer(ing)? intern|aero|robotic|autonomy|gnc|r&d|research and development|test engineer|machinist|multiphysics|packaging|motor|architect|environmental|safety|hse|mechatronic|controls|power systems|transmission|relay|wind|energy|utilit|electric|substation|lab testing)/],
   people: ["HR & people", /\b(human resources|\bhr\b|people|talent|recruit)/],
+  health: ["Healthcare & science", /\b(pharm|clinical|health|biolog|chemi|medical|nurs|patient|scientist|laborator|biotech|life science)/],
+  policy: ["Policy, legal & government", /\b(legal|law\b|policy|government|congressional|public affairs|regulatory|compliance)/],
   cyber: ["Cybersecurity", /\b(cyber|security|infosec)/],
 };
 const STAGES = [["saved","Saved"],["applied","Applied"],["oa","Assessment"],["interview","Interview"],["offer","Offer"],["rejected","Closed"]];
@@ -262,7 +264,7 @@ async function loadFeed() {
     const d = await r.json();
     FEED_BUILT = d.built || "";
     const seenUrls = new Set(S.seen);
-    FEED = (d.roles || []).filter(r => safeUrl(r.url)).map(r => ({ ...r, fields: fieldsOf(r.title) }));
+    FEED = (d.roles || []).filter(r => safeUrl(r.url)).map(r => ({ ...r, fields: fieldsOf(r.title, r.skills) }));
     // first_seen comes from the feed builder (#48); until then, "new" means new since this visitor's last visit.
     // The oldest first_seen is the day tracking began (every role got it at once), so it never means new.
     const oldest = FEED.reduce((m, r) => r.first_seen && r.first_seen < m ? r.first_seen : m, "9999");
@@ -280,9 +282,17 @@ async function loadFeed() {
     FEED = [...groups.values()];
   } catch { FEED = []; }
 }
-function fieldsOf(title) {
+// A title like "Intern" says nothing; then the skills the posting asks for decide.
+const SKILL_FIELDS = { python: "data", sql: "data", tableau: "data", "power bi": "data", "machine learning": "data", statistics: "data",
+  javascript: "software", java: "software", "c++": "software", git: "software", aws: "software",
+  "financial modeling": "finance", valuation: "finance", "due diligence": "finance",
+  salesforce: "marketing", hubspot: "marketing", seo: "marketing", "google ads": "marketing", "market research": "marketing",
+  "project management": "ops", "six sigma": "ops", lean: "ops", "process improvement": "ops", erp: "ops", sap: "ops" };
+function fieldsOf(title, skills) {
   const t = title.toLowerCase();
-  return Object.keys(FIELDS).filter(k => FIELDS[k][1].test(t));
+  const byTitle = Object.keys(FIELDS).filter(k => FIELDS[k][1].test(t));
+  if (!byTitle.length && /engineer/.test(t)) byTitle.push("engineering");     // "Relay Engineer", "Engineering Co-Op": hardware unless a software word said otherwise
+  return byTitle.length ? byTitle : [...new Set((skills || []).map(k => SKILL_FIELDS[k]).filter(Boolean))];
 }
 const STOP = new Set("intern internship summer fall spring winter co-op coop the and for of to in a an program programs student students 2025 2026 2027 2028 analyst associate university college undergraduate early career level entry new team general corporate global time full part year years remote hybrid office north america".split(" "));
 function words(s) { return (s.toLowerCase().match(/[a-z][a-z+#.&-]{2,}/g) || []).filter(w => !STOP.has(w)); }
