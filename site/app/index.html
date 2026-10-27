@@ -293,9 +293,10 @@ function score(r) {
     if (overlap.length) { s += 1; why.push("your resume mentions " + overlap.slice(0, 2).join(", ")); }
   }
   if ((r.auth || []).includes("sponsor") && p.auth === "sponsor") why.push("sponsors visas");
-  if (r.pay) why.push(r.pay);
   const block = blocker(r);
   if (block) return { s: 1, why: [block], block };
+  // F-1 students can often intern on CPT even where a posting won't sponsor, so this warns instead of hiding.
+  if ((r.auth || []).includes("no_sponsor") && p.auth === "sponsor") { s = Math.min(s, 2); why.unshift("says no visa sponsorship — check if CPT/OPT works"); }
   return { s: Math.min(5, s), why };
 }
 // Hard eligibility: shown as the reason, hidden from lists unless "Show ineligible" is on.
@@ -303,7 +304,6 @@ function blocker(r) {
   const p = S.profile || {}, auth = r.auth || [];
   if (GRAD_ONLY.test(r.title)) return "grad school only";
   if (auth.includes("citizen") && p.auth && p.auth !== "citizen") return "US citizens only";
-  if (auth.includes("no_sponsor") && p.auth === "sponsor") return "no visa sponsorship";
   if (r.years?.length && p.year && !r.years.includes(+p.year)) return "for the class of " + r.years.join(" or ");
   return "";
 }
@@ -362,7 +362,7 @@ function openJob(r) {
     <button class="icon-btn" data-act="close" aria-label="Close" style="position:absolute;top:14px;right:14px">✕</button>
     <div class="detail-head" style="padding-right:36px">${tile(r.company)}<div><h2>${esc(r.title)}</h2><div class="muted">${esc(r.company)} · ${esc((r.location || "Location not listed") + moreLocs(r))}</div></div></div>
     ${r.locs?.length > 1 ? `<div><b style="font-size:14px">Posted in ${r.locs.length} places — apply to the one you want</b><div class="siblings">${r.locs.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.location || "Location not listed")} ↗</a>`).join("")}</div></div>` : ""}
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${fitBars(s)} <b>Match ${s} of 5</b> ${season(r.title) ? `<span class="season">${esc(season(r.title))}</span>` : ""} ${r.ats ? `<span class="tag">via ${esc(r.ats)}</span>` : ""}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${fitBars(s)} <b>Match ${s} of 5</b> ${r.pay ? `<span class="tag">${esc(r.pay)}</span>` : ""} ${season(r.title) ? `<span class="season">${esc(season(r.title))}</span>` : ""} ${r.ats ? `<span class="tag">via ${esc(r.ats)}</span>` : ""}</div>
     <ul class="reasons">${why.map(w => `<li${score(r).block ? ' class="no"' : ""}>${esc(w)}</li>`).join("")}${missing.map(m => `<li class="no">${esc(m)}</li>`).join("")}</ul>
     ${r.summary ? `<p style="margin:0;font-size:14px;color:var(--ink-2)">${esc(r.summary.replace(/[.…\s]+$/, ""))}…</p>` : ""}
     ${sk ? `<div><b style="font-size:14px">Skills it asks for</b> <span class="muted" style="font-size:13px">— gaps are things to learn, not words to paste into your resume</span>
@@ -438,7 +438,7 @@ function renderJobs() {
   const q = jobQuery;
   view.innerHTML = `<h1>Jobs</h1><p class="lede">${FEED.length.toLocaleString()} internships pulled this morning from employers' own job boards.</p>
     <div class="filters">
-      <input class="t" id="q" type="search" placeholder="Search company, role or city  ( / · j k to move · o open · s save )" value="${esc(q.q)}" aria-label="Search">
+      <input class="t" id="q" type="search" placeholder="Search company, role or city  ( / )" title="Keys: / search · j k move · o open · s save" value="${esc(q.q)}" aria-label="Search">
       <select class="t" id="field" aria-label="Field"><option value="mine">My fields</option><option value="all">All fields</option>${Object.entries(FIELDS).map(([k, v]) => `<option value="${k}">${esc(v[0])}</option>`).join("")}</select>
       <select class="t" id="where" aria-label="Where"><option value="any">Anywhere</option><option value="mine">My cities + remote</option><option value="remote">Remote only</option></select>
       <select class="t" id="season" aria-label="Season"><option value="">Any season</option>${SEASONS.map(([n]) => `<option>${n}</option>`).join("")}</select>
