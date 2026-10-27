@@ -37,10 +37,20 @@ def export_boards() -> dict:
     return {"boards": len(boards)}
 
 
-def build_feed() -> dict:
+def _previous_feed() -> dict[str, str] | None:
+    try:
+        response = httpx.get(FEED_URL, timeout=20)
+        response.raise_for_status()
+        return _first_seen_by_url(response.json())
+    except Exception:
+        return None
+
+
+def build_feed(previous: dict[str, str] | None) -> dict:
     """Poll every shared board for intern roles (US + remote). Runs in CI with no personal data around."""
     roles, covered, errors = [], [], []
     seen = set()
+    today = datetime.now(timezone.utc).date().isoformat()
     sources = [{"name": b["name"], "board": {k: v for k, v in b.items() if k != "name"}} for b in load_boards()]
     sources += [c for c in json.loads(finder.SEED.read_text())["companies"] if "board" in c]
     for c in sources:
@@ -51,7 +61,8 @@ def build_feed() -> dict:
                 if r["url"] in seen or not finder.in_us(r["location"]):
                     continue
                 seen.add(r["url"])
-                roles.append({k: r.get(k) for k in ("company", "title", "location", "url", "ats", "posted")} | {"track": feed.track(r["title"])})
+                roles.append({k: r.get(k) for k in ("company", "title", "location", "url", "ats", "posted")} |
+                             {"track": feed.track(r["title"]), "first_seen": previous.get(r["url"], today) if previous is not None else None})
             covered.append(c["name"])
         except Exception as e:
             errors.append(f"{c['name']}: {type(e).__name__}")
@@ -60,6 +71,15 @@ def build_feed() -> dict:
     FEED_OUT.write_text(json.dumps({"built": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                                     "boards": len(sources), "covered": covered, "roles": roles, "errors": errors}))
     return {"roles": len(roles), "boards": len(sources), "covered": len(covered), "errors": len(errors)}
+
+
+def _first_seen_by_url(d: object) -> dict[str, str]:
+    roles = d.get("roles") if isinstance(d, dict) else None
+    if not isinstance(roles, list):
+        return {}
+    # A known-unknown date (None, after a failed fetch) stays unknown, so it never turns into a burst of "new".
+    return {r["url"]: r.get("first_seen") if isinstance(r.get("first_seen"), str) else None for r in roles
+            if isinstance(r, dict) and isinstance(r.get("url"), str) and r["url"]}
 
 
 def _fresh_feed(d: object, now: datetime | None = None) -> dict | None:
@@ -100,6 +120,8 @@ def pull_feed() -> dict | None:
 
 if __name__ == "__main__":
     # self-check: shared feeds are public-only, fresh, and usable only with complete board coverage.
+    import sys
+    import tempfile
     from unittest.mock import patch
 
     sample = {"company": "Contoso", "title": "Data Intern", "location": "Remote", "url": "https://x", "ats": "greenhouse", "posted": None,
@@ -109,11 +131,30 @@ if __name__ == "__main__":
     now = datetime(2026, 10, 22, tzinfo=timezone.utc)
     document = {"built": (now - timedelta(hours=1)).isoformat(), "roles": [out], "covered": ["Contoso"]}
     assert _fresh_feed(document, now) == {"roles": [out], "covered": ["Contoso"]}
+    assert _first_seen_by_url({"roles": [{"url": "https://contoso.example/jobs/1", "first_seen": "2026-10-21"},
+                                         {"url": "https://northwind.example/jobs/2"}]}) == {
+        "https://contoso.example/jobs/1": "2026-10-21", "https://northwind.example/jobs/2": None}
+    assert _first_seen_by_url({"roles": "invalid"}) == {}
     assert _fresh_feed({**document, "built": (now - timedelta(hours=FRESH_HOURS + 1)).isoformat()}, now) is None
     assert _fresh_feed({**document, "built": (now + timedelta(minutes=1)).isoformat()}, now) is None
     assert _fresh_feed({k: v for k, v in document.items() if k != "covered"}, now) is None
     with patch.object(httpx, "get", side_effect=httpx.ConnectError("offline")):
         assert pull_feed() is None
+
+    with tempfile.TemporaryDirectory() as directory:
+        seed = Path(directory) / "seed.json"
+        seed.write_text('{"companies": []}')
+        output = Path(directory) / "feed.json"
+        listing = {"company": "Contoso", "title": "Data Intern", "location": "Remote",
+                   "url": "https://contoso.example/jobs/1", "ats": "greenhouse", "posted": None}
+        with (patch.object(httpx, "get", side_effect=httpx.ConnectError("offline")),
+              patch.object(finder, "SEED", seed), patch.object(finder, "in_us", return_value=True),
+              patch.object(ats, "LIST", {"greenhouse": lambda *_: [listing]}),
+              patch.object(sys.modules[__name__], "FEED_OUT", output),
+              patch.object(time, "sleep"), patch(__name__ + ".load_boards", return_value=[{"name": "Contoso", "ats": "greenhouse"}])):
+            assert _previous_feed() is None
+            build_feed(None)
+            assert json.loads(output.read_text())["roles"][0]["first_seen"] is None
 
     class FailedResponse:
         def raise_for_status(self):
