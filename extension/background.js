@@ -1,6 +1,76 @@
 // The only part of the extension that talks to the engine. Pages never see the token.
 importScripts("web_answers.js");
 const ENGINE = "http://127.0.0.1:8765";
+const FEED = "https://omar-colab.github.io/internship-engine/feed.json";
+const ALERT = "daily-watch";
+const APP = "https://omar-colab.github.io/internship-engine/app/";
+
+function nextWatch(now = new Date()) {
+  const next = new Date(now);
+  next.setHours(8, 0, 0, 0);
+  if (next <= now) next.setDate(next.getDate() + 1);
+  return next.getTime();
+}
+
+function matchingRoles(feed, profile) {
+  const today = new Date(feed.built).toISOString().slice(0, 10);
+  const all = Array.isArray(feed.roles) ? feed.roles : [];
+  // The day dating began every role got the same first_seen; that day nothing is "new".
+  const oldest = all.reduce((m, r) => r.first_seen && r.first_seen < m ? r.first_seen : m, "9999");
+  if (today <= oldest) return [];
+  // Sources come from the web app's own field patterns; the length cap is a backstop, not the trust boundary.
+  const fields = (Array.isArray(profile.watch?.fields) ? profile.watch.fields : []).filter(f => typeof f === "string" && f.length <= 600).flatMap(source => {
+    try { return [new RegExp(source)]; } catch { return []; }
+  });
+  const places = Array.isArray(profile.watch?.places) ? profile.watch.places.filter(p => typeof p === "string" && p).map(p => p.toLowerCase()) : [];
+  const seen = new Set();                     // one role posted in many cities counts once
+  return all.filter(role => {
+    const title = String(role.title || "").toLowerCase(), location = String(role.location || "").toLowerCase();
+    return role.first_seen === today && fields.some(regex => regex.test(title)) &&
+      (location.includes("remote") || !places.length || places.some(place => location.includes(place))) &&
+      !seen.has(`${role.company}|${title}`) && seen.add(`${role.company}|${title}`);
+  });
+}
+
+async function checkAlerts() {
+  const { profile, alertsEnabled = true, alertedFor } = await chrome.storage.local.get(["profile", "alertsEnabled", "alertedFor"]);
+  if (!profile || !alertsEnabled) return 0;
+  try {
+    const response = await fetch(FEED);
+    if (!response.ok) return 0;
+    const feed = await response.json();
+    if (feed.built === alertedFor) return 0;  // already told you about this feed
+    const roles = matchingRoles(feed, profile);
+    await chrome.storage.local.set({ alertedFor: feed.built });
+    if (!roles.length) return 0;
+    // "basic" with lines in the message: macOS shows only the title of "list" notifications.
+    await chrome.notifications.create("daily-watch", {
+      type: "basic", iconUrl: "icon.png", title: `${roles.length} new internship${roles.length > 1 ? "s" : ""} match you today`,
+      message: roles.slice(0, 3).map(role => `${role.company || "Unknown"} — ${role.title || "Untitled"}`).join("\n"),
+    });
+    return roles.length;
+  } catch { return 0; }
+}
+
+// A missed 8:00 (browser closed) fires on next launch, and startup never pushes it back a day.
+async function scheduleWatch() {
+  if (!(await chrome.alarms.get(ALERT))) chrome.alarms.create(ALERT, { when: nextWatch() });
+}
+
+if (typeof chrome !== "undefined") {
+  chrome.runtime.onInstalled.addListener(async details => {
+    await scheduleWatch();
+    if (details.reason === "install") await checkAlerts();
+  });
+  chrome.runtime.onStartup.addListener(scheduleWatch);
+  chrome.alarms.onAlarm.addListener(alarm => {
+    // One-shot, rescheduled each time: stays at 8:00 local across daylight-saving changes.
+    if (alarm.name === ALERT) { chrome.alarms.create(ALERT, { when: nextWatch() }); checkAlerts(); }
+  });
+  chrome.notifications.onClicked.addListener(id => {
+    if (id === ALERT) chrome.tabs.create({ url: APP });
+  });
+}
 
 async function webCall(path, body = {}) {
   const data = await chrome.storage.local.get(["profile", "learnedAnswers", "resumePdf"]);
@@ -37,7 +107,12 @@ async function webCall(path, body = {}) {
   return { error: "offline" };
 }
 
-async function queueEvent(event) {
+// Serialized: two saves at once would otherwise read the same queue and drop one event.
+let queueTail = Promise.resolve();
+function queueEvent(event) {
+  return queueTail = queueTail.then(() => queueEventNow(event), () => queueEventNow(event));
+}
+async function queueEventNow(event) {
   const { events = [] } = await chrome.storage.local.get("events");
   events.push({ id: crypto.randomUUID(), kind: event.kind, url: String(event.url || ""), company: event.company, title: event.title, at: new Date().toISOString() });
   await chrome.storage.local.set({ events: events.slice(-200) });
@@ -88,4 +163,4 @@ chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
   return true; // async reply
 });
 
-if (typeof module !== "undefined") module.exports = { webCall, queueEvent, call, resume };
+if (typeof module !== "undefined") module.exports = { webCall, queueEvent, call, resume, nextWatch, matchingRoles, checkAlerts, scheduleWatch };

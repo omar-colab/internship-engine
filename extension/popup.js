@@ -7,7 +7,11 @@ async function check() {
   status.className = r?.ok ? "ok" : "bad";
   status.innerHTML = `<span class="dot"></span>${webMode ? (r.name ? "Web mode — connected to the web app." : "Web mode — profile from the web app (open it once).") : r?.ok ? `Connected to engine. ${r.roles} roles in your tracker.` : msg[r?.error] || "Can't reach your engine."}`;
   document.getElementById("web-resume").hidden = !webMode;
+  const { alertsEnabled = true } = await chrome.storage.local.get("alertsEnabled");
+  document.getElementById("alerts").checked = alertsEnabled;
 }
+document.getElementById("alerts").addEventListener("change", event =>
+  chrome.storage.local.set({ alertsEnabled: event.target.checked }));
 document.getElementById("save").addEventListener("click", async () => {
   await chrome.storage.local.set({ token: document.getElementById("token").value.trim() });
   check();

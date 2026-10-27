@@ -96,5 +96,70 @@ const appPost = data => listeners.message({ source: window, origin: "https://oma
   appPost({ source: "internship-engine-app", type: "ack", ids: ["event-1"] });
   await new Promise(resolve => setImmediate(resolve));
   assert.deepEqual(store.events, []);
+
+  // Daily alerts use a fictional feed and mocked Chrome APIs; no network is used.
+  const alertListeners = {}, alertStore = {
+    profile: { watch: { fields: ["data|software", "["], places: ["hartford"] } }, alertsEnabled: true,
+  };
+  const alertCalls = { fetched: 0, notifications: [], tabs: [], alarms: [] };
+  const alertChrome = {
+    storage: { local: { async get(keys) { return Object.fromEntries((Array.isArray(keys) ? keys : [keys]).map(key => [key, alertStore[key]])); },
+                        async set(values) { Object.assign(alertStore, values); } } },
+    runtime: {
+      onMessage: { addListener() {} }, onInstalled: { addListener(fn) { alertListeners.install = fn; } },
+      onStartup: { addListener(fn) { alertListeners.startup = fn; } },
+    },
+    alarms: { create(...args) { alertCalls.alarms.push(args); }, async get(name) { return alertCalls.alarms.find(a => a[0] === name); }, onAlarm: { addListener(fn) { alertListeners.alarm = fn; } } },
+    notifications: { create: async (...args) => alertCalls.notifications.push(args), onClicked: { addListener(fn) { alertListeners.clicked = fn; } } },
+    tabs: { create: options => alertCalls.tabs.push(options) },
+  };
+  const fictionalFeed = { built: "2026-10-26T23:30:00Z", roles: [
+    { first_seen: "2026-10-26", company: "Contoso", title: "Data Intern", location: "Hartford, CT" },
+    { first_seen: "2026-10-26", company: "Northwind", title: "Software Intern", location: "Remote" },
+    { first_seen: "2026-10-26", company: "Adatum", title: "Data Science Intern", location: "Hartford" },
+    { first_seen: "2026-10-26", company: "Wide World Importers", title: "Data Engineering Intern", location: "Hartford" },
+    { first_seen: "2026-10-25", company: "Fabrikam", title: "Data Intern", location: "Hartford" },
+    { first_seen: "2026-10-26", company: "Tailspin", title: "Data Intern", location: "Boston" },
+    { first_seen: "2026-10-26", company: "Litware", title: "Design Intern", location: "Hartford" },
+    { first_seen: "2026-10-26", company: "Contoso", title: "Data Intern", location: "Remote" },
+  ] };
+  const alertModule = { exports: {} };
+  vm.runInNewContext(fs.readFileSync(ROOT + "/extension/background.js", "utf8"), {
+    chrome: alertChrome, importScripts() {}, module: alertModule,
+    fetch: async url => { alertCalls.fetched++; assert.equal(url, "https://omar-colab.github.io/internship-engine/feed.json"); return { ok: true, json: async () => fictionalFeed }; },
+    Date, String, Array, Set, RegExp,
+  });
+  assert.equal(alertModule.exports.matchingRoles(fictionalFeed, alertStore.profile).length, 4);
+  assert.equal(await alertModule.exports.checkAlerts(), 4);
+  assert.equal(alertCalls.notifications[0][1].title, "4 new internships match you today");
+  assert.equal(alertCalls.notifications[0][1].message, "Contoso — Data Intern\nNorthwind — Software Intern\nAdatum — Data Science Intern");
+  assert.equal(await alertModule.exports.checkAlerts(), 0);                    // same feed: no second alert
+  assert.equal(alertCalls.notifications.length, 1);
+  delete alertStore.alertedFor;
+  assert.equal(alertModule.exports.matchingRoles({ built: "2026-10-26T10:00:00Z", roles: fictionalFeed.roles.map(r => ({ ...r, first_seen: "2026-10-26" })) }, alertStore.profile).length, 0);   // dating's first day
+  alertListeners.clicked("daily-watch");
+  assert.equal(JSON.stringify(alertCalls.tabs), JSON.stringify([{ url: "https://omar-colab.github.io/internship-engine/app/" }]));
+  alertStore.profile.watch.fields = ["^no match$", "["]; delete alertStore.alertedFor;
+  assert.equal(await alertModule.exports.checkAlerts(), 0);
+  assert.equal(alertCalls.notifications.length, 1);
+  alertStore.alertsEnabled = false;
+  assert.equal(await alertModule.exports.checkAlerts(), 0);
+  alertStore.alertsEnabled = true; delete alertStore.alertedFor;
+  delete alertStore.profile;
+  assert.equal(await alertModule.exports.checkAlerts(), 0);
+  assert.equal(alertCalls.fetched, 3);
+  assert.equal(alertCalls.notifications.length, 1);
+  assert.equal(alertCalls.alarms.length, 0);
+  alertStore.profile = { watch: { fields: ["data"], places: [] } };
+  const fetchedBeforeInstall = alertCalls.fetched;
+  await alertListeners.install({ reason: "update" });
+  assert.equal(alertCalls.fetched, fetchedBeforeInstall);                    // updates schedule only; they do not send install alerts
+  await alertListeners.install({ reason: "install" });
+  assert.equal(alertCalls.fetched, fetchedBeforeInstall + 1);
+  await alertListeners.startup();
+  assert.equal(alertCalls.alarms.length, 1);
+  await alertListeners.startup();
+  assert.equal(alertCalls.alarms.length, 1);                                    // startup never reschedules an existing alarm
+  assert.equal(alertCalls.alarms[0][0], "daily-watch");
   console.log("ok");
 })().catch(error => { console.error(error); process.exitCode = 1; });

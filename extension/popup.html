@@ -8,6 +8,7 @@
   .ok .dot { background: #4ADE80; } .bad .dot { background: #FFB86B; }
   label { display: block; font-weight: 600; margin: 12px 0 6px; }
   input { box-sizing: border-box; width: 100%; padding: 9px 10px; border-radius: 9px; border: 1px solid #2A3566; background: #141C40; color: #fff; font: inherit; }
+  input[type=checkbox] { width: auto; margin-right: 7px; accent-color: #635BFF; }
   button, a.btn { display: block; box-sizing: border-box; width: 100%; margin-top: 10px; padding: 9px; border: 0; border-radius: 10px; font: 700 13px/1 inherit;
     text-align: center; text-decoration: none; cursor: pointer; background: #2335F5; color: #fff; }
   a.btn { background: #1B2550; }
@@ -21,6 +22,7 @@
   <p style="margin-top:6px">Get it in Terminal: <code>uv run python -m engine token</code></p>
   <button id="save">Save token</button>
   <a class="btn" href="http://127.0.0.1:8765" target="_blank">Open dashboard</a>
+  <label><input id="alerts" type="checkbox" checked>Daily internship alerts</label>
   <section id="web-resume" hidden>
     <label for="resume">Resume PDF for web mode</label>
     <input id="resume" type="file" accept="application/pdf,.pdf">

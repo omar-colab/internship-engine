@@ -18,6 +18,9 @@ The extension stores its profile, selected resume PDF, learned answers, queued e
 Permission justifications:
 
 - `storage`: retain the profile, selected resume PDF, learned answers, queued events, and optional engine token in the browser's local extension storage.
+- `alarms`: check the public internship feed once a day around 8:00 local time and once when the extension is installed.
+- `notifications`: show matching new internships from the public feed; clicking the alert opens the hosted tracker.
+- `host_permissions` for `https://omar-colab.github.io/internship-engine/feed.json`: read the public internship feed to find new roles matching the user's saved watch fields and places.
 - `host_permissions` for `127.0.0.1:8765`: let the extension connect to the local engine the user runs on their computer when they choose laptop-engine mode.
 - `host_permissions` for `https://omar-colab.github.io/internship-engine/app/*`: let the extension exchange profile and queued-event messages with the hosted app page.
 - Content-script match patterns for supported job-board pages: read and fill supported application fields only after the user visits one of those pages.

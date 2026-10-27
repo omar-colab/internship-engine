@@ -100,14 +100,16 @@
   async function chooseCombobox(el, answer, options) {
     press(document.activeElement || document.body, "Escape");
     el.scrollIntoView({ block: "center" }); el.focus(); press(el, "ArrowDown");
-    const want = plain(answer), city = plain(answer.split(",")[0]);
+    const want = plain(answer), city = plain(answer.split(",")[0]), state = plain(answer.split(",")[1] || "").trim();
+    // "Springfield, IL" must not settle for "Springfield, MA": after the city, some word has to start with the state.
+    const sameState = t => !state || t.slice(city.length).split(/\s+/).some(w => w && w.startsWith(state));
     let typed = false;
     for (let round = 0; round < 2; round++) {
       if (typed || !options.length || options.length > 15) { await typeInto(el, searchWord(answer.split(",")[0])); typed = true; }
       const opts = await waitOptions(el, typed ? 5000 : 2500);
       const lines = opts.map(o => plain(o.innerText.split("\n")[0]));
       let i = lines.findIndex(t => t === want);
-      if (i < 0 && typed) i = lines.findIndex(t => t.startsWith(city));
+      if (i < 0 && typed) i = lines.findIndex(t => t.startsWith(city) && sameState(t));
       if (i >= 0) { clickLike(opts[i]); return true; }
       if (typed) break;
       typed = true;
@@ -272,6 +274,7 @@
 
   // You clicked Submit: record it (the confirmation email will confirm it again later)
   document.addEventListener("click", e => {
+    if (!e.isTrusted) return;                  // a page's own button.click() isn't you submitting
     const b = e.target.closest?.("button, input[type=submit]");
     if (b && SUBMIT.test(b.innerText || b.value || "") && !b.closest("#internship-engine-root")) send("/ext/applied", {
       url: location.href, company: document.title.split(/[-|–@]/).pop().trim(),
