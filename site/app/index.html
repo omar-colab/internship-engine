@@ -641,7 +641,7 @@ function renderToday() {
 
 function renderJobs() {
   const q = jobQuery;
-  view.innerHTML = `<h1>Jobs</h1><p class="lede">${FEED.length.toLocaleString()} internships pulled this morning from employers' own job boards.</p>
+  view.innerHTML = `<h1>Jobs</h1><p class="lede">${FEED.length.toLocaleString()} internships from employers' own job boards${FEED_BUILT ? `, updated ${esc(ago(FEED_BUILT) || new Date(FEED_BUILT).toLocaleDateString())}` : ""}.</p>
     <div class="filters">
       <input class="t" id="q" type="search" placeholder="Search company, role or city  ( / )" title="Keys: / search · j k move · o open · s save" value="${esc(q.q)}" aria-label="Search">
       <select class="t" id="field" aria-label="Field"><option value="mine">My fields</option><option value="all">All fields</option>${Object.entries(FIELDS).map(([k, v]) => `<option value="${k}">${esc(v[0])}</option>`).join("")}</select>
@@ -871,7 +871,17 @@ async function pdfText(file) {
   }
   const doc = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
   const pages = [];
-  for (let i = 1; i <= Math.min(doc.numPages, 5); i++) pages.push((await (await doc.getPage(i)).getTextContent()).items.map(x => x.str).join(" "));
+  for (let i = 1; i <= Math.min(doc.numPages, 5); i++) {
+    // Join by position: a space only where there's a visible gap, so a ligature run ("fi" + "nancial") stays one word.
+    let out = "", end = null;
+    for (const x of (await (await doc.getPage(i)).getTextContent()).items) {
+      const xStart = x.transform?.[4];
+      if (end !== null && x.str && !/\s$/.test(out) && !(xStart != null && Math.abs(xStart - end) < 1.5)) out += " ";
+      out += x.str + (x.hasEOL ? "\n" : "");
+      end = x.hasEOL ? null : xStart != null ? xStart + (x.width || 0) : null;
+    }
+    pages.push(out);
+  }
   return pages.join("\n");
 }
 
