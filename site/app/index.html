@@ -473,6 +473,23 @@ function aiPrompt(kind, r) {
   return `${ask}\n\n${honest}\n\nThe internship:\n${job}\n\n${me}`;
 }
 
+// ---------- interview prep (site/app/prep.json, fetched on first use) ----------
+let PREP = null;
+async function openPrep(a) {
+  try { PREP ||= await (await fetch("prep.json")).json(); } catch { return toast("Couldn't load the question bank — check your connection."); }
+  const fields = fieldsOf(a.title, FEED.find(r => r.url === a.url)?.skills).filter(f => PREP[f]);
+  const list = (title, items) => `<div><b style="font-size:14px">${esc(title)}</b><ol style="margin:6px 0 0;padding-left:20px;display:grid;gap:8px">${items.map(x =>
+    `<li><div>${esc(x.q)}</div><div class="muted" style="font-size:13px">${esc(x.tip)}</div></li>`).join("")}</ol></div>`;
+  $("#jobBody").innerHTML = `<button class="icon-btn" data-act="close" aria-label="Close" style="position:absolute;top:14px;right:14px">✕</button>
+    <h2 id="jobTitle" style="padding-right:36px">Prep: ${esc(a.company)} — ${esc(a.title)}</h2>
+    <p class="muted" style="margin:0;font-size:13.5px">Practice out loud. Build each answer from something you actually did (Situation, Task, Action, Result).</p>
+    <div style="max-height:60vh;overflow:auto;display:grid;gap:16px">
+      ${fields.map(f => list(FIELDS[f][0], PREP[f])).join("")}
+      ${list("Behavioral", PREP.behavioral)}${list("Questions to ask them", PREP.questions_to_ask)}</div>`;
+  $("#jobBody").dataset.url = a.url;
+  if (!$("#jobDlg").open) $("#jobDlg").showModal();
+}
+
 // ---------- job detail ----------
 function openJob(r) {
   const { s, why } = score(r), p = S.profile, app = S.apps[r.url], sk = skillMatch(r);
@@ -663,7 +680,7 @@ function appCard(a) {
     ${due ? `<span class="due">Quiet ${daysSince(a.updated)} days — follow up?</span>` : ""}
     <select class="t" data-act="stage" aria-label="Stage">${STAGES.map(([k, l]) => `<option value="${k}" ${k === a.status ? "selected" : ""}>${l}</option>`).join("")}<option value="_remove">Remove</option></select>
     ${["oa", "interview"].includes(a.status) ? `<label class="muted" style="display:block;margin-top:6px;font-size:12px">${a.status === "oa" ? "Due" : "When"}<input class="t" type="datetime-local" data-act="when" value="${esc(a.when || "")}" style="font-size:12.5px;padding:5px 8px"></label>
-      ${a.when ? `<button class="btn sm" data-act="ics" style="margin-top:6px">Add to calendar</button>` : ""}` : ""}
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">${a.when ? `<button class="btn sm" data-act="ics">Add to calendar</button>` : ""}<button class="btn sm" data-act="prep">Prep</button></div>` : ""}
     ${a.status !== "saved" ? `<div style="display:grid;gap:2px;margin-top:6px;font-size:12.5px">${CHECKS.map(([k, l]) => `<label><input type="checkbox" data-check="${k}" ${a.checks?.[k] ? "checked" : ""}> ${l}</label>`).join("")}</div>` : ""}
     <textarea class="t" data-act="notes" placeholder="Notes" style="min-height:0;height:34px;margin-top:6px;font-size:12.5px">${esc(a.notes)}</textarea>
     ${safeUrl(a.url) ? `<a href="${esc(a.url)}" target="_blank" rel="noopener noreferrer" style="font-size:12.5px">Open posting ↗</a>` : ""}
@@ -843,6 +860,7 @@ document.addEventListener("click", e => {
   const row = t.closest("[data-url]"), r = row && FEED.find(x => x.url === row.dataset.url);
   if (t.dataset.act === "close") return $("#jobDlg").close();
   if (t.dataset.act === "ics") return downloadIcs(S.apps[t.closest(".app").dataset.url]);
+  if (t.dataset.act === "prep") return openPrep(S.apps[t.closest(".app").dataset.url]);
   if (t.dataset.act === "open" && r) return openJob(r);
   if (t.dataset.act === "hide" && r) {
     S.hidden.push(r.url); save(); $("#jobDlg").close(); render(); landFocus(); return toast("Hidden. You won't see it again.");
