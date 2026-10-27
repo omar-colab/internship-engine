@@ -159,6 +159,8 @@ kbd { font: 12px var(--font); border: 1px solid var(--line); border-bottom-width
 @media (max-width: 860px) {
   .stats { grid-template-columns: 1fr 1fr; }
   .cols, .grid2 { grid-template-columns: 1fr; }
+  header { backdrop-filter: none; background: var(--page); }
+  #theme { margin-left: auto; }   /* a filtered ancestor would pin the fixed nav to the header */
   nav.tabs { position: fixed; bottom: 0; left: 0; right: 0; justify-content: space-around; background: var(--sheet); border-top: 1px solid var(--line); padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); margin: 0; }
   .job { grid-template-columns: 40px 1fr; }
   .job .side { grid-column: 1 / -1; justify-content: flex-end; }
@@ -183,6 +185,7 @@ kbd { font: 12px var(--font); border: 1px solid var(--line); border-bottom-width
     <nav class="tabs" aria-label="App" hidden>
       <button data-tab="today">Today</button>
       <button data-tab="jobs">Jobs</button>
+      <button data-tab="companies">Companies</button>
       <button data-tab="tracker">Tracker <span class="count" id="trackCount" hidden></span></button>
     </nav>
     <button class="icon-btn" id="theme" title="Light / dark" aria-label="Toggle light or dark mode">◐</button>
@@ -483,7 +486,7 @@ function render() {
   if (!S.profile) return onboarding(0);
   $("nav.tabs").hidden = $("#me").hidden = false;
   $("#me").textContent = initials(S.profile.name);
-  ({ today: renderToday, jobs: renderJobs, tracker: renderTracker, profile: () => onboarding(0) })[tab]();
+  ({ today: renderToday, jobs: renderJobs, companies: renderCompanies, tracker: renderTracker, profile: () => onboarding(0) })[tab]();
   window.scrollTo({ top: 0 });
 }
 function counts() {
@@ -562,6 +565,34 @@ function results() {
     <div class="list">${rows.slice(0, q.shown).map(x => jobRow(x.r)).join("") || `<div class="card empty">No roles match. Try "All fields" or a shorter search.</div>`}</div>
     ${rows.length > q.shown ? `<div class="more"><button class="btn" id="moreBtn">Show more</button></div>` : ""}`;
   $("#moreBtn")?.addEventListener("click", () => { q.shown += PAGE; results(); });
+}
+
+let companyQuery = "";
+function renderCompanies() {
+  const by = new Map();
+  for (const x of ranked()) {
+    if (x.block) continue;
+    const c = by.get(x.r.company) || { name: x.r.company, roles: 0, best: 0, top: null, fields: new Set() };
+    c.roles++; x.r.fields.forEach(f => c.fields.add(f));
+    if (x.s > c.best) { c.best = x.s; c.top = x.r; }
+    by.set(x.r.company, c);
+  }
+  const all = [...by.values()].map(c => ({ ...c, people: known(c.name).length, applied: Object.values(S.apps).filter(a => a.company === c.name && a.applied).length }))
+    .sort((a, b) => b.people - a.people || b.best - a.best || b.roles - a.roles);
+  view.innerHTML = `<h1>Companies</h1><p class="lede">${all.length.toLocaleString()} employers hiring interns you can apply to. People you know come first.</p>
+    <div class="filters"><input class="t" id="cq" type="search" placeholder="Search companies" value="${esc(companyQuery)}" aria-label="Search companies"></div>
+    <div id="clist" class="list" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))"></div>`;
+  const draw = () => {
+    const q = companyQuery.toLowerCase();
+    $("#clist").innerHTML = all.filter(c => !q || c.name.toLowerCase().includes(q)).slice(0, 120).map(c => `
+      <article class="card" style="padding:16px;display:grid;gap:10px">
+        <div style="display:flex;gap:12px;align-items:center">${tile(c.name)}<div><b>${esc(c.name)}</b><div class="muted" style="font-size:13px">${c.roles} role${c.roles > 1 ? "s" : ""} · best match ${c.best}/5</div></div></div>
+        <div class="chips">${c.people ? `<span class="tag" style="background:var(--green-soft);color:var(--green);border-color:transparent">${c.people} you know</span>` : ""}${c.applied ? `<span class="tag">applied ${c.applied}</span>` : ""}${[...c.fields].slice(0, 2).map(f => `<span class="tag">${esc(FIELDS[f][0])}</span>`).join("")}</div>
+        <button class="btn sm" data-company="${esc(c.name)}">See roles</button>
+      </article>`).join("") || `<div class="card empty">No company matches "${esc(companyQuery)}".</div>`;
+  };
+  $("#cq").addEventListener("input", e => { companyQuery = e.target.value; draw(); });
+  draw();
 }
 
 function renderTracker() {
@@ -739,6 +770,8 @@ async function pdfText(file) {
 
 // ---------- events ----------
 document.addEventListener("click", e => {
+  const co = e.target.closest("[data-company]");
+  if (co) { Object.assign(jobQuery, { q: co.dataset.company, field: "all", where: "any", season: "", shown: PAGE }); tab = "jobs"; return render(); }
   const cp = e.target.closest("[data-copy]");
   if (cp) return navigator.clipboard.writeText(cp.dataset.copy).then(() => toast("Note copied — paste it into LinkedIn yourself."), () => toast(cp.dataset.copy));
   const sib = e.target.closest("[data-sib]");
