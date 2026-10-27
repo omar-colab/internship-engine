@@ -411,7 +411,7 @@ function draftNote(person, r) {
   const p = S.profile, school = p.autofill?.school, who = school ? `a student at ${school}` : "a student";
   // "University - Corporate Finance Intern (NYC), Summer 2027" → "Corporate Finance Intern"
   const parts = r.title.split(/\s+[-–|]\s+|\s*[(,]\s*/).map(x => x.trim()).filter(x => x.length > 3 && !/^(university|campus|college|early careers?|summer|fall|spring|20\d\d)\b/i.test(x));
-  const title = (parts.find(x => /intern|co-?op|analyst|associate|engineer/i.test(x)) || parts[0] || "internship").replace(/^(.{0,48})\s.*$/, "$1");
+  const title = (parts.find(x => /intern|co-?op|analyst|associate|engineer/i.test(x)) || parts[0] || "internship").replace(/^(.{0,48})\s.{2,}$/s, (m, head) => m.length > 50 ? head : m);
   const opts = [`Hi ${person.first || "there"}, I'm ${p.name.split(" ")[0]}, ${who}, applying to ${r.company}'s ${title} role. Could I ask you 2 quick questions about the team?`,
                 `Hi ${person.first || "there"}, I'm ${who}, applying to ${r.company}. Open to 2 quick questions about the team?`];
   return opts.find(m => m.length <= 200) || opts[1].slice(0, 199) + "…";
