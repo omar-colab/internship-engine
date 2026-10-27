@@ -6,6 +6,9 @@
 <title>Internship Engine</title>
 <meta name="description" content="Today's internships from employers' own job boards, ranked for you, with a tracker. Free, no account; your data stays in your browser.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%23635BFF%22/%3E%3Cg fill=%22%23fff%22%3E%3Crect x=%227%22 y=%2219%22 width=%224%22 height=%226%22 rx=%222%22/%3E%3Crect x=%2213%22 y=%2216%22 width=%224%22 height=%229%22 rx=%222%22/%3E%3Crect x=%2219%22 y=%2213%22 width=%224%22 height=%2212%22 rx=%222%22/%3E%3Crect x=%2225%22 y=%2210%22 width=%224%22 height=%2215%22 rx=%222%22/%3E%3C/g%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#635BFF">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -361,7 +364,7 @@ function openJob(r) {
     ${r.locs?.length > 1 ? `<div><b style="font-size:14px">Posted in ${r.locs.length} places — apply to the one you want</b><div class="siblings">${r.locs.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.location || "Location not listed")} ↗</a>`).join("")}</div></div>` : ""}
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${fitBars(s)} <b>Match ${s} of 5</b> ${season(r.title) ? `<span class="season">${esc(season(r.title))}</span>` : ""} ${r.ats ? `<span class="tag">via ${esc(r.ats)}</span>` : ""}</div>
     <ul class="reasons">${why.map(w => `<li${score(r).block ? ' class="no"' : ""}>${esc(w)}</li>`).join("")}${missing.map(m => `<li class="no">${esc(m)}</li>`).join("")}</ul>
-    ${r.summary ? `<p style="margin:0;font-size:14px;color:var(--ink-2)">${esc(r.summary)}…</p>` : ""}
+    ${r.summary ? `<p style="margin:0;font-size:14px;color:var(--ink-2)">${esc(r.summary.replace(/[.…\s]+$/, ""))}…</p>` : ""}
     ${sk ? `<div><b style="font-size:14px">Skills it asks for</b> <span class="muted" style="font-size:13px">— gaps are things to learn, not words to paste into your resume</span>
       <div class="chips" style="margin-top:8px">${sk.have.map(k => `<span class="tag" style="background:var(--green-soft);color:var(--green);border-color:transparent">✓ ${esc(k)}</span>`).join("")}${sk.missing.map(k => `<span class="tag">${esc(k)}</span>`).join("")}</div></div>`
       : r.skills?.length ? `<div><b style="font-size:14px">Skills it asks for:</b> <span class="muted">${esc(r.skills.join(", "))}</span> <span class="muted" style="font-size:13px">(add your resume in your profile to see which you have)</span></div>` : ""}
