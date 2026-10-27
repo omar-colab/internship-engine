@@ -188,6 +188,8 @@ def build_feed(previous: dict[str, dict] | None) -> dict:
                 roles.append({k: r.get(k) for k in ("company", "title", "location", "url", "ats", "posted")} |
                              {"track": feed.track(r["title"]), "first_seen": old.get("first_seen", today) if previous is not None else None} |
                              {k: old[k] for k in ENRICHMENT_FIELDS if k in old})
+                if r.get("description") and any(k not in roles[-1] for k in ENRICHMENT_FIELDS):
+                    roles[-1].update(_enrichment(r["description"]))     # SuccessFactors lists the text inline: no detail fetch
             covered.append(c["name"])
         except Exception as e:
             errors.append(f"{c['name']}: {type(e).__name__}")
@@ -328,6 +330,17 @@ if __name__ == "__main__":
             cached = {**result, "first_seen": "2026-10-21"}
             build_feed({listing["url"]: cached})
             assert json.loads(output.read_text())["roles"][0]["summary"] == result["summary"]
+
+        inline = {**listing, "url": "https://career4.successfactors.example/career?req=1", "ats": "successfactors",
+                  "description": "Fabrikam intern. Use Python."}
+        with (patch.object(finder, "SEED", seed), patch.object(finder, "in_us", return_value=True),
+              patch.object(ats, "LIST", {"successfactors": lambda *_: [inline]}),
+              patch.object(ats, "description", side_effect=AssertionError("inline description must not fetch")),
+              patch.object(sys.modules[__name__], "FEED_OUT", output), patch.object(time, "sleep"),
+              patch(__name__ + ".load_boards", return_value=[{"name": "Fabrikam", "ats": "successfactors", "host": "x", "company": "F"}])):
+            build_feed(None)
+            role = json.loads(output.read_text())["roles"][0]
+            assert role["skills"] == ["python"] and "description" not in role
 
         events, sleep_intervals = [], []
         active = {"count": 0}
