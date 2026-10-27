@@ -539,7 +539,7 @@ async function importFromHash() {
 // ---------- job detail ----------
 function openJob(r) {
   const { s, why } = score(r), p = S.profile, app = S.apps[r.url], sk = skillMatch(r);
-  const others = FEED.filter(x => x.company === r.company && x.url !== r.url);
+  const others = FEED.filter(x => x.company === r.company && x.url !== r.url).sort((a, b) => score(b).s - score(a).s);  // best fits first
   const missing = [];
   if (!r.fields.some(f => (p.fields || []).includes(f))) missing.push(r.fields.length ? `Field: ${r.fields.map(f => FIELDS[f][0]).join(", ")} — not one you picked` : "Field unclear from the title");
   if (!placeOk(r, false)) missing.push(`Location: ${r.location || "not listed"}`);
