@@ -323,6 +323,7 @@ function blocker(r) {
   const p = S.profile || {}, auth = r.auth || [];
   if (GRAD_ONLY.test(r.title)) return "grad school only";
   if (auth.includes("citizen") && p.auth && p.auth !== "citizen") return "US citizens only";
+  if (auth.includes("us_person") && p.auth === "sponsor") return "US citizens and permanent residents only";
   if (r.years?.length && p.year && !r.years.includes(+p.year)) return "for the class of " + r.years.join(" or ");
   return "";
 }
