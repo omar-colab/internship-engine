@@ -315,7 +315,7 @@ function jobRow(r) {
 }
 function track(r, status) {
   const prev = S.apps[r.url];
-  S.apps[r.url] = { company: r.company, title: r.title, location: r.location, url: r.url, notes: "", added: today(), ...prev, status, updated: today(), ...(status === "applied" && !prev?.applied ? { applied: today() } : {}) };
+  S.apps[r.url] = { company: r.company, title: r.title, location: r.location, url: r.url, notes: "", added: today(), ...prev, status, updated: today(), ...(["applied", "oa", "interview", "offer"].includes(status) && !prev?.applied ? { applied: today() } : {}) };
   save(); counts();
 }
 
@@ -433,8 +433,15 @@ function results() {
 
 function renderTracker() {
   const apps = Object.values(S.apps);
+  const sent = apps.filter(a => a.applied), heard = sent.filter(a => ["oa", "interview", "offer", "rejected"].includes(a.status));
+  const pct = n => sent.length ? Math.round(n / sent.length * 100) + "%" : "–";
   view.innerHTML = `<div class="hello"><div><h1>Tracker</h1><p class="lede" style="margin:0">Drag cards between stages. ${apps.length ? "" : "Save a job or add one you applied to elsewhere."}</p></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="addApp">+ Add application</button><button class="btn" id="exportBtn">Backup</button><label class="btn">Restore<input type="file" id="importIn" accept="application/json" hidden></label></div></div>
+    ${sent.length ? `<div class="stats" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+      <div class="card stat"><b>${sent.length}</b><span>applied</span></div>
+      <div class="card stat"><b>${pct(heard.length)}</b><span>heard back</span></div>
+      <div class="card stat"><b>${pct(sent.filter(a => ["interview", "offer"].includes(a.status)).length)}</b><span>reached interview</span></div>
+      <div class="card stat"><b>${sent.filter(a => a.status === "applied" && daysSince(a.updated) >= FOLLOW_DAYS).length}</b><span>to follow up</span></div></div>` : ""}
     <div class="board">${STAGES.map(([k, label]) => {
       const here = apps.filter(a => a.status === k).sort((a, b) => b.updated.localeCompare(a.updated));
       return `<section class="lane" data-stage="${k}"><h3><span>${label}</span><span>${here.length}</span></h3>${here.map(appCard).join("")}</section>`;
