@@ -56,7 +56,7 @@ assert.equal(check("Why work here?", "textarea", [], true, profile, { [answers.k
 const listeners = {}, posted = [], storageListeners = [];
 const store = { events: [{ id: "event-1", kind: "saved", url: "https://jobs.example.invalid/role", company: "Contoso", title: "Analyst", at: "2026-10-26T12:00:00Z" }] };
 const chrome = {
-  runtime: { getManifest: () => ({ version: "0.1.1" }) },
+  runtime: { getManifest: () => ({ version: "0.2.0" }) },
   storage: {
     local: {
       async get(key) { return { [key]: store[key] }; },
@@ -90,7 +90,7 @@ const appPost = data => listeners.message({ source: window, origin: "https://oma
   appPost({ source: "internship-engine-app", type: "hello" });
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(posted[0].origin, "https://omar-colab.github.io");
-  assert.equal(JSON.stringify(posted[0].message), JSON.stringify({ source: "internship-engine-ext", type: "hello", version: "0.1.1" }));
+  assert.equal(JSON.stringify(posted[0].message), JSON.stringify({ source: "internship-engine-ext", type: "hello", version: "0.2.0" }));
   assert.equal(posted[1].message.type, "events");
   assert.equal(posted[1].message.events[0].id, "event-1");
   appPost({ source: "internship-engine-app", type: "ack", ids: ["event-1"] });

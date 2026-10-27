@@ -31,23 +31,23 @@
     <p><a href="./">Internship Engine</a></p>
     <h1>Privacy notice</h1>
     <p>Last updated: October 22, 2026</p>
-    <p>This notice describes the Internship Engine browser extension and its connection to the optional local Internship Engine app. The software is open source and runs on your computer.</p>
+    <p>This notice describes the Internship Engine browser extension, which works with the hosted web app alone or with the optional local Internship Engine app.</p>
 
     <h2>Browser app</h2>
     <p>The no-install app at <code>/app/</code> stores your profile, resume text, and tracker in this browser's local storage. It does not send that information to a server. It downloads the shared job feed to show current roles; if you import a PDF resume, the app reads it in your browser. The page loads its fonts from Google Fonts and, only when you import a PDF, the pdf.js reader from cdnjs; those services see a normal web request, never your resume or tracker.</p>
 
     <h2>Information the extension handles</h2>
-    <p>On supported job-board pages, the extension reads the page URL, job-posting details, and visible application-field labels and options so it can look up a role, save it, and request answers from your local profile. When you choose to fill a form with a resume field, the extension retrieves your resume from the local app and places it in that page's file field.</p>
+    <p>On supported job-board pages, the extension reads the page URL, job-posting details, and visible application-field labels and options so it can show fit information, save a role, and prepare answers from your profile. In web-app-only mode, it receives your profile from the hosted app and lets you select a resume PDF in the extension popup. In laptop-engine mode, it can use your local profile and resume.</p>
 
     <h2>Where information goes</h2>
-    <p>The extension sends the information needed for these actions only to the local app at <code>127.0.0.1:8765</code>, using a token stored in Chrome's local extension storage. The extension does not send your profile, resume, application fields, or browsing history to the project maintainers or a project-operated server. The local app stores personal files in the repository's ignored <code>data/</code> directory.</p>
+    <p>The extension stores its profile, selected resume PDF, learned answers, queued events, and optional local-engine token in <code>chrome.storage.local</code>. In web-app-only mode, profile and event messages are exchanged with the hosted app page; extension data is not uploaded to a server. In laptop-engine mode, the extension sends the page and form details needed for its features to your own local engine at <code>127.0.0.1:8765</code>. It does not send this data to the project maintainers or a project-operated server.</p>
     <p>If you choose to submit an application, the application site receives the information in the form you reviewed. The extension itself never clicks Submit.</p>
 
     <h2>Optional features</h2>
     <p>The local app can optionally read Gmail using credentials you configure, and can import a LinkedIn connections export for local matching. These are separate local-app features; the browser extension does not send those files to the project maintainers.</p>
 
     <h2>Retention and control</h2>
-    <p>Your engine token is stored in Chrome's local extension storage. Your profile, resume, tracker, and optional imports are stored on your own computer in <code>data/</code>. Remove the extension or clear its storage to remove the token; delete the local files yourself to remove app data.</p>
+    <p>The extension's profile, selected resume PDF, learned answers, queued events, and engine token are stored in Chrome's local extension storage. In laptop-engine mode, your profile, resume, tracker, and optional imports are stored on your own computer in <code>data/</code>. Remove the extension or clear its storage to remove its data; delete the local files yourself to remove local-app data.</p>
 
     <h2>Changes and contact</h2>
     <p>Changes to this notice will be published on this page. For questions or privacy concerns, open an issue in the <a href="https://github.com/omar-colab/internship-engine/issues">GitHub repository</a>.</p>

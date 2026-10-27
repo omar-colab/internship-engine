@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Internship Engine",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Fit scores, one-click save, and honest autofill for internship applications. Works with the local engine or the hosted app.",
   "permissions": ["storage"],
   "host_permissions": ["http://127.0.0.1:8765/*", "https://omar-colab.github.io/internship-engine/app/*"],
