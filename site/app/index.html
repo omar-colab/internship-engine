@@ -16,7 +16,7 @@
 :root {
   color-scheme: light;
   --page: #F6F9FC; --sheet: #FFFFFF; --ink: #0A2540; --ink-2: #425466; --ink-3: #697386; --line: #E3E8EE;
-  --blue: #635BFF; --blue-ink: #4B44E0; --blue-soft: #EEF0FF; --green: #0E9F6E; --green-soft: #E3F8EF;
+  --blue: #635BFF; --blue-ink: #4B44E0; --blue-soft: #EEF0FF; --on-blue: #FFFFFF; --green: #04704F; --green-soft: #E3F8EF;
   --warm: #FFF4E5; --warm-ink: #8A4B08; --red: #D92D20; --red-soft: #FEECEB;
   --font: "Inter Tight", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --shadow: 0 1px 2px rgba(10,37,64,.06), 0 4px 12px -4px rgba(10,37,64,.08);
@@ -25,14 +25,14 @@
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   color-scheme: dark;
   --page: #061B31; --sheet: #0C2A48; --ink: #F6F9FC; --ink-2: #ADBDCC; --ink-3: #8098B0; --line: #1C3D5E;
-  --blue: #8C86FF; --blue-ink: #A9A5FF; --blue-soft: #1E2A66; --green: #3DD9A0; --green-soft: #0D3B33;
+  --blue: #8C86FF; --blue-ink: #A9A5FF; --blue-soft: #1E2A66; --on-blue: #061B31; --green: #3DD9A0; --green-soft: #0D3B33;
   --warm: #3A2A12; --warm-ink: #FFC46B; --red: #FF8A80; --red-soft: #3D1B1E;
   --shadow: 0 0 0 1px var(--line); --lift: 0 0 0 1px var(--line), 0 24px 48px -12px rgba(0,0,0,.6);
 } }
 :root[data-theme="dark"] {
   color-scheme: dark;
   --page: #061B31; --sheet: #0C2A48; --ink: #F6F9FC; --ink-2: #ADBDCC; --ink-3: #8098B0; --line: #1C3D5E;
-  --blue: #8C86FF; --blue-ink: #A9A5FF; --blue-soft: #1E2A66; --green: #3DD9A0; --green-soft: #0D3B33;
+  --blue: #8C86FF; --blue-ink: #A9A5FF; --blue-soft: #1E2A66; --on-blue: #061B31; --green: #3DD9A0; --green-soft: #0D3B33;
   --warm: #3A2A12; --warm-ink: #FFC46B; --red: #FF8A80; --red-soft: #3D1B1E;
   --shadow: 0 0 0 1px var(--line); --lift: 0 0 0 1px var(--line), 0 24px 48px -12px rgba(0,0,0,.6);
 }
@@ -55,7 +55,7 @@ nav.tabs { display: flex; gap: 4px; margin-left: auto; }
 nav.tabs button { border: 0; background: none; padding: 8px 14px; border-radius: 999px; font-weight: 500; color: var(--ink-2); cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
 nav.tabs button:hover { color: var(--ink); background: var(--sheet); }
 nav.tabs button[aria-current="page"] { background: var(--ink); color: var(--page); }
-.count { font-size: 11px; font-weight: 600; background: var(--blue); color: #fff; border-radius: 999px; padding: 1px 7px; }
+.count { font-size: 11px; font-weight: 600; background: var(--blue); color: var(--on-blue); border-radius: 999px; padding: 1px 7px; }
 .avatar { width: 34px; height: 34px; border-radius: 50%; border: 0; background: linear-gradient(135deg, #A960EE, #635BFF 55%, #90E0FF); color: #fff; font-weight: 600; font-size: 13px; cursor: pointer; flex: none; }
 
 main { width: min(1120px, 100%); margin: 0 auto; padding: 28px 16px 80px; }
@@ -68,13 +68,14 @@ h2 { font-size: 18px; letter-spacing: -.02em; font-weight: 600; margin: 0 0 12px
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--line); background: var(--sheet); color: var(--ink); font-weight: 600; font-size: 14px; padding: 9px 14px; border-radius: 999px; cursor: pointer; text-decoration: none; white-space: nowrap; transition: transform .12s ease, background .12s ease; }
 .btn:hover { border-color: var(--ink-3); }
 .btn:active { transform: scale(.97); }
-.btn.go { background: var(--blue); border-color: var(--blue); color: #fff; }
+.btn.go { background: var(--blue); border-color: var(--blue); color: var(--on-blue); }
 .btn.go:hover { background: var(--blue-ink); }
 .btn.sm { padding: 6px 11px; font-size: 13px; }
 .btn.on { background: var(--green-soft); border-color: transparent; color: var(--green); }
 .chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--sheet); padding: 7px 13px; border-radius: 999px; cursor: pointer; font-weight: 500; font-size: 14px; user-select: none; }
 .chip:has(input:checked) { background: var(--blue-soft); border-color: var(--blue); color: var(--blue-ink); }
 .chip input { position: absolute; opacity: 0; pointer-events: none; }
+.chip:has(input:focus-visible) { outline: 3px solid var(--blue); outline-offset: 2px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 label.f { display: grid; gap: 6px; font-weight: 500; font-size: 14px; }
 input.t, select.t, textarea.t { width: 100%; border: 1px solid var(--line); background: var(--sheet); border-radius: 10px; padding: 10px 12px; }
@@ -164,8 +165,15 @@ kbd { font: 12px var(--font); border: 1px solid var(--line); border-bottom-width
   .logo-tile { width: 40px; height: 40px; }
   .welcome { padding: 22px; }
   main { padding-bottom: 110px; }
+  .btn.sm, nav.tabs button, .chip { min-height: 44px; }
+  .icon-btn, .avatar { width: 44px; height: 44px; }
+  .toast { bottom: calc(84px + env(safe-area-inset-bottom)); }
 }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+  .btn:active, .job:hover { transform: none; }
+  .toast, .toast.show { transform: translateX(-50%); }
+}
 </style>
 </head>
 <body>
@@ -184,8 +192,8 @@ kbd { font: 12px var(--font); border: 1px solid var(--line); border-bottom-width
 
 <main id="view" aria-live="polite"></main>
 
-<dialog id="addDlg"><form method="dialog" class="in" id="addForm">
-  <h2>Add an application</h2>
+<dialog id="addDlg" aria-labelledby="addTitle"><form method="dialog" class="in" id="addForm">
+  <h2 id="addTitle">Add an application</h2>
   <p class="muted" style="margin:0">Applied somewhere that isn't in the feed? Track it here too.</p>
   <div class="grid2"><label class="f">Company<input class="t" name="company" required maxlength="80"></label>
   <label class="f">Role<input class="t" name="title" required maxlength="120"></label></div>
@@ -194,7 +202,7 @@ kbd { font: 12px var(--font); border: 1px solid var(--line); border-bottom-width
   <div class="actions"><button class="btn" value="cancel" formnovalidate>Cancel</button><button class="btn go" value="ok">Add</button></div>
 </form></dialog>
 
-<dialog id="jobDlg"><div class="in" id="jobBody"></div></dialog>
+<dialog id="jobDlg" aria-labelledby="jobTitle"><div class="in" id="jobBody"></div></dialog>
 
 <div class="toast" id="toast" role="status"></div>
 
@@ -236,7 +244,7 @@ function load() {
 }
 let S = Object.assign({ profile: null, apps: {}, seen: [], hidden: [], contacts: [] }, load());
 function save() {
-  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { toast("Your browser blocked saving — use Backup to keep your data."); }
+  try { localStorage.setItem(KEY, JSON.stringify(S)); return true; } catch { toast("Your browser blocked saving — use Backup to keep your data."); return false; }
 }
 function toast(msg) {
   const t = $("#toast"); t.textContent = msg; t.classList.add("show");
@@ -396,8 +404,11 @@ function importContacts(text) {
   if (h < 0) throw new Error("no header");
   const col = name => rows[h].indexOf(name);
   const [f, l, c, p, u] = ["First Name", "Last Name", "Company", "Position", "URL"].map(col);
+  const before = S.contacts;
   S.contacts = rows.slice(h + 1).filter(r => r[c]).slice(0, 30000).map(r => ({ first: r[f] || "", last: r[l] || "", company: r[c], position: r[p] || "", url: safeUrl(r[u]) }));
-  save(); KNOWN = null; return S.contacts.length;
+  KNOWN = null;
+  if (!save()) { S.contacts = before; KNOWN = null; throw new Error("too big"); }
+  return S.contacts.length;
 }
 let KNOWN = null;
 function known(company) {
@@ -427,7 +438,7 @@ function openJob(r) {
   if (!p.resume) missing.push("Add your resume in your profile for skill matching");
   $("#jobBody").innerHTML = `
     <button class="icon-btn" data-act="close" aria-label="Close" style="position:absolute;top:14px;right:14px">✕</button>
-    <div class="detail-head" style="padding-right:36px">${tile(r.company)}<div><h2>${esc(r.title)}</h2><div class="muted">${esc(r.company)} · ${esc((r.location || "Location not listed") + moreLocs(r))}</div></div></div>
+    <div class="detail-head" style="padding-right:36px">${tile(r.company)}<div><h2 id="jobTitle">${esc(r.title)}</h2><div class="muted">${esc(r.company)} · ${esc((r.location || "Location not listed") + moreLocs(r))}</div></div></div>
     ${r.locs?.length > 1 ? `<div><b style="font-size:14px">Posted in ${r.locs.length} places — apply to the one you want</b><div class="siblings">${r.locs.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.location || "Location not listed")} ↗</a>`).join("")}</div></div>` : ""}
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${fitBars(s)} <b>Match ${s} of 5</b> ${r.pay ? `<span class="tag">${esc(r.pay)}</span>` : ""} ${season(r.title) ? `<span class="season">${esc(season(r.title))}</span>` : ""} ${r.ats ? `<span class="tag">via ${esc(r.ats)}</span>` : ""}</div>
     <ul class="reasons">${why.map(w => `<li${score(r).block ? ' class="no"' : ""}>${esc(w)}</li>`).join("")}${missing.map(m => `<li class="no">${esc(m)}</li>`).join("")}</ul>
@@ -744,7 +755,7 @@ document.addEventListener("click", e => {
   if (t.dataset.act === "ics") return downloadIcs(S.apps[t.closest(".app").dataset.url]);
   if (t.dataset.act === "open" && r) return openJob(r);
   if (t.dataset.act === "hide" && r) {
-    S.hidden.push(r.url); save(); $("#jobDlg").close(); render(); return toast("Hidden. You won't see it again.");
+    S.hidden.push(r.url); save(); $("#jobDlg").close(); render(); landFocus(); return toast("Hidden. You won't see it again.");
   }
   if (t.dataset.act === "save" && r) {
     if (S.apps[r.url]) { tab = "tracker"; return render(); }
@@ -774,7 +785,7 @@ window.addEventListener("focus", () => {
 });
 document.addEventListener("change", e => {
   if (e.target.id === "importIn") return restore(e.target.files[0]);
-  if (e.target.id === "csvIn") return e.target.files[0]?.text().then(t => { try { toast(`${importContacts(t).toLocaleString()} connections loaded.`); render(); } catch { toast("That isn't LinkedIn's Connections.csv."); } });
+  if (e.target.id === "csvIn") return e.target.files[0]?.text().then(t => { try { toast(`${importContacts(t).toLocaleString()} connections loaded.`); render(); } catch (err) { toast(err.message === "too big" ? "Too many connections for this browser's storage." : "That isn't LinkedIn's Connections.csv."); } });
   const card = e.target.closest(".app");
   if (!card) return;
   if (e.target.dataset.act === "stage") move(card.dataset.url, e.target.value);
@@ -793,8 +804,10 @@ $("#addDlg").addEventListener("close", () => {
   if ($("#addDlg").returnValue !== "ok") return;
   const f = $("#addForm"), url = safeUrl(f.url.value) || `manual:${Date.now()}`;
   track({ company: f.company.value.trim(), title: f.title.value.trim(), location: "", url }, f.status.value);
-  toast("Added."); render();
+  toast("Added."); render(); landFocus();
 });
+// After a dialog action rerenders the page its opener is gone; land on the page heading instead of <body>.
+function landFocus() { const h = $("main h1"); if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); } }
 
 if (S.theme) document.documentElement.dataset.theme = S.theme;
 (async () => {
