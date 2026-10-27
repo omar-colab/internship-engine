@@ -252,6 +252,15 @@ async function loadFeed() {
     const oldest = FEED.reduce((m, r) => r.first_seen && r.first_seen < m ? r.first_seen : m, "9999");
     FEED.forEach(r => { if (r.first_seen ? r.first_seen > oldest && daysSince(r.first_seen) <= 2 : seenUrls.size && !seenUrls.has(r.url)) NEW.add(r.url); });
     S.seen = FEED.map(r => r.url); save();
+    // One role posted in many cities is one row; every city stays reachable from the detail view.
+    const groups = new Map();
+    for (const r of FEED) {
+      const k = (r.company + "|" + r.title).toLowerCase(), g = groups.get(k);
+      if (!g) { groups.set(k, { ...r, locs: [{ location: r.location, url: r.url }] }); continue; }
+      g.locs.push({ location: r.location, url: r.url });
+      if (NEW.has(r.url)) NEW.add(g.url);
+    }
+    FEED = [...groups.values()];
   } catch { FEED = []; }
 }
 function fieldsOf(title) {
@@ -267,20 +276,23 @@ function score(r) {
   let s = 1;
   const hit = r.fields.filter(f => (p.fields || []).includes(f));
   if (hit.length) { s += 2; why.push(FIELDS[hit[0]][0]); }
-  const loc = (r.location || "").toLowerCase();
-  if (/remote/.test(loc)) { s += 1; why.push("remote"); }
-  else if ((p.places || []).some(pl => pl && loc.includes(pl.toLowerCase()))) { s += 1; why.push("in " + p.places.find(pl => pl && loc.includes(pl.toLowerCase()))); }
+  const locs = (r.locs || [r]).map(l => (l.location || "").toLowerCase());
+  const place = (p.places || []).find(pl => pl && locs.some(l => l.includes(pl.toLowerCase())));
+  if (locs.some(l => /remote/.test(l))) { s += 1; why.push("remote"); }
+  else if (place) { s += 1; why.push("in " + place); }
   const rw = new Set(p.resumeWords || []);
   const overlap = [...new Set(words(r.title))].filter(w => rw.has(w));
   if (overlap.length) { s += 1; why.push("your resume mentions " + overlap.slice(0, 2).join(", ")); }
   if (GRAD_ONLY.test(r.title)) { s = 1; why.length = 0; why.push("grad school only"); }
   return { s: Math.min(5, s), why };
 }
-function placeOk(location, remoteOnly) {
-  const loc = (location || "").toLowerCase();
-  if (/remote/.test(loc)) return true;
-  return !remoteOnly && (S.profile.places || []).some(pl => loc.includes(pl.toLowerCase()));
+function placeOk(r, remoteOnly) {
+  return (r.locs || [r]).some(({ location }) => {
+    const loc = (location || "").toLowerCase();
+    return /remote/.test(loc) || !remoteOnly && (S.profile.places || []).some(pl => loc.includes(pl.toLowerCase()));
+  });
 }
+const moreLocs = r => r.locs?.length > 1 ? ` +${r.locs.length - 1} more` : "";
 function initials(name) { return (name || "?").split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase(); }
 function hue(str) { let h = 0; for (const c of str) h = (h * 31 + c.charCodeAt(0)) % 360; return h; }
 function tile(company) { return `<div class="logo-tile" aria-hidden="true" style="background:hsl(${hue(company)} 62% 52%)">${esc(initials(company))}</div>`; }
@@ -293,7 +305,7 @@ function jobRow(r) {
   return `<article class="card job" data-url="${esc(r.url)}">
     ${tile(r.company)}
     <div><h3><button data-act="open">${esc(r.title)}</button> ${NEW.has(r.url) ? '<span class="new">NEW</span>' : ""} ${season(r.title) ? `<span class="season">${esc(season(r.title))}</span>` : ""}</h3>
-      <div class="meta"><span>${esc(r.company)}</span><span>·</span><span>${esc(r.location || "Location not listed")}</span>${ago(r.posted || r.first_seen) ? `<span>· ${esc(ago(r.posted || r.first_seen))}</span>` : ""}</div>
+      <div class="meta"><span>${esc(r.company)}</span><span>·</span><span>${esc((r.location || "Location not listed") + moreLocs(r))}</span>${ago(r.posted || r.first_seen) ? `<span>· ${esc(ago(r.posted || r.first_seen))}</span>` : ""}</div>
       ${why.length ? `<div class="why">${fitBars(s)} &nbsp;${esc(why.join(" · "))}</div>` : `<div class="why">${fitBars(s)}</div>`}
     </div>
     <div class="side">
@@ -313,11 +325,12 @@ function openJob(r) {
   const others = FEED.filter(x => x.company === r.company && x.url !== r.url);
   const missing = [];
   if (!r.fields.some(f => (p.fields || []).includes(f))) missing.push(r.fields.length ? `Field: ${r.fields.map(f => FIELDS[f][0]).join(", ")} — not one you picked` : "Field unclear from the title");
-  if (!placeOk(r.location, false)) missing.push(`Location: ${r.location || "not listed"}`);
+  if (!placeOk(r, false)) missing.push(`Location: ${r.location || "not listed"}`);
   if (!p.resume) missing.push("Paste your resume in your profile for skill matching");
   $("#jobBody").innerHTML = `
     <button class="icon-btn" data-act="close" aria-label="Close" style="position:absolute;top:14px;right:14px">✕</button>
-    <div class="detail-head" style="padding-right:36px">${tile(r.company)}<div><h2>${esc(r.title)}</h2><div class="muted">${esc(r.company)} · ${esc(r.location || "Location not listed")}</div></div></div>
+    <div class="detail-head" style="padding-right:36px">${tile(r.company)}<div><h2>${esc(r.title)}</h2><div class="muted">${esc(r.company)} · ${esc((r.location || "Location not listed") + moreLocs(r))}</div></div></div>
+    ${r.locs?.length > 1 ? `<div><b style="font-size:14px">Posted in ${r.locs.length} places — apply to the one you want</b><div class="siblings">${r.locs.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.location || "Location not listed")} ↗</a>`).join("")}</div></div>` : ""}
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${fitBars(s)} <b>Match ${s} of 5</b> ${season(r.title) ? `<span class="season">${esc(season(r.title))}</span>` : ""} ${r.ats ? `<span class="tag">via ${esc(r.ats)}</span>` : ""}</div>
     <ul class="reasons">${why.map(w => `<li>${esc(w)}</li>`).join("")}${missing.map(m => `<li class="no">${esc(m)}</li>`).join("")}</ul>
     ${others.length ? `<div><b style="font-size:14px">${others.length} more at ${esc(r.company)}</b><div class="siblings">${others.slice(0, 30).map(o => `<a href="#" data-sib="${esc(o.url)}">${esc(o.title)} <span class="muted">· ${esc(o.location || "")}</span></a>`).join("")}</div></div>` : ""}
@@ -408,7 +421,7 @@ function results() {
     (q.grad || !GRAD_ONLY.test(x.r.title)) &&
     (q.field === "all" || (q.field === "mine" ? !mine.length || x.r.fields.some(f => mine.includes(f)) : x.r.fields.includes(q.field))) &&
     (!q.season || season(x.r.title).startsWith(q.season)) &&
-    (q.where === "any" || placeOk(x.r.location, q.where === "remote")) &&
+    (q.where === "any" || placeOk(x.r, q.where === "remote")) &&
     (!needle || `${x.r.company} ${x.r.title} ${x.r.location}`.toLowerCase().includes(needle)));
   const by = { fit: (a, b) => b.s - a.s || NEW.has(b.r.url) - NEW.has(a.r.url), new: (a, b) => NEW.has(b.r.url) - NEW.has(a.r.url) || String(b.r.posted || "").localeCompare(String(a.r.posted || "")), company: (a, b) => a.r.company.localeCompare(b.r.company) }[q.sort];
   rows.sort(by);
