@@ -747,6 +747,8 @@ def _selfcheck() -> None:
     assert _jsonld_description((fixtures / "jobvite.html").read_text()) == "Contoso data internship."
     assert _jsonld_description((fixtures / "jazzhr.html").read_text()) == "Contoso research internship."
     assert _jsonld_description((fixtures / "taleo.html").read_text()) is None
+    assert _icims_description('<div class="iCIMS_InfoMsg iCIMS_InfoMsg_Job"><p>Contoso <b>fictional</b> role.</p><script>ignored()</script></div>') == \
+        "Contoso fictional role."
 
 
 # ---- descriptions ---------------------------------------------------------------------------------
@@ -810,6 +812,37 @@ def _successfactors_description(html: str) -> str | None:
     return None if not description or re.search(r"\bno longer accepting applications\b", description, re.I) else description
 
 
+class _ICIMSJobText(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.depth = self.skip = 0
+        self.parts = []
+
+    def handle_starttag(self, tag, attrs):
+        if self.depth and tag == "div":
+            self.depth += 1
+        elif not self.depth and tag == "div" and "iCIMS_InfoMsg_Job" in dict(attrs).get("class", "").split():
+            self.depth = 1
+        if self.depth and tag in {"script", "style"}:
+            self.skip += 1
+
+    def handle_endtag(self, tag):
+        if self.depth and self.skip and tag in {"script", "style"}:
+            self.skip -= 1
+        if self.depth and tag == "div":
+            self.depth -= 1
+
+    def handle_data(self, data):
+        if self.depth and not self.skip:
+            self.parts.append(data)
+
+
+def _icims_description(html: str) -> str | None:
+    parser = _ICIMSJobText()
+    parser.feed(html)
+    return text_of(" ".join(parser.parts)) or None
+
+
 def _safe_page(url: str, *, _resolver=socket.getaddrinfo, _transport=None) -> httpx.Response | None:
     """A detail page via the guarded fetch (it revalidates redirects itself); None when refused."""
     try:
@@ -847,6 +880,17 @@ def description(url: str) -> str | None:
         if re.fullmatch(r"[A-Za-z0-9_-]+", company) and req.isdecimal():
             r = _safe_page(url)
             return (_jsonld_description(r.text) or _successfactors_description(r.text)) if r and r.status_code == 200 else None
+    if (parts.scheme == "https" and re.fullmatch(r"[a-z0-9-]+\.icims\.com", parts.hostname or "")
+            and parts.path.startswith("/jobs/")):
+        r = _safe_page(url)
+        description = _icims_description(r.text) if r and r.status_code == 200 else None
+        if description:
+            return description
+        query = parse_qs(parts.query)
+        query["in_iframe"] = ["1"]
+        iframe_url = urlunsplit((parts.scheme, parts.netloc, parts.path, urlencode(query, doseq=True), parts.fragment))
+        r = _safe_page(iframe_url)
+        return _icims_description(r.text) if r and r.status_code == 200 else None
     if m := re.match(r"https://([a-z0-9.-]+\.oraclecloud\.com)/hcmUI/CandidateExperience/[a-z]{2}/sites/(CX(?:_\d+)?)/job/(\d+)", url):
         r = _safe_request("GET", f"https://{m[1]}/hcmRestApi/resources/latest/recruitingCEJobRequisitionDetails",
                           params={"expand": "all", "onlyData": "true", "finder": f'ById;Id="{m[3]}",siteNumber={m[2]}'},
