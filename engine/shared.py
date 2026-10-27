@@ -23,6 +23,7 @@ FEED_URL = "https://omar-colab.github.io/internship-engine/feed.json"
 FRESH_HOURS = 36
 ENRICHMENT_BUDGET = 12 * 60
 ENRICHMENT_FIELDS = ("skills", "pay", "auth", "years", "summary")
+ENRICHMENT_VERSION = 2          # bump when a parser changes: every role is re-enriched once instead of carrying old values
 
 
 def load_boards() -> list[dict]:
@@ -41,13 +42,22 @@ def export_boards() -> dict:
     return {"boards": len(boards)}
 
 
+def _carried(d: dict) -> dict[str, dict]:
+    """Previous roles by url; enrichment from an older parser version is dropped so it gets redone."""
+    roles = d.get("roles") if isinstance(d, dict) else None
+    if not isinstance(roles, list):
+        return {}
+    stale = d.get("enrichment_version") != ENRICHMENT_VERSION
+    return {r["url"]: {k: v for k, v in r.items() if not (stale and k in ENRICHMENT_FIELDS)}
+            for r in roles if isinstance(r, dict) and isinstance(r.get("url"), str)}
+
+
 def _previous_feed() -> dict[str, dict] | None:
     try:
         response = httpx.get(FEED_URL, timeout=20)
         response.raise_for_status()
-        roles = response.json().get("roles")
-        return {r["url"]: r for r in roles if isinstance(r, dict) and isinstance(r.get("url"), str)} \
-            if isinstance(roles, list) else {}
+        d = response.json()
+        return _carried(d)
     except Exception:
         return None
 
@@ -66,10 +76,17 @@ def _auth_flags(description: str) -> list[str]:
 
 
 def _graduation_years(description: str) -> list[int]:
+    """Class years a posting accepts. 'December 2027 or later' / 'after August 2027' accept every later year too."""
     years = set()
-    for cue in re.finditer(r"\b(?:graduat\w*|class\s+of)\b", description or "", re.I):
+    # "graduate degree/student/program" names a level of study, not a graduation date.
+    for cue in re.finditer(r"\b(?:graduat(?!e (?:degree|student|program|school|level|studies|intern|position|role))\w*|class\s+of)\b", description or "", re.I):
         nearby = re.split(r"[.!?\n]", (description or "")[cue.end():cue.end() + 90], maxsplit=1)[0]
-        years.update(map(int, re.findall(r"\b20\d{2}\b", nearby)))
+        found = list(map(int, re.findall(r"\b20\d{2}\b", nearby)))
+        if found and re.search(r"\b(?:after|or later|and later|or beyond|or after|onwards?|no earlier than)\b", nearby, re.I):
+            found += range(max(found) + 1, max(found) + 5)
+        elif len(found) == 2 and re.search(r"\d{4}\s*(?:-|–|—|to|through)\s*\w*\s*\d{0,2},?\s*20\d{2}|between", nearby, re.I):
+            found += range(min(found) + 1, max(found))     # "Dec 2027 – July 2029" includes 2028
+        years.update(found)
     return sorted(years)
 
 
@@ -118,7 +135,7 @@ def build_feed(previous: dict[str, dict] | None) -> dict:
         pass
     pool.shutdown(wait=False, cancel_futures=True)
     FEED_OUT.parent.mkdir(exist_ok=True)
-    FEED_OUT.write_text(json.dumps({"built": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    FEED_OUT.write_text(json.dumps({"built": datetime.now(timezone.utc).isoformat(timespec="seconds"), "enrichment_version": ENRICHMENT_VERSION,
                                     "boards": len(sources), "covered": covered, "roles": roles, "errors": errors}))
     return {"roles": len(roles), "boards": len(sources), "covered": len(covered), "errors": len(errors)}
 
@@ -195,6 +212,15 @@ if __name__ == "__main__":
     assert _auth_flags("Must be authorized to work without sponsorship.") == ["no_sponsor"]
     assert _graduation_years("Graduating in 2027 or 2028; class of 2029.") == [2027, 2028, 2029]
     assert _graduation_years("Role posted in 2027; no graduation details.") == []
+    assert _graduation_years("Expected graduation date of December 2027 or later.") == [2027, 2028, 2029, 2030, 2031]
+    assert _graduation_years("Graduating after August 2027.") == [2027, 2028, 2029, 2030, 2031]
+    assert _graduation_years("Graduating in Dec 2027 – July 2029 (U.S.)") == [2027, 2028, 2029]
+    assert _graduation_years("Graduation date no earlier than December 2026.") == [2026, 2027, 2028, 2029, 2030]
+    assert _graduation_years("Graduation date: 2026 or 2027") == [2026, 2027]
+    old = {"roles": [{"url": "https://contoso.example/1", "first_seen": "2026-10-20", "years": [2027]}]}
+    assert _carried(old)["https://contoso.example/1"] == {"url": "https://contoso.example/1", "first_seen": "2026-10-20"}
+    assert _carried({**old, "enrichment_version": ENRICHMENT_VERSION})["https://contoso.example/1"]["years"] == [2027]
+    assert _graduation_years("Enrolled in a graduate degree program, returning to school in Fall 2027.") == []
     assert _summary("  Contoso\n  data  intern ") == "Contoso data intern"
     assert _enrichment(fictional) == {"skills": ["sql"], "pay": "$20–30/hr", "auth": ["citizen", "no_sponsor"],
                                       "years": [2027, 2028], "summary": fictional}
