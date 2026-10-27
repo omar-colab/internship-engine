@@ -267,7 +267,8 @@ async function loadFeed() {
     // The oldest first_seen is the day tracking began (every role got it at once), so it never means new.
     const oldest = FEED.reduce((m, r) => r.first_seen && r.first_seen < m ? r.first_seen : m, "9999");
     FEED.forEach(r => { if (r.first_seen ? r.first_seen > oldest && daysSince(r.first_seen) <= 2 : seenUrls.size && !seenUrls.has(r.url)) NEW.add(r.url); });
-    S.seen = FEED.map(r => r.url); save();
+    // With first_seen in the feed, "new" needs no memory here; otherwise remember URLs (the fallback costs ~100 KB per 1,000 roles).
+    S.seen = FEED.some(r => r.first_seen) ? [] : FEED.map(r => r.url); save();
     // One role posted in many cities is one row; every city stays reachable from the detail view.
     const groups = new Map();
     for (const r of FEED) {
