@@ -206,14 +206,22 @@ footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wr
 
   <section>
     <div class="wrap">
-      <h2>One morning's feed, from employers' own boards.</h2>
+      <h2>Today's feed, straight from employers' own boards.</h2>
       <p class="lead">The app uses a shared feed of roles gathered directly from company job boards.</p>
-      <div class="nums">
-        <div><b>1,223</b><span>internships found</span></div>
-        <div><b>79</b><span>employer job boards read directly</span></div>
-        <div><b>162</b><span>scored 4 or 5 against one resume</span></div>
-        <div><b>107</b><span>hidden because the class year or degree didn't match</span></div>
+      <div class="nums" id="nums">
+        <div><b data-n="roles">11,249</b><span>internships in today's feed</span></div>
+        <div><b data-n="companies">686</b><span>employers hiring interns</span></div>
+        <div><b data-n="boards">780</b><span>employer job boards read directly</span></div>
+        <div><b data-n="pay">3,235</b><span>with pay listed on the posting</span></div>
       </div>
+      <script>
+        // Numbers come from the same feed the app reads; the ones above are only a fallback.
+        fetch("feed.json").then(r => r.json()).then(d => {
+          const roles = d.roles || [], set = (k, v) => { const el = document.querySelector(`[data-n="${k}"]`); if (el && v != null) el.textContent = v.toLocaleString(); };
+          set("roles", roles.length); set("companies", new Set(roles.map(r => r.company)).size);
+          set("boards", Array.isArray(d.boards) ? d.boards.length : d.boards); set("pay", roles.filter(r => r.pay).length);
+        }).catch(() => {});
+      </script>
     </div>
   </section>
 
