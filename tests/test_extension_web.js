@@ -124,10 +124,11 @@ const appPost = data => listeners.message({ source: window, origin: "https://oma
     { first_seen: "2026-10-26", company: "Contoso", title: "Data Intern", location: "Remote" },
   ] };
   const alertModule = { exports: {} };
+  let alertId = 0;
   vm.runInNewContext(fs.readFileSync(ROOT + "/extension/background.js", "utf8"), {
     chrome: alertChrome, importScripts() {}, module: alertModule,
     fetch: async url => { alertCalls.fetched++; assert.equal(url, "https://omar-colab.github.io/internship-engine/feed.json"); return { ok: true, json: async () => fictionalFeed }; },
-    Date, String, Array, Set, RegExp,
+    crypto: { randomUUID: () => String(++alertId) }, Date, String, Array, Set, RegExp,
   });
   assert.equal(alertModule.exports.matchingRoles(fictionalFeed, alertStore.profile).length, 4);
   assert.equal(await alertModule.exports.checkAlerts(), 4);
@@ -161,5 +162,13 @@ const appPost = data => listeners.message({ source: window, origin: "https://oma
   await alertListeners.startup();
   assert.equal(alertCalls.alarms.length, 1);                                    // startup never reschedules an existing alarm
   assert.equal(alertCalls.alarms[0][0], "daily-watch");
+  assert.equal(alertCalls.alarms[0][1].periodInMinutes, undefined);        // one-shot alarm stays at local 8:00 across DST
+  alertListeners.alarm({ name: "daily-watch" });
+  assert.equal(alertCalls.alarms.length, 2);
+  await Promise.all([
+    alertModule.exports.queueEvent({ kind: "saved", url: "https://jobs.example.invalid/1" }),
+    alertModule.exports.queueEvent({ kind: "saved", url: "https://jobs.example.invalid/2" }),
+  ]);
+  assert.equal(alertStore.events.length, 2);                               // concurrent messages don't overwrite each other
   console.log("ok");
 })().catch(error => { console.error(error); process.exitCode = 1; });

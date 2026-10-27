@@ -45,6 +45,7 @@ class ExtensionFillTests(unittest.TestCase):
         page.expose_function("__extensionMessage", self.mock_message)
         page.add_init_script("""
           window.__submitClicks = 0;
+          window.__sentMessages = [];
           document.addEventListener("click", event => {
             if (event.target instanceof Element && event.target.closest("[type=submit]")) window.__submitClicks++;
           }, true);
@@ -55,6 +56,7 @@ class ExtensionFillTests(unittest.TestCase):
             return root;
           };
           window.chrome = {runtime: {sendMessage(message, callback) {
+            window.__sentMessages.push(message);
             window.__extensionMessage(message).then(callback);
           }}};
         """)
@@ -110,6 +112,20 @@ class ExtensionFillTests(unittest.TestCase):
         self.assertFalse(page.locator('input[name="eligibility"]:checked').count())
         self.assert_requests()
         self.assert_no_submit(page)
+
+    def test_page_script_cannot_fake_an_application_submit(self):
+        page = self.open_fixture("greenhouse.html")
+        page.evaluate("""() => {
+          const button = document.createElement('button');
+          button.id = 'test-submit';
+          button.textContent = 'Submit application';
+          document.body.append(button);
+          button.click();
+        }""")
+        self.assertEqual(page.evaluate("window.__sentMessages.filter(m => m.path === '/ext/applied').length"), 0)
+        page.locator("#test-submit").click()
+        page.wait_for_function("window.__sentMessages.some(m => m.path === '/ext/applied')")
+        self.assertEqual(page.evaluate("window.__sentMessages.filter(m => m.path === '/ext/applied').length"), 1)
 
 
 if __name__ == "__main__":
