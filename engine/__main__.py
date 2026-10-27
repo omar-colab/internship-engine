@@ -57,7 +57,7 @@ elif cmd == "resume":
         out(resume.variants() if sub == "variants" else resume.tailor(int(args[1])))
 elif cmd in ("boards", "feed-build"):
     from . import shared
-    out(shared.export_boards() if cmd == "boards" else shared.build_feed())
+    out(shared.export_boards() if cmd == "boards" else shared.build_feed(shared._previous_feed()))
 elif cmd == "token":
     print(server.token())
 elif cmd == "serve":
