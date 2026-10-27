@@ -458,6 +458,21 @@ function draftNote(person, r) {
   return opts.find(m => m.length <= 200) || opts[1].slice(0, 199) + "…";
 }
 
+// ---------- prompts for any AI chat (nothing is sent from here; the person pastes it) ----------
+function aiPrompt(kind, r) {
+  const p = S.profile, resume = (p.resume || "").trim();
+  const job = [`Role: ${r.title}`, `Company: ${r.company}`, `Location: ${r.location || "not listed"}`, r.pay && `Pay: ${r.pay}`,
+    r.skills?.length && `Skills the posting names: ${r.skills.join(", ")}`, r.summary && `Posting excerpt: ${r.summary}`, `Posting: ${r.url}`].filter(Boolean).join("\n");
+  const honest = "Rules: use only facts from my resume below. Never invent employers, titles, dates, numbers, tools, skills or results. If the posting asks for something my resume doesn't show, say so plainly instead of covering it up.";
+  const me = resume ? `My resume:\n"""\n${resume.slice(0, 12000)}\n"""` : "(I haven't pasted my resume; ask me for it before writing anything.)";
+  const ask = {
+    resume: "I'm applying to this internship. Suggest how to tailor my resume for it: which bullets to move up, which to cut, and rewordings that use the posting's language where my experience genuinely matches. Show each change as before → after. Keep it to one page.",
+    cover: "Write a short cover letter (under 200 words) for this internship: one specific reason I want this role, two pieces of evidence from my resume that fit it, and a plain closing. No clichés, no flattery.",
+    prep: "Prepare me for an interview for this internship: the 8 questions I'm most likely to get (behavioral and role-specific), and for each a STAR outline built only from my resume. Then list 3 good questions to ask the interviewer. Finally, run a mock interview: ask me one question at a time and give feedback.",
+  }[kind];
+  return `${ask}\n\n${honest}\n\nThe internship:\n${job}\n\n${me}`;
+}
+
 // ---------- job detail ----------
 function openJob(r) {
   const { s, why } = score(r), p = S.profile, app = S.apps[r.url], sk = skillMatch(r);
@@ -482,6 +497,8 @@ function openJob(r) {
       <div class="siblings" style="margin-top:6px">${known(r.company).slice(0, 8).map((x, i) => `<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding:4px 0">
         <span>${x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${esc(x.first + " " + x.last)}</a>` : esc(x.first + " " + x.last)} <span class="muted">· ${esc(x.position)}</span></span>
         <button class="btn sm" data-copy="${esc(draftNote(x, r))}">Copy note</button></div>`).join("")}</div></div>` : ""}
+    <div><b style="font-size:14px">Ask an AI</b> <span class="muted" style="font-size:13px">— copies a prompt for ChatGPT, Claude or Gemini, with rules that stop it inventing anything</span>
+      <div class="chips" style="margin-top:8px">${[["resume", "Tailor my resume"], ["cover", "Draft a cover letter"], ["prep", "Prep me for the interview"]].map(([k, l]) => `<button class="btn sm" data-ai="${k}">${l}</button>`).join("")}</div></div>
     <p class="muted" style="margin:0;font-size:13px">Tip: applying in the first few days after a posting goes up matters more than a perfect cover letter.</p>
     <div class="actions" style="margin-top:4px">
       <button class="btn sm" data-act="hide" style="color:var(--ink-3)">Not interested</button>
@@ -797,6 +814,8 @@ async function pdfText(file) {
 document.addEventListener("click", e => {
   const co = e.target.closest("[data-company]");
   if (co) { Object.assign(jobQuery, { q: co.dataset.company, field: "all", where: "any", season: "", shown: PAGE }); tab = "jobs"; return render(); }
+  const ai = e.target.closest("[data-ai]");
+  if (ai) { const r = FEED.find(x => x.url === $("#jobBody").dataset.url); return navigator.clipboard.writeText(aiPrompt(ai.dataset.ai, r)).then(() => toast("Prompt copied — paste it into ChatGPT, Claude or Gemini."), () => toast("Couldn't copy — your browser blocked the clipboard.")); }
   const cp = e.target.closest("[data-copy]");
   if (cp) return navigator.clipboard.writeText(cp.dataset.copy).then(() => toast("Note copied — paste it into LinkedIn yourself."), () => toast(cp.dataset.copy));
   const sib = e.target.closest("[data-sib]");
