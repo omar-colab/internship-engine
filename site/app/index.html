@@ -730,7 +730,9 @@ function sendProfile() {
   if (!extVersion || !p) return;
   const [first_name, ...rest] = p.name.split(/\s+/);
   post({ type: "profile", profile: { ...(a || {}), first_name, last_name: a?.last_name || rest.join(" "), country: "United States",
-    work_authorization: p.auth || "", needs_sponsorship: p.auth === "sponsor", eeo: "decline", resume_text: p.resume || "" } });
+    work_authorization: p.auth || "", needs_sponsorship: p.auth === "sponsor", eeo: "decline", resume_text: p.resume || "",
+    // What the extension's daily alert counts: the same field patterns this page uses, as regex sources.
+    watch: { fields: (p.fields || []).map(f => FIELDS[f][1].source), places: p.places || [] } } });
 }
 window.addEventListener("message", e => {
   const m = e.data;
