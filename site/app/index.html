@@ -490,6 +490,41 @@ async function openPrep(a) {
   if (!$("#jobDlg").open) $("#jobDlg").showModal();
 }
 
+// ---------- move to another device: everything travels in the #fragment, which browsers never send to a server ----------
+async function pack(obj) {
+  const stream = new Blob([JSON.stringify(obj)]).stream().pipeThrough(new CompressionStream("deflate-raw"));
+  const bytes = new Uint8Array(await new Response(stream).arrayBuffer());
+  let out = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) out += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(out).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+async function unpack(text) {
+  const bin = atob(text.replace(/-/g, "+").replace(/_/g, "/")), bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+  return JSON.parse(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).text());
+}
+async function handoffLink() {
+  // Contacts stay behind (they're other people's data and can be re-uploaded); everything else comes along.
+  return `${location.origin}${location.pathname}#import=${await pack({ v: 1, profile: S.profile, apps: S.apps, hidden: S.hidden })}`;
+}
+async function importFromHash() {
+  const m = location.hash.match(/^#import=([\w-]+)$/);
+  if (!m) return;
+  history.replaceState(null, "", location.pathname);          // the link holds your data; don't leave it in the address bar
+  let d;
+  try { d = await unpack(m[1]); } catch { return toast("That link is damaged — copy it again."); }
+  if (!d || d.v !== 1 || typeof d.apps !== "object" || !d.apps || Array.isArray(d.apps)) return toast("That link isn't from Internship Engine.");
+  const n = Object.keys(d.apps).length;
+  if (!confirm(`Bring over ${d.profile?.name ? d.profile.name + "'s" : "a"} profile and ${n} tracked application${n === 1 ? "" : "s"}? Your tracker here is kept; the newer copy of each application wins.`)) return;
+  for (const [url, a] of Object.entries(d.apps)) {
+    if (!a || typeof a !== "object") continue;
+    const mine = S.apps[url];
+    if (!mine || String(a.updated || "") > String(mine.updated || "")) S.apps[url] = { ...a };
+  }
+  if (d.profile && typeof d.profile === "object") S.profile = { ...d.profile };
+  S.hidden = [...new Set([...(S.hidden || []), ...(Array.isArray(d.hidden) ? d.hidden.filter(x => typeof x === "string") : [])])];
+  PV++; save(); toast("Brought over.");
+}
+
 // ---------- job detail ----------
 function openJob(r) {
   const { s, why } = score(r), p = S.profile, app = S.apps[r.url], sk = skillMatch(r);
@@ -656,7 +691,7 @@ function renderTracker() {
   const sent = apps.filter(a => a.applied), heard = sent.filter(a => ["oa", "interview", "offer", "rejected"].includes(a.status));
   const pct = n => sent.length ? Math.round(n / sent.length * 100) + "%" : "–";
   view.innerHTML = `<div class="hello"><div><h1>Tracker</h1><p class="lede" style="margin:0">Drag cards between stages. ${apps.length ? "" : "Save a job or add one you applied to elsewhere."}</p></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="addApp">+ Add application</button><button class="btn" id="exportBtn">Backup</button><label class="btn">Restore<input type="file" id="importIn" accept="application/json" hidden></label></div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="addApp">+ Add application</button><button class="btn" id="phoneBtn">Open on another device</button><button class="btn" id="exportBtn">Backup</button><label class="btn">Restore<input type="file" id="importIn" accept="application/json" hidden></label></div></div>
     ${sent.length ? `<div class="stats" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
       <div class="card stat"><b>${sent.length}</b><span>applied</span></div>
       <div class="card stat"><b>${pct(heard.length)}</b><span>heard back</span></div>
@@ -837,7 +872,7 @@ document.addEventListener("click", e => {
   if (cp) return navigator.clipboard.writeText(cp.dataset.copy).then(() => toast("Note copied — paste it into LinkedIn yourself."), () => toast(cp.dataset.copy));
   const sib = e.target.closest("[data-sib]");
   if (sib) { e.preventDefault(); return openJob(FEED.find(x => x.url === sib.dataset.sib)); }
-  const t = e.target.closest("[data-tab],[data-go],[data-act],#me,#me2,#addApp,#exportBtn,#theme,#invite");
+  const t = e.target.closest("[data-tab],[data-go],[data-act],#me,#me2,#addApp,#exportBtn,#phoneBtn,#theme,#invite");
   if (!t) return;
   if (t.id === "theme") {
     const dark = matchMedia("(prefers-color-scheme: dark)").matches;
@@ -852,6 +887,16 @@ document.addEventListener("click", e => {
   if (t.dataset.tab || t.dataset.go) { tab = t.dataset.tab || t.dataset.go; return render(); }
   if (t.id === "me" || t.id === "me2") { tab = "profile"; stash = null; return render(); }
   if (t.id === "addApp") { const f = $("#addForm"); f.reset(); f.status.innerHTML = STAGES.map(([k, l]) => `<option value="${k}" ${k === "applied" ? "selected" : ""}>${l}</option>`).join(""); return $("#addDlg").showModal(); }
+  if (t.id === "phoneBtn") return handoffLink().then(url => {
+    // Building the link is async, which uses up the click's clipboard permission, so the copy gets its own button.
+    $("#jobBody").innerHTML = `<button class="icon-btn" data-act="close" aria-label="Close" style="position:absolute;top:14px;right:14px">✕</button>
+      <h2 id="jobTitle">Open on another device</h2>
+      <p class="muted" style="margin:0">This link carries your profile and tracker (not your LinkedIn contacts). Open it on your phone or laptop and they merge in. Treat it like a password: anyone with it sees your tracker.</p>
+      <input class="t" id="handoffUrl" readonly value="${esc(url)}" aria-label="Link">
+      <div class="actions" style="margin-top:0"><span></span><span style="display:flex;gap:8px">${navigator.share ? `<button class="btn" id="handoffShare">Share</button>` : ""}<button class="btn go" data-copy="${esc(url)}">Copy link</button></span></div>`;
+    $("#jobDlg").open || $("#jobDlg").showModal();
+    $("#handoffShare")?.addEventListener("click", () => navigator.share({ title: "Internship Engine", url }).catch(() => {}));
+  });
   if (t.id === "exportBtn") {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([JSON.stringify(S, null, 2)], { type: "application/json" }));
@@ -920,7 +965,9 @@ function landFocus() { const h = $("main h1"); if (h) { h.tabIndex = -1; h.focus
 if (S.theme) document.documentElement.dataset.theme = S.theme;
 (async () => {
   view.innerHTML = `<div class="empty">Loading today's internships…</div>`;
-  await loadFeed(); counts(); render(); post({ type: "hello" });
+  await loadFeed(); await importFromHash(); counts(); render(); post({ type: "hello" });
+  // Pasting the link into a tab that already has the app open only changes the #fragment.
+  window.addEventListener("hashchange", () => importFromHash().then(() => { counts(); render(); }));
 })();
 </script>
 </body>
