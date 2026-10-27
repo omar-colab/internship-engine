@@ -350,6 +350,29 @@ function track(r, status) {
   save(); counts();
 }
 
+// Which missing skills show up most across the roles you'd otherwise fit: what to learn next.
+const EVERYDAY = new Set(["word", "powerpoint", "presentation", "writing", "public speaking"]);   // asked everywhere, nothing to "learn next"
+function skillGaps(all) {
+  const mine = S.profile.fields || [], count = {};
+  let n = 0;
+  for (const x of all) {
+    if (x.block || (mine.length && !x.r.fields.some(f => mine.includes(f)))) continue;
+    const sk = skillMatch(x.r);
+    if (!sk) continue;
+    n++;
+    sk.missing.filter(k => !EVERYDAY.has(k)).forEach(k => count[k] = (count[k] || 0) + 1);
+  }
+  const top = Object.entries(count).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  if (!S.profile.resume) return `<section class="card" style="padding:18px"><h2>What to learn next</h2><p class="muted" style="margin:0 0 12px">Add your resume and we'll show which skills would open up the most roles for you.</p><button class="btn sm" id="me2">Add resume</button></section>`;
+  if (!top.length) return "";
+  const max = top[0][1];
+  return `<section class="card" style="padding:18px"><h2>What to learn next</h2>
+    <p class="muted" style="margin:0 0 12px;font-size:13.5px">Skills your resume doesn't show, ranked by how many of your ${n} matching roles ask for them.</p>
+    ${top.map(([k, c]) => `<div style="margin:8px 0"><div style="display:flex;justify-content:space-between;font-size:14px"><b>${esc(k)}</b><span class="muted">${c} role${c > 1 ? "s" : ""}</span></div>
+      <div style="height:6px;border-radius:3px;background:var(--line);margin-top:4px"><div style="height:100%;width:${Math.round(c / max * 100)}%;border-radius:3px;background:var(--blue)"></div></div></div>`).join("")}
+    <p class="muted" style="margin:10px 0 0;font-size:12.5px">Already know one? Add it to your resume, honestly, and your matches update.</p></section>`;
+}
+
 // ---------- job detail ----------
 function openJob(r) {
   const { s, why } = score(r), p = S.profile, app = S.apps[r.url], sk = skillMatch(r);
@@ -428,6 +451,7 @@ function renderToday() {
       <aside style="display:grid;gap:20px">
         <section class="card" style="padding:18px"><h2>Follow up</h2>${due.length ? due.slice(0, 6).map(a => `<div style="padding:8px 0;border-top:1px solid var(--line)"><b style="font-size:14px">${esc(a.company)}</b><div class="muted" style="font-size:13px">${esc(a.title)} · applied ${daysSince(a.applied || a.updated)}d ago</div></div>`).join("") : `<p class="muted" style="margin:0">Nothing's gone quiet. Applications with no news for ${FOLLOW_DAYS} days show up here.</p>`}</section>
         <section class="card" style="padding:18px"><h2>Coming up</h2>${live.length ? live.map(a => `<div style="padding:8px 0;border-top:1px solid var(--line)"><b style="font-size:14px">${esc(a.company)}</b> <span class="tag">${a.status === "oa" ? "Assessment" : "Interview"}</span><div class="muted" style="font-size:13px">${esc(a.title)}${a.when ? " · " + esc(new Date(a.when).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })) : ""}</div></div>`).join("") : `<p class="muted" style="margin:0">Assessments and interviews you move on the tracker show up here.</p>`}</section>
+        ${skillGaps(all)}
         <section class="card" style="padding:18px"><h2>Searching with friends?</h2><p class="muted" style="margin:0 0 12px">Send them the link. Everyone gets their own private tracker.</p><button class="btn sm" id="invite">Share the app</button></section>
         <section class="card" style="padding:18px"><h2>Fill forms faster</h2>${extVersion ? `<p class="muted" style="margin:0 0 12px"><b style="color:var(--green)">Extension connected.</b> It fills forms with your autofill details and adds what you apply to here.</p>${p.autofill?.email ? "" : `<button class="btn sm" id="me2">Add autofill details</button>`}` : `<p class="muted" style="margin:0 0 12px">The Chrome extension fills the application form on the page you're on, and never clicks Submit.</p><a class="btn sm" href="https://github.com/omar-colab/internship-engine/releases/latest" target="_blank" rel="noopener">Get the extension</a>`}</section>
       </aside>
