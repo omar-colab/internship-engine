@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Internship Engine</title>
-<meta name="description" content="Free and open source. Finds internships on employers' own job boards, ranks them against your resume, fills the application forms other autofills give up on, and never clicks Submit for you.">
+<meta name="description" content="Free, no-install internship app. Browse roles from employers' own boards, ranked with reasons, and track applications in your browser. Optional laptop engine and extension add autofill and inbox tracking; they never click Submit.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
@@ -166,14 +166,14 @@ footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wr
   <div class="wrap">
     <div class="bar">
       <a class="logo" href="#"><span class="mark"><span class="sig" style="gap:2px"><i style="height:5px"></i><i style="height:8px"></i><i style="height:11px"></i><i style="height:14px"></i></span></span>Internship Engine</a>
-      <nav aria-label="Sections"><a href="app/">Open the app</a><a href="#how">How it works</a><a href="#compare">Compared to JobRight</a><a href="#start">Get started</a></nav>
+      <nav aria-label="Sections"><a href="app/">Open the app</a><a href="#how">How it works</a><a href="#compare">Compared to JobRight</a><a href="#start">Laptop setup</a></nav>
     </div>
     <div class="hero">
       <div class="hero-copy">
-        <h1>Apply to the internships that fit. Skip the forms.</h1>
-        <p class="sub">Finds roles on employers' own job boards, ranks them against your resume, and fills the applications other autofills give up on. You click Submit.</p>
-        <div class="cta"><a class="btn go" href="app/">Open the app — free, no sign-up</a><a class="btn ghost" href="#start">Run it on your laptop</a></div>
-        <p class="free">Free and open source. Runs on your laptop. Your resume never leaves it.</p>
+        <h1>Find internships. Keep your search in one browser.</h1>
+        <p class="sub">Open the free app—no install, no account. See ranked jobs with reasons, then track applications. Your profile and tracker stay in this browser.</p>
+        <div class="cta"><a class="btn go" href="app/">Open the app</a><a class="btn ghost" href="#laptop">Run it on your laptop</a></div>
+        <p class="free">Browser-only storage. Your resume and tracker stay in this browser.</p>
       </div>
       <div class="shot" role="region" aria-label="Example: Needs you list">
         <div class="shot-head"><span class="shot-title">Needs you</span><span class="shot-count">4 roles to review</span></div>
@@ -191,10 +191,23 @@ footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wr
 </header>
 
 <main>
+  <section id="how">
+    <div class="wrap">
+      <h2>A useful shortlist, ready in your browser.</h2>
+      <p class="lead">Browse internships collected from employers' own job boards. Set your field, location and season, then decide which roles deserve your time.</p>
+      <div class="feats">
+        <div class="feat"><h3>See why a role fits</h3><p>Jobs are ranked with a match score and the reasons behind it. Open a role for details and the employer's application link.</p></div>
+        <div class="feat"><h3>Filter your search</h3><p>Narrow roles by field, location and season, or search by company and title.</p></div>
+        <div class="feat"><h3>Track what happens next</h3><p>Save jobs to your tracker, update their status, and see when it may be time to follow up.</p></div>
+        <div class="feat"><h3>Bring your resume privately</h3><p>Import a PDF in your browser for matching. Back up or restore your profile and tracker whenever you like; switch to dark mode if you prefer.</p></div>
+      </div>
+    </div>
+  </section>
+
   <section>
     <div class="wrap">
-      <h2>One morning's run, on one laptop.</h2>
-      <p class="lead">Read straight from the companies' own job boards, not from a list that was already a week old.</p>
+      <h2>One morning's feed, from employers' own boards.</h2>
+      <p class="lead">The app uses a shared feed of roles gathered directly from company job boards.</p>
       <div class="nums">
         <div><b>1,223</b><span>internships found</span></div>
         <div><b>79</b><span>employer job boards read directly</span></div>
@@ -204,10 +217,10 @@ footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wr
     </div>
   </section>
 
-  <section id="how">
+  <section id="laptop">
     <div class="wrap">
-      <h2>Four jobs, done for you every day.</h2>
-      <p class="lead">It wakes up at 7:00, does the busywork, and leaves you a short list of things only you can do.</p>
+      <h2>Run it on your laptop for the power tools.</h2>
+      <p class="lead">Install the engine and Chrome extension for daily inbox tracking and application autofill that stops before Submit.</p>
       <div class="feats">
         <div class="feat"><h3>Find</h3><p>Reads Workday, Greenhouse, Lever, Ashby, iCIMS, UKG, Oracle Cloud, Phenom, SuccessFactors, Jobvite, JazzHR and Workable boards directly, plus public internship lists. Any company it meets once gets watched from then on.</p></div>
         <div class="feat"><h3>Rank</h3><p>Every posting is read in full and scored 1 to 5 against your resume, with the reason in one line. Graduate-only roles, the wrong class year and seasons already past are hidden before you see them.</p></div>
@@ -233,16 +246,11 @@ footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wr
   <section id="compare">
     <div class="wrap">
       <h2>What's different from JobRight.</h2>
-      <p class="lead">JobRight is good at volume. This is built for aim, honesty and keeping your data.</p>
-      <table>
-        <thead><tr><th></th><th>Internship Engine</th><th>JobRight</th></tr></thead>
-        <tr><td>Where roles come from</td><td class="us">Employers' own job boards, checked every morning</td><td class="them">Its own database; reviewers say listings lag</td></tr>
-        <tr><td>Match score</td><td class="us">1 to 5 with the reason, plus hard eligibility checks</td><td class="them">A percentage</td></tr>
-        <tr><td>Resume tailoring</td><td class="us">Only your own lines, never a new fact</td><td class="them">Rewrites per posting; reviewers report invented claims</td></tr>
-        <tr><td>Autofill</td><td class="us">Reads hidden dropdown options, verifies every answer, stops before Submit</td><td class="them">Strong on Greenhouse and Lever, weaker on custom forms</td></tr>
-        <tr><td>Your data</td><td class="us">Stays on your laptop</td><td class="them">On their servers</td></tr>
-        <tr><td>Price</td><td class="us">Free and open source</td><td class="them">Paid plans</td></tr>
-      </table>
+      <p class="lead">Internship Engine keeps the search simple and private. JobRight is ahead if you want an AI copilot or insider connections at scale.</p>
+      <div class="feats">
+        <div class="feat"><h3>Internship Engine</h3><p>Free and open source, with no account. Your profile and tracker stay in this browser. The app shows roles gathered from employers' own job boards; the laptop extension never clicks Submit.</p></div>
+        <div class="feat"><h3>JobRight</h3><p>JobRight is ahead on its AI copilot and insider connections at scale.</p></div>
+      </div>
     </div>
   </section>
 
@@ -260,7 +268,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wr
 
   <section id="start">
     <div class="wrap">
-      <h2>Set it up in about ten minutes.</h2>
+      <h2>Optional: set up the laptop version.</h2>
       <p class="lead">You need a Mac or Linux laptop, Chrome, and uv. Claude Code is optional for assisted setup.</p>
       <div class="steps">
         <div class="step"><h3>Get the engine</h3><p>Clone the repo, install it, and copy the example profile.</p><pre><code>git clone https://github.com/omar-colab/internship-engine

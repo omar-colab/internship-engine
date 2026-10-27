@@ -33,6 +33,9 @@
     <p>Last updated: October 22, 2026</p>
     <p>This notice describes the Internship Engine browser extension and its connection to the optional local Internship Engine app. The software is open source and runs on your computer.</p>
 
+    <h2>Browser app</h2>
+    <p>The no-install app at <code>/app/</code> stores your profile, resume text, and tracker in this browser's local storage. It does not send that information to a server. It downloads the shared job feed to show current roles; if you import a PDF resume, the app reads it in your browser. The page loads its fonts from Google Fonts and, only when you import a PDF, the pdf.js reader from cdnjs; those services see a normal web request, never your resume or tracker.</p>
+
     <h2>Information the extension handles</h2>
     <p>On supported job-board pages, the extension reads the page URL, job-posting details, and visible application-field labels and options so it can look up a role, save it, and request answers from your local profile. When you choose to fill a form with a resume field, the extension retrieves your resume from the local app and places it in that page's file field.</p>
 
