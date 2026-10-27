@@ -315,7 +315,7 @@ function scoreNow(r) {
   const hit = r.fields.filter(f => (p.fields || []).includes(f));
   if (hit.length) { s += 2; why.push(FIELDS[hit[0]][0]); }
   const locs = (r.locs || [r]).map(l => (l.location || "").toLowerCase());
-  const place = (p.places || []).find(pl => pl && locs.some(l => l.includes(pl.toLowerCase())));
+  const place = (p.places || []).find(pl => pl && locs.some(l => placeHit(pl, l)));
   if (locs.some(l => /remote/.test(l))) { s += 1; why.push("remote"); }
   else if (place) { s += 1; why.push("in " + place); }
   const sk = skillMatch(r);
@@ -359,8 +359,17 @@ function skillMatchNow(r, res) {
 function placeOk(r, remoteOnly) {
   return (r.locs || [r]).some(({ location }) => {
     const loc = (location || "").toLowerCase();
-    return /remote/.test(loc) || !remoteOnly && (S.profile.places || []).some(pl => loc.includes(pl.toLowerCase()));
+    return /remote/.test(loc) || !remoteOnly && (S.profile.places || []).some(pl => pl && placeHit(pl, loc));
   });
+}
+// What people type vs. what boards write: "NYC" vs "New York, NY", "Bay Area" vs "San Jose".
+const METROS = [["new york", "nyc", "manhattan", "brooklyn", "jersey city", "hoboken"], ["san francisco", "sf", "bay area", "san jose", "palo alto", "mountain view", "sunnyvale", "menlo park", "oakland"],
+  ["los angeles", "santa monica", "irvine"], ["washington", "dc", "d.c.", "arlington", "mclean", "reston", "bethesda"], ["boston", "cambridge"], ["dallas", "fort worth", "irving", "plano"],
+  ["chicago"], ["seattle", "redmond", "bellevue"], ["atlanta"], ["philadelphia", "philly"], ["minneapolis", "st. paul", "saint paul"], ["denver", "boulder"], ["houston"], ["austin"]];
+function placeHit(pl, loc) {
+  const want = pl.toLowerCase().trim(), metro = METROS.find(m => m.includes(want));
+  // Short aliases ("la", "sf", "dc") only count as whole words so "la" never matches "Atlanta".
+  return (metro || [want]).some(a => a.length <= 3 ? new RegExp(`(^|[^a-z])${a.replace(".", "\\.")}([^a-z]|$)`).test(loc) : loc.includes(a));
 }
 const moreLocs = r => r.locs?.length > 1 ? ` +${r.locs.length - 1} more` : "";
 function initials(name) { return (name || "?").split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase(); }
