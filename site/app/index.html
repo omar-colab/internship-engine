@@ -234,7 +234,7 @@ const daysSince = d => Math.floor((Date.now() - new Date(d).getTime()) / 864e5);
 function load() {
   try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; }
 }
-let S = Object.assign({ profile: null, apps: {}, seen: [], hidden: [] }, load());
+let S = Object.assign({ profile: null, apps: {}, seen: [], hidden: [], contacts: [] }, load());
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { toast("Your browser blocked saving — use Backup to keep your data."); }
 }
@@ -336,7 +336,7 @@ function jobRow(r) {
   return `<article class="card job" tabindex="-1" data-url="${esc(r.url)}">
     ${tile(r.company)}
     <div><h3><button data-act="open">${esc(r.title)}</button> ${NEW.has(r.url) ? '<span class="new">NEW</span>' : ""} ${season(r.title) ? `<span class="season">${esc(season(r.title))}</span>` : ""}</h3>
-      <div class="meta"><span>${esc(r.company)}</span><span>·</span><span>${esc((r.location || "Location not listed") + moreLocs(r))}</span>${ago(r.posted || r.first_seen) ? `<span>· ${esc(ago(r.posted || r.first_seen))}</span>` : ""}${r.pay ? `<span class="tag">${esc(r.pay)}</span>` : ""}</div>
+      <div class="meta"><span>${esc(r.company)}</span><span>·</span><span>${esc((r.location || "Location not listed") + moreLocs(r))}</span>${ago(r.posted || r.first_seen) ? `<span>· ${esc(ago(r.posted || r.first_seen))}</span>` : ""}${r.pay ? `<span class="tag">${esc(r.pay)}</span>` : ""}${known(r.company).length ? `<span class="tag" style="background:var(--green-soft);color:var(--green);border-color:transparent">${known(r.company).length} you know</span>` : ""}</div>
       ${why.length ? `<div class="why">${fitBars(s)} &nbsp;${esc(why.join(" · "))}</div>` : `<div class="why">${fitBars(s)}</div>`}
     </div>
     <div class="side">
@@ -373,6 +373,50 @@ function skillGaps(all) {
     <p class="muted" style="margin:10px 0 0;font-size:12.5px">Already know one? Add it to your resume, honestly, and your matches update.</p></section>`;
 }
 
+// ---------- people you know (LinkedIn's Connections.csv, read in this browser) ----------
+// Same rules as engine/warm.py: keep name, company, position, profile link; drop emails; drafts ≤ 200 chars, never sent.
+const SUFFIX = /\b(inc|llc|llp|ltd|corp(oration)?|company|co|group|the|us|usa|na|holdings|plc)\b\.?/gi;
+const companyKey = n => (n || "").toLowerCase().replace(SUFFIX, " ").replace(/[^a-z0-9]/g, "");
+function parseCsv(text) {
+  const rows = [], row = [""];
+  let q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"' && text[i + 1] === '"') { row[row.length - 1] += '"'; i++; } else if (c === '"') q = false; else row[row.length - 1] += c; }
+    else if (c === '"') q = true;
+    else if (c === ",") row.push("");
+    else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; rows.push(row.splice(0)); row.push(""); }
+    else row[row.length - 1] += c;
+  }
+  if (row.length > 1 || row[0]) rows.push(row);
+  return rows;
+}
+function importContacts(text) {
+  const rows = parseCsv(text.replace(/^\ufeff/, "")), h = rows.findIndex(r => r[0] === "First Name");   // LinkedIn puts notes above the header
+  if (h < 0) throw new Error("no header");
+  const col = name => rows[h].indexOf(name);
+  const [f, l, c, p, u] = ["First Name", "Last Name", "Company", "Position", "URL"].map(col);
+  S.contacts = rows.slice(h + 1).filter(r => r[c]).slice(0, 30000).map(r => ({ first: r[f] || "", last: r[l] || "", company: r[c], position: r[p] || "", url: safeUrl(r[u]) }));
+  save(); KNOWN = null; return S.contacts.length;
+}
+let KNOWN = null;
+function known(company) {
+  if (!KNOWN) { KNOWN = { by: {}, memo: {} }; for (const x of S.contacts || []) (KNOWN.by[companyKey(x.company)] ||= []).push(x); }
+  const k = companyKey(company);
+  if (k in KNOWN.memo) return KNOWN.memo[k];
+  // "Booz Allen" posts; LinkedIn says "Booz Allen Hamilton". Prefix match only on distinctive keys (5+ chars).
+  return KNOWN.memo[k] = k.length < 5 ? KNOWN.by[k] || [] : Object.entries(KNOWN.by).filter(([ck]) => ck === k || ck.length >= 5 && (ck.startsWith(k) || k.startsWith(ck))).flatMap(([, v]) => v);
+}
+function draftNote(person, r) {
+  const p = S.profile, school = p.autofill?.school, who = school ? `a student at ${school}` : "a student";
+  // "University - Corporate Finance Intern (NYC), Summer 2027" → "Corporate Finance Intern"
+  const parts = r.title.split(/\s+[-–|]\s+|\s*[(,]\s*/).map(x => x.trim()).filter(x => x.length > 3 && !/^(university|campus|college|early careers?|summer|fall|spring|20\d\d)\b/i.test(x));
+  const title = (parts.find(x => /intern|co-?op|analyst|associate|engineer/i.test(x)) || parts[0] || "internship").replace(/^(.{0,48})\s.*$/, "$1");
+  const opts = [`Hi ${person.first || "there"}, I'm ${p.name.split(" ")[0]}, ${who}, applying to ${r.company}'s ${title} role. Could I ask you 2 quick questions about the team?`,
+                `Hi ${person.first || "there"}, I'm ${who}, applying to ${r.company}. Open to 2 quick questions about the team?`];
+  return opts.find(m => m.length <= 200) || opts[1].slice(0, 199) + "…";
+}
+
 // ---------- job detail ----------
 function openJob(r) {
   const { s, why } = score(r), p = S.profile, app = S.apps[r.url], sk = skillMatch(r);
@@ -392,6 +436,10 @@ function openJob(r) {
       <div class="chips" style="margin-top:8px">${sk.have.map(k => `<span class="tag" style="background:var(--green-soft);color:var(--green);border-color:transparent">✓ ${esc(k)}</span>`).join("")}${sk.missing.map(k => `<span class="tag">${esc(k)}</span>`).join("")}</div></div>`
       : r.skills?.length ? `<div><b style="font-size:14px">Skills it asks for:</b> <span class="muted">${esc(r.skills.join(", "))}</span> <span class="muted" style="font-size:13px">(add your resume in your profile to see which you have)</span></div>` : ""}
     ${others.length ? `<div><b style="font-size:14px">${others.length} more at ${esc(r.company)}</b><div class="siblings">${others.slice(0, 30).map(o => `<a href="#" data-sib="${esc(o.url)}">${esc(o.title)} <span class="muted">· ${esc(o.location || "")}</span></a>`).join("")}</div></div>` : ""}
+    ${known(r.company).length ? `<div><b style="font-size:14px">People you know at ${esc(r.company)}</b> <span class="muted" style="font-size:13px">— a referral beats a cold application</span>
+      <div class="siblings" style="margin-top:6px">${known(r.company).slice(0, 8).map((x, i) => `<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding:4px 0">
+        <span>${x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${esc(x.first + " " + x.last)}</a>` : esc(x.first + " " + x.last)} <span class="muted">· ${esc(x.position)}</span></span>
+        <button class="btn sm" data-copy="${esc(draftNote(x, r))}">Copy note</button></div>`).join("")}</div></div>` : ""}
     <p class="muted" style="margin:0;font-size:13px">Tip: applying in the first few days after a posting goes up matters more than a perfect cover letter.</p>
     <div class="actions" style="margin-top:4px">
       <button class="btn sm" data-act="hide" style="color:var(--ink-3)">Not interested</button>
@@ -452,6 +500,9 @@ function renderToday() {
         <section class="card" style="padding:18px"><h2>Follow up</h2>${due.length ? due.slice(0, 6).map(a => `<div style="padding:8px 0;border-top:1px solid var(--line)"><b style="font-size:14px">${esc(a.company)}</b><div class="muted" style="font-size:13px">${esc(a.title)} · applied ${daysSince(a.applied || a.updated)}d ago</div></div>`).join("") : `<p class="muted" style="margin:0">Nothing's gone quiet. Applications with no news for ${FOLLOW_DAYS} days show up here.</p>`}</section>
         <section class="card" style="padding:18px"><h2>Coming up</h2>${live.length ? live.map(a => `<div style="padding:8px 0;border-top:1px solid var(--line)"><b style="font-size:14px">${esc(a.company)}</b> <span class="tag">${a.status === "oa" ? "Assessment" : "Interview"}</span><div class="muted" style="font-size:13px">${esc(a.title)}${a.when ? " · " + esc(new Date(a.when).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })) : ""}</div></div>`).join("") : `<p class="muted" style="margin:0">Assessments and interviews you move on the tracker show up here.</p>`}</section>
         ${skillGaps(all)}
+        <section class="card" style="padding:18px"><h2>People you know</h2>${S.contacts?.length
+          ? `<p class="muted" style="margin:0 0 12px">${S.contacts.length.toLocaleString()} connections loaded · <b>${new Set(all.filter(x => !x.block && known(x.r.company).length).map(x => x.r.company)).size}</b> companies hiring where you know someone.</p><label class="btn sm">Update<input type="file" id="csvIn" accept=".csv,text/csv" hidden></label>`
+          : `<p class="muted" style="margin:0 0 12px">Upload LinkedIn's Connections.csv (Settings → Data privacy → Get a copy of your data → Connections). Jobs where you know someone get flagged. Stays in this browser.</p><label class="btn sm">Upload connections<input type="file" id="csvIn" accept=".csv,text/csv" hidden></label>`}</section>
         <section class="card" style="padding:18px"><h2>Searching with friends?</h2><p class="muted" style="margin:0 0 12px">Send them the link. Everyone gets their own private tracker.</p><button class="btn sm" id="invite">Share the app</button></section>
         <section class="card" style="padding:18px"><h2>Fill forms faster</h2>${extVersion ? `<p class="muted" style="margin:0 0 12px"><b style="color:var(--green)">Extension connected.</b> It fills forms with your autofill details and adds what you apply to here.</p>${p.autofill?.email ? "" : `<button class="btn sm" id="me2">Add autofill details</button>`}` : `<p class="muted" style="margin:0 0 12px">The Chrome extension fills the application form on the page you're on, and never clicks Submit.</p><a class="btn sm" href="https://github.com/omar-colab/internship-engine/releases/latest" target="_blank" rel="noopener">Get the extension</a>`}</section>
       </aside>
@@ -664,6 +715,8 @@ async function pdfText(file) {
 
 // ---------- events ----------
 document.addEventListener("click", e => {
+  const cp = e.target.closest("[data-copy]");
+  if (cp) return navigator.clipboard.writeText(cp.dataset.copy).then(() => toast("Note copied — paste it into LinkedIn yourself."), () => toast(cp.dataset.copy));
   const sib = e.target.closest("[data-sib]");
   if (sib) { e.preventDefault(); return openJob(FEED.find(x => x.url === sib.dataset.sib)); }
   const t = e.target.closest("[data-tab],[data-go],[data-act],#me,#me2,#addApp,#exportBtn,#theme,#invite");
@@ -721,6 +774,7 @@ window.addEventListener("focus", () => {
 });
 document.addEventListener("change", e => {
   if (e.target.id === "importIn") return restore(e.target.files[0]);
+  if (e.target.id === "csvIn") return e.target.files[0]?.text().then(t => { try { toast(`${importContacts(t).toLocaleString()} connections loaded.`); render(); } catch { toast("That isn't LinkedIn's Connections.csv."); } });
   const card = e.target.closest(".app");
   if (!card) return;
   if (e.target.dataset.act === "stage") move(card.dataset.url, e.target.value);
@@ -732,7 +786,7 @@ async function restore(file) {
   try {
     const d = JSON.parse(await file.text());
     if (!d || typeof d.apps !== "object") throw 0;
-    S = Object.assign({ profile: null, apps: {}, seen: [], hidden: [] }, d); save(); counts(); render(); toast("Restored.");
+    S = Object.assign({ profile: null, apps: {}, seen: [], hidden: [], contacts: [] }, d); save(); counts(); render(); toast("Restored.");
   } catch { toast("That file isn't an Internship Engine backup."); }
 }
 $("#addDlg").addEventListener("close", () => {
