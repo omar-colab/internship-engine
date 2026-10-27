@@ -7,6 +7,9 @@ async function check() {
   status.className = r?.ok ? "ok" : "bad";
   status.innerHTML = `<span class="dot"></span>${webMode ? (r.name ? "Web mode — connected to the web app." : "Web mode — profile from the web app (open it once).") : r?.ok ? `Connected to engine. ${r.roles} roles in your tracker.` : msg[r?.error] || "Can't reach your engine."}`;
   document.getElementById("web-resume").hidden = !webMode;
+  document.getElementById("engine").open = !webMode;          // engine users see their setup; web users see it folded away
+  const { resumePdf } = await chrome.storage.local.get("resumePdf");
+  if (resumePdf?.name && !document.getElementById("resume-status").textContent) document.getElementById("resume-status").textContent = `Saved: ${resumePdf.name}`;
   const { alertsEnabled = true } = await chrome.storage.local.get("alertsEnabled");
   document.getElementById("alerts").checked = alertsEnabled;
 }

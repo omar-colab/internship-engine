@@ -12,20 +12,26 @@
   button, a.btn { display: block; box-sizing: border-box; width: 100%; margin-top: 10px; padding: 9px; border: 0; border-radius: 10px; font: 700 13px/1 inherit;
     text-align: center; text-decoration: none; cursor: pointer; background: #2335F5; color: #fff; }
   a.btn { background: #1B2550; }
+  details { margin-top: 16px; border-top: 1px solid #2A3566; padding-top: 10px; }
+  summary { cursor: pointer; font-weight: 600; color: #AEB6DA; }
   code { background: #141C40; padding: 1px 5px; border-radius: 5px; color: #D6DBF5; }
 </style></head>
 <body><main>
   <h1>Internship Engine</h1>
   <p id="status"><span class="dot"></span>Checking your engine…</p>
-  <label for="token">Engine token</label>
-  <input id="token" type="password" autocomplete="off" placeholder="Paste it here">
-  <p style="margin-top:6px">Get it in Terminal: <code>uv run python -m engine token</code></p>
-  <button id="save">Save token</button>
-  <a class="btn" href="http://127.0.0.1:8765" target="_blank">Open dashboard</a>
-  <label><input id="alerts" type="checkbox" checked>Daily internship alerts</label>
   <section id="web-resume" hidden>
-    <label for="resume">Resume PDF for web mode</label>
+    <a class="btn" href="https://omar-colab.github.io/internship-engine/app/" target="_blank" style="background:#2335F5">Open the web app</a>
+    <label for="resume">Resume PDF to attach on forms</label>
     <input id="resume" type="file" accept="application/pdf,.pdf">
     <p id="resume-status" style="margin-top:6px"></p>
   </section>
+  <label><input id="alerts" type="checkbox" checked>Daily alert when new internships match you</label>
+  <details id="engine">
+    <summary>Using the laptop engine?</summary>
+    <label for="token">Engine token</label>
+    <input id="token" type="password" autocomplete="off" placeholder="Paste it here">
+    <p style="margin-top:6px">Get it in Terminal: <code>uv run python -m engine token</code></p>
+    <button id="save">Save token</button>
+    <a class="btn" href="http://127.0.0.1:8765" target="_blank">Open dashboard</a>
+  </details>
 </main><script src="popup.js"></script></body></html>
