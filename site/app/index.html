@@ -247,7 +247,9 @@ const daysSince = d => Math.floor((Date.now() - new Date(d).getTime()) / 864e5);
 function load() {
   try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; }
 }
-let S = Object.assign({ profile: null, apps: {}, seen: [], hidden: [], contacts: [] }, load());
+// Spread (not Object.assign) so a "__proto__" key in stored or restored JSON stays an inert own property.
+const fresh = d => ({ profile: null, apps: {}, seen: [], hidden: [], contacts: [], ...d });
+let S = fresh(load());
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(S)); return true; } catch { toast("Your browser blocked saving — use Backup to keep your data."); return false; }
 }
@@ -264,7 +266,7 @@ async function loadFeed() {
     const d = await r.json();
     FEED_BUILT = d.built || "";
     const seenUrls = new Set(S.seen);
-    FEED = (d.roles || []).filter(r => safeUrl(r.url)).map(r => ({ ...r, fields: fieldsOf(r.title, r.skills) }));
+    FEED = (d.roles || []).filter(r => r && safeUrl(r.url) && typeof r.title === "string" && r.title).map(r => ({ ...r, company: String(r.company || "Unknown") })).map(r => ({ ...r, fields: fieldsOf(r.title, r.skills) }));
     // first_seen comes from the feed builder (#48); until then, "new" means new since this visitor's last visit.
     // The oldest first_seen is the day tracking began (every role got it at once), so it never means new.
     const oldest = FEED.reduce((m, r) => r.first_seen && r.first_seen < m ? r.first_seen : m, "9999");
@@ -274,7 +276,7 @@ async function loadFeed() {
     // One role posted in many cities is one row; every city stays reachable from the detail view.
     const groups = new Map();
     for (const r of FEED) {
-      const k = (r.company + "|" + r.title).toLowerCase(), g = groups.get(k);
+      const k = r.company !== "Unknown" ? JSON.stringify([r.company.toLowerCase(), r.title.toLowerCase()]) : r.url, g = groups.get(k);
       if (!g) { groups.set(k, { ...r, locs: [{ location: r.location, url: r.url }] }); continue; }
       g.locs.push({ location: r.location, url: r.url });
       if (NEW.has(r.url)) NEW.add(g.url);
@@ -439,7 +441,8 @@ function importContacts(text) {
 }
 let KNOWN = null;
 function known(company) {
-  if (!KNOWN) { KNOWN = { by: {}, memo: {} }; for (const x of S.contacts || []) (KNOWN.by[companyKey(x.company)] ||= []).push(x); }
+  // Null-prototype maps: a company named "constructor" is just a company.
+  if (!KNOWN) { KNOWN = { by: Object.create(null), memo: Object.create(null) }; for (const x of S.contacts || []) (KNOWN.by[companyKey(x.company)] ||= []).push(x); }
   const k = companyKey(company);
   if (k in KNOWN.memo) return KNOWN.memo[k];
   // "Booz Allen" posts; LinkedIn says "Booz Allen Hamilton". Prefix match only on distinctive keys (5+ chars).
@@ -756,9 +759,10 @@ window.addEventListener("message", e => {
 
 // A calendar file the viewer imports themselves; floating local time, 1 hour, 1-day reminder.
 function downloadIcs(a) {
-  const t = a.when.replace(/[-:]/g, "").slice(0, 13) + "00", end = new Date(new Date(a.when).getTime() + 36e5);
-  const pad = n => String(n).padStart(2, "0");
-  const e = `${end.getFullYear()}${pad(end.getMonth() + 1)}${pad(end.getDate())}T${pad(end.getHours())}${pad(end.getMinutes())}00`;
+  // Wall-clock arithmetic in UTC fields: "one hour later" on the clock, even across a daylight-saving change.
+  const [y, mo, d, h, mi] = a.when.split(/[-T:]/).map(Number), end = new Date(Date.UTC(y, mo - 1, d, h + 1, mi));
+  const pad = n => String(n).padStart(2, "0"), t = a.when.replace(/[-:]/g, "").slice(0, 13) + "00";
+  const e = `${end.getUTCFullYear()}${pad(end.getUTCMonth() + 1)}${pad(end.getUTCDate())}T${pad(end.getUTCHours())}${pad(end.getUTCMinutes())}00`;
   const clean = s => String(s || "").replace(/[\\;,]/g, m => "\\" + m).replace(/\r?\n/g, " ");
   const what = a.status === "oa" ? "Assessment due" : "Interview";
   const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Internship Engine//EN", "BEGIN:VEVENT", `UID:${Date.now()}@internship-engine`,
@@ -863,8 +867,8 @@ document.addEventListener("change", e => {
 async function restore(file) {
   try {
     const d = JSON.parse(await file.text());
-    if (!d || typeof d.apps !== "object") throw 0;
-    S = Object.assign({ profile: null, apps: {}, seen: [], hidden: [], contacts: [] }, d); PV++; KNOWN = null; save(); counts(); render(); toast("Restored.");
+    if (!d || typeof d !== "object" || !d.apps || typeof d.apps !== "object" || Array.isArray(d.apps)) throw 0;
+    S = fresh(d); PV++; KNOWN = null; save(); counts(); render(); toast("Restored.");
   } catch { toast("That file isn't an Internship Engine backup."); }
 }
 $("#addDlg").addEventListener("close", () => {
