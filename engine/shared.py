@@ -7,10 +7,13 @@ Only public facts go here (company, title, location, posting URL). Never anythin
 """
 import json
 import re
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from contextlib import ExitStack
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import httpx
 
@@ -107,6 +110,37 @@ def _enrichment(description: str | None) -> dict:
             "auth": _auth_flags(text), "years": _graduation_years(text), "summary": _summary(text)}
 
 
+def _board_hosts(kind: str, board: dict) -> tuple[str, ...]:
+    """Hosts a listing function contacts, used to keep polls polite across companies."""
+    if kind == "workday":
+        hosts = (f"{board['tenant']}.{board['wd']}.myworkdayjobs.com",)
+    elif kind == "greenhouse":
+        hosts = ("boards-api.greenhouse.io",)
+    elif kind == "lever":
+        hosts = ("api.lever.co",)
+    elif kind == "ashby":
+        hosts = ("api.ashbyhq.com",)
+    elif kind in {"icims", "oracle", "successfactors", "taleo"}:
+        hosts = (board["host"],)
+    elif kind == "ukg":
+        hosts = (urlsplit("https://" + board["board"]).hostname,)
+    elif kind == "phenom":
+        hosts = (urlsplit(board["origin"]).hostname,)
+    elif kind == "jobvite":
+        hosts = ("jobs.jobvite.com",)
+    elif kind == "jazzhr":
+        hosts = (f"{board['token']}.applytojob.com",)
+    elif kind == "workable":
+        hosts = ("apply.workable.com",)
+    elif kind == "adp_wfn":
+        hosts = ("workforcenow.adp.com",)
+    elif kind == "adp_myjobs":
+        hosts = ("my.adp.com", "myjobs.adp.com")
+    else:
+        raise ValueError(f"unknown ATS: {kind}")
+    return tuple(sorted(host for host in hosts if host))
+
+
 def build_feed(previous: dict[str, dict] | None) -> dict:
     """Poll every shared board for intern roles (US + remote). Runs in CI with no personal data around."""
     roles, covered, errors = [], [], []
@@ -114,11 +148,39 @@ def build_feed(previous: dict[str, dict] | None) -> dict:
     today = datetime.now(timezone.utc).date().isoformat()
     sources = [{"name": b["name"], "board": {k: v for k, v in b.items() if k != "name"}} for b in load_boards()]
     sources += [c for c in json.loads(finder.SEED.read_text())["companies"] if "board" in c]
-    for c in sources:
+    host_locks: dict[str, threading.Lock] = {}
+    locks_guard = threading.Lock()
+
+    def poll(c: dict) -> list[dict]:
+        b = dict(c["board"])
+        kind = b.pop("ats")
+        hosts = _board_hosts(kind, b)
+        with locks_guard:
+            locks = [host_locks.setdefault(host, threading.Lock()) for host in hosts]
+        with ExitStack() as stack:
+            for lock in locks:
+                stack.enter_context(lock)
+            try:
+                return ats.LIST[kind](c["name"], b)
+            finally:
+                time.sleep(0.3)                         # one quiet interval per contacted host
+
+    polled: list[tuple[list[dict] | None, str | None]] = [(None, None)] * len(sources)
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        futures = {pool.submit(poll, c): (i, c) for i, c in enumerate(sources)}
+        for future in as_completed(futures):
+            index, company = futures[future]
+            try:
+                polled[index] = (future.result(), None)
+            except Exception as e:
+                polled[index] = (None, f"{company['name']}: {type(e).__name__}")
+
+    for c, (listed, error) in zip(sources, polled):
+        if error:
+            errors.append(error)
+            continue
         try:
-            b = dict(c["board"])
-            kind = b.pop("ats")
-            for r in ats.LIST[kind](c["name"], b):
+            for r in listed:
                 if r["url"] in seen or not finder.in_us(r["location"]):
                     continue
                 seen.add(r["url"])
@@ -129,7 +191,6 @@ def build_feed(previous: dict[str, dict] | None) -> dict:
             covered.append(c["name"])
         except Exception as e:
             errors.append(f"{c['name']}: {type(e).__name__}")
-        time.sleep(0.3)                                  # be polite to the boards
     # Descriptions only for roles not enriched before. A failed or unfinished fetch adds nothing, so tomorrow retries it.
     pending = [r for r in roles if any(k not in r for k in ENRICHMENT_FIELDS)]
     pool = ThreadPoolExecutor(max_workers=8)
@@ -141,6 +202,7 @@ def build_feed(previous: dict[str, dict] | None) -> dict:
     except TimeoutError:
         pass
     pool.shutdown(wait=False, cancel_futures=True)
+    roles.sort(key=lambda r: (r["company"].casefold(), r["title"].casefold(), r["url"]))
     FEED_OUT.parent.mkdir(exist_ok=True)
     FEED_OUT.write_text(json.dumps({"built": datetime.now(timezone.utc).isoformat(timespec="seconds"), "enrichment_version": ENRICHMENT_VERSION,
                                     "boards": len(sources), "covered": covered, "roles": roles, "errors": errors}))
@@ -266,6 +328,40 @@ if __name__ == "__main__":
             cached = {**result, "first_seen": "2026-10-21"}
             build_feed({listing["url"]: cached})
             assert json.loads(output.read_text())["roles"][0]["summary"] == result["summary"]
+
+        events, sleep_intervals = [], []
+        active = {"count": 0}
+        event_lock = threading.Lock()
+        def concurrent_listing(company, _board):
+            with event_lock:
+                active["count"] += 1
+                events.append((company, "start", time.monotonic_ns()))
+                assert active["count"] == 1, "same-host boards overlapped"
+            threading.Event().wait(0.02)
+            with event_lock:
+                events.append((company, "end", time.monotonic_ns()))
+                active["count"] -= 1
+            if company == "Fabrikam":
+                raise ValueError("fictional failure")
+            return [{"company": company, "title": "Zeta Intern" if company == "Northwind" else "Alpha Intern",
+                     "location": "Remote", "url": f"https://{company.lower()}.example/jobs/1",
+                     "ats": "greenhouse", "posted": None}]
+
+        with (patch.object(finder, "SEED", seed), patch.object(finder, "in_us", return_value=True),
+              patch.object(ats, "LIST", {"greenhouse": concurrent_listing}),
+              patch.object(ats, "description", return_value=None), patch.object(sys.modules[__name__], "FEED_OUT", output),
+              patch.object(time, "sleep", side_effect=lambda seconds: sleep_intervals.append(seconds)),
+              patch(__name__ + ".load_boards", return_value=[
+                  {"name": "Northwind", "ats": "greenhouse"}, {"name": "Contoso", "ats": "greenhouse"},
+                  {"name": "Fabrikam", "ats": "greenhouse"}])):
+            result = build_feed(None)
+        ordered = json.loads(output.read_text())
+        for name in ("Northwind", "Contoso", "Fabrikam"):
+            times = [when for who, _, when in events if who == name]
+            assert len(times) == 2 and times[0] < times[1]
+        assert sleep_intervals == [0.3, 0.3, 0.3]
+        assert [role["company"] for role in ordered["roles"]] == ["Contoso", "Northwind"]
+        assert ordered["errors"] == ["Fabrikam: ValueError"] and result["errors"] == 1
 
     class FailedResponse:
         def raise_for_status(self):
