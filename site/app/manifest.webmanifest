@@ -1,0 +1,23 @@
+{
+  "name": "Internship Engine",
+  "short_name": "Internships",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "theme_color": "#635BFF",
+  "background_color": "#F6F9FC",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
