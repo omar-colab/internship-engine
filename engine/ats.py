@@ -19,6 +19,7 @@ UA = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/53
 INTERN = re.compile(r"\bintern(ship)?s?\b|co-?op|summer (analyst|associate|20\d\d)", re.I)
 MAX_FETCH_BYTES = 2 * 1024 * 1024
 MAX_REQUEST_BYTES = 1024 * 1024
+MAX_BOARD_BYTES = 16 * 1024 * 1024    # whole-board JSON with inline descriptions reaches ~10 MiB at the biggest employers
 FETCH_TIMEOUT = 15
 BOARD = re.compile(
     r"https?://(?P<wd>[a-z0-9-]+)\.(?P<n>wd\d+)\.myworkdayjobs\.com/(?:[a-z]{2}-[A-Z]{2}/)?(?P<site>[A-Za-z0-9_-]+)"
@@ -120,7 +121,8 @@ def _safe_request(method: str, url: str, *, headers=None, content=None, timeout=
                                           "authorization", "proxy-authorization", "proxy-authenticate", "keep-alive", "upgrade"}
                      and not k.lower().startswith("proxy-")}
     clean_headers["Accept-Encoding"] = "identity"
-    timeout = httpx.Timeout(timeout, connect=min(timeout, 5), read=min(timeout, 5), write=min(timeout, 5), pool=min(timeout, 5))
+    # Connect stays short; read honors the caller, since big Workday/SuccessFactors searches take 5-20 s to answer.
+    timeout = httpx.Timeout(timeout, connect=min(timeout, 5), read=timeout, write=min(timeout, 5), pool=min(timeout, 5))
     client = _client or (httpx.Client(transport=_transport, timeout=timeout, trust_env=False, follow_redirects=False)
                          if _transport else _safe_client(timeout))
     try:
@@ -236,19 +238,21 @@ def workday(company: str, b: dict, query: str = "intern") -> list[dict]:
 
 
 def greenhouse(company: str, b: dict) -> list[dict]:
-    jobs = _safe_request("GET", f"https://boards-api.greenhouse.io/v1/boards/{b['token']}/jobs", timeout=20).json()["jobs"]
+    jobs = _safe_request("GET", f"https://boards-api.greenhouse.io/v1/boards/{b['token']}/jobs", timeout=20,
+                         max_bytes=MAX_BOARD_BYTES).json()["jobs"]
     return [_role(company, j["title"], (j.get("location") or {}).get("name"), j["absolute_url"].split("?")[0], "greenhouse")
             for j in jobs if INTERN.search(j["title"])]
 
 
 def lever(company: str, b: dict) -> list[dict]:
-    jobs = _safe_request("GET", f"https://api.lever.co/v0/postings/{b['token']}?mode=json", timeout=20).json()
+    jobs = _safe_request("GET", f"https://api.lever.co/v0/postings/{b['token']}?mode=json", timeout=20, max_bytes=MAX_BOARD_BYTES).json()
     return [_role(company, j["text"], j.get("categories", {}).get("location"), j["hostedUrl"], "lever")
             for j in jobs if INTERN.search(j["text"])]
 
 
 def ashby(company: str, b: dict) -> list[dict]:
-    jobs = _safe_request("GET", f"https://api.ashbyhq.com/posting-api/job-board/{b['token']}", timeout=20).json()["jobs"]
+    jobs = _safe_request("GET", f"https://api.ashbyhq.com/posting-api/job-board/{b['token']}", timeout=20,
+                         max_bytes=MAX_BOARD_BYTES).json()["jobs"]
     return [_role(company, j["title"], j.get("location"), j["jobUrl"], "ashby") for j in jobs if INTERN.search(j["title"])]
 
 
@@ -441,7 +445,7 @@ def successfactors(company: str, b: dict, query: str = "intern") -> list[dict]:
     """SuccessFactors' classic career site publishes its whole listing as XML, descriptions included."""
     r = _safe_request("GET", f"https://{b['host']}/career",
                       params={"company": b["company"], "career_ns": "job_listing_summary", "resultType": "XML"},
-                      headers=UA, timeout=20, max_bytes=8 * 1024 * 1024)  # shortcut: 8 MiB cap, raise if supported boards need larger XML.
+                      headers=UA, timeout=30, max_bytes=2 * MAX_BOARD_BYTES)  # ponytail: 32 MiB in memory; the biggest board seen is ~18 MiB.
     out = []
     for job in re.findall(r"<Job>(.*?)</Job>", r.text, re.S):
         title = _strip(re.sub(r"^<!\[CDATA\[|\]\]>$", "", (re.search(r"<JobTitle>(.*?)</JobTitle>", job, re.S) or [""," "])[1].strip()))
@@ -709,6 +713,10 @@ def _selfcheck() -> None:
         return httpx.Response(200, stream=httpx.ByteStream(b"{}"), request=request)
     _safe_request("POST", "https://careers.example/jobs", params={"page": 2}, json_data={"query": "intern"},
                   _resolver=dns, _transport=httpx.MockTransport(json_request))
+    def slow_search(request):   # a 20 s caller must wait 20 s for the answer, not be cut off at the 5 s connect limit
+        assert request.extensions["timeout"]["read"] == 20 and request.extensions["timeout"]["connect"] == 5
+        return httpx.Response(200, stream=httpx.ByteStream(b"{}"), request=request)
+    _safe_request("GET", "https://careers.example/jobs", timeout=20, _resolver=dns, _transport=httpx.MockTransport(slow_search))
     for redirect_status in (301, 302, 303):
         post_redirect_calls = []
         def post_redirect(request):
