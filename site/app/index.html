@@ -284,7 +284,14 @@ const STOP = new Set("intern internship summer fall spring winter co-op coop the
 function words(s) { return (s.toLowerCase().match(/[a-z][a-z+#.&-]{2,}/g) || []).filter(w => !STOP.has(w)); }
 
 // Score 1-5 with the reasons shown to the user. Every point has a reason; nothing is hidden.
+// Scores depend only on the role and the profile, so they're cached per role until the profile changes.
+let PV = 0;
 function score(r) {
+  if (r._pv === PV) return r._sc;
+  r._pv = PV;
+  return r._sc = scoreNow(r);
+}
+function scoreNow(r) {
   const p = S.profile || {}, why = [];
   let s = 1;
   const hit = r.fields.filter(f => (p.fields || []).includes(f));
@@ -322,6 +329,11 @@ function hasSkill(skill, text) {
 function skillMatch(r) {
   const res = S.profile?.resume;
   if (!r.skills?.length || !res) return null;
+  if (r._skpv === PV) return r._sk;
+  r._skpv = PV;
+  return r._sk = skillMatchNow(r, res);
+}
+function skillMatchNow(r, res) {
   const have = r.skills.filter(k => hasSkill(k, res));
   return { asked: r.skills, have, missing: r.skills.filter(k => !have.includes(k)) };
 }
@@ -643,7 +655,7 @@ function onboarding(step) {
     e.preventDefault(); collect();
     if (step === 0 && !p.name) return $("#name").focus();
     if (step < steps.length - 1) { stash = p; return onboarding(step + 1); }
-    S.profile = p; save(); stash = null; tab = "today"; render(); counts(); sendProfile();
+    S.profile = p; PV++; save(); stash = null; tab = "today"; render(); counts(); sendProfile();
     toast(editing ? "Saved." : `Welcome, ${p.name}!`);
   });
   $("#pdfIn")?.addEventListener("change", async e => {
@@ -797,7 +809,7 @@ async function restore(file) {
   try {
     const d = JSON.parse(await file.text());
     if (!d || typeof d.apps !== "object") throw 0;
-    S = Object.assign({ profile: null, apps: {}, seen: [], hidden: [], contacts: [] }, d); save(); counts(); render(); toast("Restored.");
+    S = Object.assign({ profile: null, apps: {}, seen: [], hidden: [], contacts: [] }, d); PV++; KNOWN = null; save(); counts(); render(); toast("Restored.");
   } catch { toast("That file isn't an Internship Engine backup."); }
 }
 $("#addDlg").addEventListener("close", () => {
