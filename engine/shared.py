@@ -41,6 +41,13 @@ def build_feed() -> dict:
     """Poll every shared board for intern roles (US + remote). Runs in CI with no personal data around."""
     roles, covered, errors = [], [], []
     seen = set()
+    try:
+        response = httpx.get(FEED_URL, timeout=20)
+        response.raise_for_status()
+        previous = _first_seen_by_url(response.json())
+    except Exception:
+        previous = {}
+    today = datetime.now(timezone.utc).date().isoformat()
     sources = [{"name": b["name"], "board": {k: v for k, v in b.items() if k != "name"}} for b in load_boards()]
     sources += [c for c in json.loads(finder.SEED.read_text())["companies"] if "board" in c]
     for c in sources:
@@ -51,7 +58,8 @@ def build_feed() -> dict:
                 if r["url"] in seen or not finder.in_us(r["location"]):
                     continue
                 seen.add(r["url"])
-                roles.append({k: r.get(k) for k in ("company", "title", "location", "url", "ats", "posted")} | {"track": feed.track(r["title"])})
+                roles.append({k: r.get(k) for k in ("company", "title", "location", "url", "ats", "posted")} |
+                             {"track": feed.track(r["title"]), "first_seen": _first_seen(r["url"], previous, today)})
             covered.append(c["name"])
         except Exception as e:
             errors.append(f"{c['name']}: {type(e).__name__}")
@@ -60,6 +68,19 @@ def build_feed() -> dict:
     FEED_OUT.write_text(json.dumps({"built": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                                     "boards": len(sources), "covered": covered, "roles": roles, "errors": errors}))
     return {"roles": len(roles), "boards": len(sources), "covered": len(covered), "errors": len(errors)}
+
+
+def _first_seen_by_url(d: object) -> dict[str, str]:
+    roles = d.get("roles") if isinstance(d, dict) else None
+    if not isinstance(roles, list):
+        return {}
+    return {r["url"]: r["first_seen"] for r in roles
+            if isinstance(r, dict) and isinstance(r.get("url"), str) and r["url"]
+            and isinstance(r.get("first_seen"), str) and r["first_seen"]}
+
+
+def _first_seen(url: str, previous: dict[str, str], today: str) -> str:
+    return previous.get(url, today)
 
 
 def _fresh_feed(d: object, now: datetime | None = None) -> dict | None:
@@ -109,6 +130,12 @@ if __name__ == "__main__":
     now = datetime(2026, 10, 22, tzinfo=timezone.utc)
     document = {"built": (now - timedelta(hours=1)).isoformat(), "roles": [out], "covered": ["Contoso"]}
     assert _fresh_feed(document, now) == {"roles": [out], "covered": ["Contoso"]}
+    assert _first_seen_by_url({"roles": [{"url": "https://contoso.example/jobs/1", "first_seen": "2026-10-21"},
+                                         {"url": "https://northwind.example/jobs/2"}]}) == {
+        "https://contoso.example/jobs/1": "2026-10-21"}
+    assert _first_seen_by_url({"roles": "invalid"}) == {}
+    assert _first_seen("https://contoso.example/jobs/1", {"https://contoso.example/jobs/1": "2026-10-21"}, "2026-10-22") == "2026-10-21"
+    assert _first_seen("https://northwind.example/jobs/2", {}, "2026-10-22") == "2026-10-22"
     assert _fresh_feed({**document, "built": (now - timedelta(hours=FRESH_HOURS + 1)).isoformat()}, now) is None
     assert _fresh_feed({**document, "built": (now + timedelta(minutes=1)).isoformat()}, now) is None
     assert _fresh_feed({k: v for k, v in document.items() if k != "covered"}, now) is None
