@@ -5,21 +5,26 @@ GitHub Releases can distribute the extension ZIP for manual **Load unpacked** in
 ## Draft listing
 
 - **Name:** Internship Engine
-- **Short description:** Save and prepare internship applications using your local profile. You review and submit every application.
-- **Single purpose:** Help a user save internship postings and fill application fields from the user's own local profile.
+- **Short description:** Save internship postings and prepare application fields from your web-app or laptop profile. You review and submit every application.
+- **Single purpose:** Help a user save internship postings and prepare supported application fields using a profile from the hosted web app or the user's local laptop engine. The user reviews and submits each application.
 - **Support URL:** `https://github.com/omar-colab/internship-engine/issues`
 - **Privacy policy URL:** `https://omar-colab.github.io/internship-engine/privacy.html`
 - **Category:** Productivity
 
 ### Data and permissions disclosure
 
-The extension stores an engine token in `chrome.storage.local`. On supported job-board pages, its content script reads the current URL, posting title, and visible application-field labels and options. It sends only the data needed for lookup, saving, and answer generation to the user's local engine at `127.0.0.1:8765`, authenticated with that token. If the user chooses to fill a form that has a resume field, the extension retrieves the resume from the same local engine and assigns it to that page's file field. The extension does not send this data to the project maintainers or a project-operated server. The user reviews and submits each application.
+The extension stores its profile, selected resume PDF, learned answers, queued events, and optional local-engine token in `chrome.storage.local`. In web-app-only mode, it receives the profile from the hosted app and returns queued events to that app on the matching app page; the extension does not upload this data to a server. In laptop-engine mode, the extension sends the current page URL, posting details, and application-field information needed for lookup and answer generation to the user's own engine at `127.0.0.1:8765`, authenticated with the stored token. It can retrieve the resume from that local engine or use the PDF selected in the popup. The extension does not send data to a project-operated server or the maintainers. The job site receives form information only when the user submits the application themselves. The extension never clicks Submit.
 
 Permission justifications:
 
-- `storage`: retain the user's local engine token between browser sessions.
-- `host_permissions` for `127.0.0.1:8765`: connect to the local engine the user runs on their computer.
-- Content-script match patterns: read and fill the supported job-board pages only after the user visits them.
+- `storage`: retain the profile, selected resume PDF, learned answers, queued events, and optional engine token in the browser's local extension storage.
+- `alarms`: check the public internship feed once a day around 8:00 local time and once when the extension is installed.
+- `notifications`: show matching new internships from the public feed; clicking the alert opens the hosted tracker.
+- `host_permissions` for `https://omar-colab.github.io/internship-engine/feed.json`: read the public internship feed to find new roles matching the user's saved watch fields and places.
+- `host_permissions` for `127.0.0.1:8765`: let the extension connect to the local engine the user runs on their computer when they choose laptop-engine mode.
+- `host_permissions` for `https://omar-colab.github.io/internship-engine/app/*`: let the extension exchange profile and queued-event messages with the hosted app page.
+- Content-script match patterns for supported job-board pages: read and fill supported application fields only after the user visits one of those pages.
+- Content-script match pattern for `https://omar-colab.github.io/internship-engine/app/*`: receive the web-app profile and return queued events to the tracker on that app page.
 
 ### Draft screenshots
 

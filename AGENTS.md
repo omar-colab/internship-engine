@@ -24,7 +24,9 @@ Two AI agents build this project in parallel: **Codex** (PRs from `codex/*` bran
 | Extension test harness | **Codex** | `tests/`, `tests/fixtures/` |
 | Cross-platform setup (Linux/Windows) | **Codex** | `engine/schedule.py`, `engine/platform.py` (new) |
 | Shared feed and boards | either; coordinate in the issue | `engine/shared.py`, `boards.json`, `.github/workflows/site.yml` |
-| Website | either | `site/` |
+| Web app (the no-install version friends use) | Claude Code | `site/app/index.html` |
+| Web app extras (PWA manifest, icons, tests) | **Codex** | `site/app/*` except `index.html`, `tests/test_webapp.py` |
+| Website (landing page) | either | `site/index.html`, `site/privacy.html` |
 
 Need to touch a file you don't own? Say so in the issue and keep the change minimal.
 

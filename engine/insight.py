@@ -9,7 +9,7 @@ import re
 SKILLS = [
     "python", "sql", "r", "sas", "spss", "stata", "excel", "vba", "powerpoint", "word", "google sheets", "tableau", "power bi",
     "looker", "alteryx", "snowflake", "databricks", "dbt", "aws", "azure", "gcp", "salesforce", "hubspot", "sap", "oracle",
-    "workday", "servicenow", "jira", "confluence", "figma", "git", "javascript", "java", "c++", "swift", "html", "api",
+    "servicenow", "jira", "confluence", "figma", "git", "javascript", "java", "c++", "swift", "html", "api",
     "etl", "machine learning", "deep learning", "generative ai", "llm", "prompt engineering", "nlp", "computer vision",
     "a/b testing", "statistics", "regression", "forecasting", "financial modeling", "valuation", "data visualization",
     "data cleaning", "dashboards", "automation", "process improvement", "lean", "six sigma", "agile", "scrum",
@@ -37,9 +37,11 @@ def pay(description: str) -> str | None:
     if not m:
         return None
     lo, k1, hi, k2, unit = m.groups()
+    lo, hi = (re.sub(r"[.,]00$", "", x) for x in (lo, hi))
     unit = (unit or "").lower()
     yearly = bool(k1 or k2) or "yr" in unit or "year" in unit or "annual" in unit
-    return f"${lo}{'K' if k1 else ''}–{hi}{'K' if k2 or k1 else ''}/{'yr' if yearly else 'hr'}"
+    k = "K" if k1 or k2 else ""
+    return f"${lo}{k}{'' if lo == hi else f'–{hi}{k}'}/{'yr' if yearly else 'hr'}"
 
 
 if __name__ == "__main__":
@@ -52,4 +54,5 @@ if __name__ == "__main__":
     assert pay("$20/hr - $34/hr in Cary") == "$20–34/hr"
     assert pay("$54K/yr - $81K/yr") == "$54K–81K/yr"
     assert pay("No pay info") is None
+    assert pay("$36.00 - $36.00 per hour") == "$36/hr" and pay("$19.13 - $34.17 per hour") == "$19.13–34.17/hr"
     print("ok")

@@ -4,7 +4,7 @@ Finds internships on employers' own job boards, ranks them against your resume, 
 other autofills give up on, and tracks everything from your inbox. Free, open source, and it runs on your laptop:
 your resume, tracker and email never leave it.
 
-**New here?** Start with the [quick setup guide](#set-up). The Chrome extension is in [GitHub Releases](https://github.com/omar-colab/internship-engine/releases/latest); it connects to an engine running on your own computer.
+**Just want to use it?** Open the [web app](https://omar-colab.github.io/internship-engine/app/): no install, no account, your data stays in your browser. The laptop version below adds inbox tracking and the engine-driven form filler. **Setting up the laptop version?** Start with the [quick setup guide](#set-up). The Chrome extension is in [GitHub Releases](https://github.com/omar-colab/internship-engine/releases/latest); it connects to an engine running on your own computer.
 
 ## What it does
 

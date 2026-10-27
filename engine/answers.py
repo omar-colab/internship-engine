@@ -66,7 +66,7 @@ RULES = [
     (r"^\s*country\b", lambda p, f: (pick(f.get("options", []), rf"^{re.escape(p['country'])}\b") or p["country"], "profile.country")),
     (r"phone|mobile", lambda p, f: (p["phone"], "profile.phone")),
     (r"linkedin", lambda p, f: (p["linkedin"], "profile.linkedin")),
-    (r"location|city|where (do you|are you) (live|located|based)",       # short labels only: "work at our Chicago location?" is a question
+    (r"\blocation|\bcity\b|where (do you|are you) (live|located|based)",       # short labels only: "work at our Chicago location?" is a question
      lambda p, f: ((c, "profile.country") if (c := pick(f.get("options", []), rf"^{re.escape(p['country'])}$")) else
                    (f"{p['city']}, {p['state']}", "profile.city+state")) if len(f["label"]) < 40 else None),   # a country list → your country
     (r"^\s*(resume|cv)\b|attach", lambda p, f: (p["resume_pdf"], "profile.resume_pdf")),
@@ -186,6 +186,7 @@ def _selfcheck() -> None:
     assert a("How did you hear about us?", "combobox", ["LinkedIn", "Indeed"])["status"] == "needs_you"   # no backed option
     assert a("Are you willing to work at our Chicago office location?", "text")["status"] == "needs_you"
     assert a("Location (City)*", "combobox")["answer"] == "Hartford, CT"
+    assert a("Are you open to relocation?", "combobox", ["Yes", "No"])["source"] != "profile.city+state"   # "relocation" is not "location"
     assert a("This role requires working in the office 3-4 days per week. Can you?", "checkbox", ["Yes", "No"])["status"] == "needs_you"
     import pathlib, tempfile
     f = pathlib.Path(tempfile.mkdtemp()) / "answers.json"
