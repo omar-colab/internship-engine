@@ -104,6 +104,7 @@ textarea.t { min-height: 140px; resize: vertical; }
 .filters select.t { width: auto; }
 .list { display: grid; gap: 10px; }
 .job { display: grid; grid-template-columns: 46px 1fr auto; gap: 14px; align-items: center; padding: 14px 16px; transition: box-shadow .15s ease, transform .15s ease; }
+.job:focus { outline: 2px solid var(--blue); outline-offset: 2px; }
 .job:hover { box-shadow: var(--lift); transform: translateY(-1px); }
 .logo-tile { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; font-weight: 700; color: #fff; font-size: 17px; }
 .job h3 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
@@ -213,6 +214,7 @@ const FIELDS = {
 const STAGES = [["saved","Saved"],["applied","Applied"],["oa","Assessment"],["interview","Interview"],["offer","Offer"],["rejected","Closed"]];
 const GRAD_ONLY = /\b(ph\.?d|mba|master'?s|graduate student|grad student|doctoral|postdoc|law student|\bjd\b|medical student)\b/i;
 const FOLLOW_DAYS = 14;
+const CHECKS = [["tailored", "Resume tailored"], ["referral", "Asked for a referral"], ["thanks", "Followed up / thank-you sent"]];
 const SEASONS = [["Summer", /summer/i], ["Fall", /\b(fall|autumn)\b/i], ["Spring", /spring/i], ["Winter", /winter/i], ["Co-op", /co-?op\b/i]];
 function season(title) {
   const s = SEASONS.find(([, rx]) => rx.test(title)), y = (title.match(/\b20(2[5-9])\b/) || [])[0];
@@ -280,11 +282,37 @@ function score(r) {
   const place = (p.places || []).find(pl => pl && locs.some(l => l.includes(pl.toLowerCase())));
   if (locs.some(l => /remote/.test(l))) { s += 1; why.push("remote"); }
   else if (place) { s += 1; why.push("in " + place); }
-  const rw = new Set(p.resumeWords || []);
-  const overlap = [...new Set(words(r.title))].filter(w => rw.has(w));
-  if (overlap.length) { s += 1; why.push("your resume mentions " + overlap.slice(0, 2).join(", ")); }
-  if (GRAD_ONLY.test(r.title)) { s = 1; why.length = 0; why.push("grad school only"); }
+  const sk = skillMatch(r);
+  if (sk) { if (sk.have.length * 2 >= sk.asked.length) { s += 1; why.push(`you have ${sk.have.length} of ${sk.asked.length} skills it asks for`); } }
+  else {
+    const rw = new Set(p.resumeWords || []);
+    const overlap = [...new Set(words(r.title))].filter(w => rw.has(w));
+    if (overlap.length) { s += 1; why.push("your resume mentions " + overlap.slice(0, 2).join(", ")); }
+  }
+  if ((r.auth || []).includes("sponsor") && p.auth === "sponsor") why.push("sponsors visas");
+  if (r.pay) why.push(r.pay);
+  const block = blocker(r);
+  if (block) return { s: 1, why: [block], block };
   return { s: Math.min(5, s), why };
+}
+// Hard eligibility: shown as the reason, hidden from lists unless "Show ineligible" is on.
+function blocker(r) {
+  const p = S.profile || {}, auth = r.auth || [];
+  if (GRAD_ONLY.test(r.title)) return "grad school only";
+  if (auth.includes("citizen") && p.auth && p.auth !== "citizen") return "US citizens only";
+  if (auth.includes("no_sponsor") && p.auth === "sponsor") return "no visa sponsorship";
+  if (r.years?.length && p.year && !r.years.includes(+p.year)) return "for the class of " + r.years.join(" or ");
+  return "";
+}
+function hasSkill(skill, text) {
+  const stem = (skill.length > 4 && skill.endsWith("s") ? skill.slice(0, -1) : skill).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(?<![a-z0-9])${stem}s?(?![a-z0-9])`, "i").test(text);
+}
+function skillMatch(r) {
+  const res = S.profile?.resume;
+  if (!r.skills?.length || !res) return null;
+  const have = r.skills.filter(k => hasSkill(k, res));
+  return { asked: r.skills, have, missing: r.skills.filter(k => !have.includes(k)) };
 }
 function placeOk(r, remoteOnly) {
   return (r.locs || [r]).some(({ location }) => {
@@ -302,10 +330,10 @@ function ago(d) { if (!d) return ""; const n = daysSince(d); return n <= 0 ? "to
 function jobRow(r) {
   const { s, why } = score(r);
   const app = S.apps[r.url];
-  return `<article class="card job" data-url="${esc(r.url)}">
+  return `<article class="card job" tabindex="-1" data-url="${esc(r.url)}">
     ${tile(r.company)}
     <div><h3><button data-act="open">${esc(r.title)}</button> ${NEW.has(r.url) ? '<span class="new">NEW</span>' : ""} ${season(r.title) ? `<span class="season">${esc(season(r.title))}</span>` : ""}</h3>
-      <div class="meta"><span>${esc(r.company)}</span><span>·</span><span>${esc((r.location || "Location not listed") + moreLocs(r))}</span>${ago(r.posted || r.first_seen) ? `<span>· ${esc(ago(r.posted || r.first_seen))}</span>` : ""}</div>
+      <div class="meta"><span>${esc(r.company)}</span><span>·</span><span>${esc((r.location || "Location not listed") + moreLocs(r))}</span>${ago(r.posted || r.first_seen) ? `<span>· ${esc(ago(r.posted || r.first_seen))}</span>` : ""}${r.pay ? `<span class="tag">${esc(r.pay)}</span>` : ""}</div>
       ${why.length ? `<div class="why">${fitBars(s)} &nbsp;${esc(why.join(" · "))}</div>` : `<div class="why">${fitBars(s)}</div>`}
     </div>
     <div class="side">
@@ -321,18 +349,22 @@ function track(r, status) {
 
 // ---------- job detail ----------
 function openJob(r) {
-  const { s, why } = score(r), p = S.profile, app = S.apps[r.url];
+  const { s, why } = score(r), p = S.profile, app = S.apps[r.url], sk = skillMatch(r);
   const others = FEED.filter(x => x.company === r.company && x.url !== r.url);
   const missing = [];
   if (!r.fields.some(f => (p.fields || []).includes(f))) missing.push(r.fields.length ? `Field: ${r.fields.map(f => FIELDS[f][0]).join(", ")} — not one you picked` : "Field unclear from the title");
   if (!placeOk(r, false)) missing.push(`Location: ${r.location || "not listed"}`);
-  if (!p.resume) missing.push("Paste your resume in your profile for skill matching");
+  if (!p.resume) missing.push("Add your resume in your profile for skill matching");
   $("#jobBody").innerHTML = `
     <button class="icon-btn" data-act="close" aria-label="Close" style="position:absolute;top:14px;right:14px">✕</button>
     <div class="detail-head" style="padding-right:36px">${tile(r.company)}<div><h2>${esc(r.title)}</h2><div class="muted">${esc(r.company)} · ${esc((r.location || "Location not listed") + moreLocs(r))}</div></div></div>
     ${r.locs?.length > 1 ? `<div><b style="font-size:14px">Posted in ${r.locs.length} places — apply to the one you want</b><div class="siblings">${r.locs.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.location || "Location not listed")} ↗</a>`).join("")}</div></div>` : ""}
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${fitBars(s)} <b>Match ${s} of 5</b> ${season(r.title) ? `<span class="season">${esc(season(r.title))}</span>` : ""} ${r.ats ? `<span class="tag">via ${esc(r.ats)}</span>` : ""}</div>
-    <ul class="reasons">${why.map(w => `<li>${esc(w)}</li>`).join("")}${missing.map(m => `<li class="no">${esc(m)}</li>`).join("")}</ul>
+    <ul class="reasons">${why.map(w => `<li${score(r).block ? ' class="no"' : ""}>${esc(w)}</li>`).join("")}${missing.map(m => `<li class="no">${esc(m)}</li>`).join("")}</ul>
+    ${r.summary ? `<p style="margin:0;font-size:14px;color:var(--ink-2)">${esc(r.summary)}…</p>` : ""}
+    ${sk ? `<div><b style="font-size:14px">Skills it asks for</b> <span class="muted" style="font-size:13px">— gaps are things to learn, not words to paste into your resume</span>
+      <div class="chips" style="margin-top:8px">${sk.have.map(k => `<span class="tag" style="background:var(--green-soft);color:var(--green);border-color:transparent">✓ ${esc(k)}</span>`).join("")}${sk.missing.map(k => `<span class="tag">${esc(k)}</span>`).join("")}</div></div>`
+      : r.skills?.length ? `<div><b style="font-size:14px">Skills it asks for:</b> <span class="muted">${esc(r.skills.join(", "))}</span> <span class="muted" style="font-size:13px">(add your resume in your profile to see which you have)</span></div>` : ""}
     ${others.length ? `<div><b style="font-size:14px">${others.length} more at ${esc(r.company)}</b><div class="siblings">${others.slice(0, 30).map(o => `<a href="#" data-sib="${esc(o.url)}">${esc(o.title)} <span class="muted">· ${esc(o.location || "")}</span></a>`).join("")}</div></div>` : ""}
     <p class="muted" style="margin:0;font-size:13px">Tip: applying in the first few days after a posting goes up matters more than a perfect cover letter.</p>
     <div class="actions" style="margin-top:4px">
@@ -374,7 +406,7 @@ function renderToday() {
   const thisWeek = apps.filter(a => a.applied && new Date(a.applied).getTime() >= weekAgo).length;
   const goal = p.goal || 10, pct = Math.min(100, Math.round(thisWeek / goal * 100));
   const due = apps.filter(a => a.status === "applied" && daysSince(a.updated) >= FOLLOW_DAYS);
-  const live = apps.filter(a => ["oa", "interview"].includes(a.status));
+  const live = apps.filter(a => ["oa", "interview"].includes(a.status)).sort((a, b) => (a.when || "9").localeCompare(b.when || "9"));
   const hour = new Date().getHours();
   const hi = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   view.innerHTML = `
@@ -392,7 +424,7 @@ function renderToday() {
         ${strong.length > 8 ? `<div class="more"><button class="btn" data-go="jobs">See all ${strong.length} matches →</button></div>` : ""}</section>
       <aside style="display:grid;gap:20px">
         <section class="card" style="padding:18px"><h2>Follow up</h2>${due.length ? due.slice(0, 6).map(a => `<div style="padding:8px 0;border-top:1px solid var(--line)"><b style="font-size:14px">${esc(a.company)}</b><div class="muted" style="font-size:13px">${esc(a.title)} · applied ${daysSince(a.applied || a.updated)}d ago</div></div>`).join("") : `<p class="muted" style="margin:0">Nothing's gone quiet. Applications with no news for ${FOLLOW_DAYS} days show up here.</p>`}</section>
-        <section class="card" style="padding:18px"><h2>Coming up</h2>${live.length ? live.map(a => `<div style="padding:8px 0;border-top:1px solid var(--line)"><b style="font-size:14px">${esc(a.company)}</b> <span class="tag">${a.status === "oa" ? "Assessment" : "Interview"}</span><div class="muted" style="font-size:13px">${esc(a.title)}</div></div>`).join("") : `<p class="muted" style="margin:0">Assessments and interviews you move on the tracker show up here.</p>`}</section>
+        <section class="card" style="padding:18px"><h2>Coming up</h2>${live.length ? live.map(a => `<div style="padding:8px 0;border-top:1px solid var(--line)"><b style="font-size:14px">${esc(a.company)}</b> <span class="tag">${a.status === "oa" ? "Assessment" : "Interview"}</span><div class="muted" style="font-size:13px">${esc(a.title)}${a.when ? " · " + esc(new Date(a.when).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })) : ""}</div></div>`).join("") : `<p class="muted" style="margin:0">Assessments and interviews you move on the tracker show up here.</p>`}</section>
         <section class="card" style="padding:18px"><h2>Searching with friends?</h2><p class="muted" style="margin:0 0 12px">Send them the link. Everyone gets their own private tracker.</p><button class="btn sm" id="invite">Share the app</button></section>
         <section class="card" style="padding:18px"><h2>Fill forms faster</h2><p class="muted" style="margin:0 0 12px">The Chrome extension fills the application form on the page you're on, and never clicks Submit.</p><a class="btn sm" href="https://github.com/omar-colab/internship-engine/releases/latest" target="_blank" rel="noopener">Get the extension</a></section>
       </aside>
@@ -403,12 +435,12 @@ function renderJobs() {
   const q = jobQuery;
   view.innerHTML = `<h1>Jobs</h1><p class="lede">${FEED.length.toLocaleString()} internships pulled this morning from employers' own job boards.</p>
     <div class="filters">
-      <input class="t" id="q" type="search" placeholder="Search company, role or city  ( / )" value="${esc(q.q)}" aria-label="Search">
+      <input class="t" id="q" type="search" placeholder="Search company, role or city  ( / · j k to move · o open · s save )" value="${esc(q.q)}" aria-label="Search">
       <select class="t" id="field" aria-label="Field"><option value="mine">My fields</option><option value="all">All fields</option>${Object.entries(FIELDS).map(([k, v]) => `<option value="${k}">${esc(v[0])}</option>`).join("")}</select>
       <select class="t" id="where" aria-label="Where"><option value="any">Anywhere</option><option value="mine">My cities + remote</option><option value="remote">Remote only</option></select>
       <select class="t" id="season" aria-label="Season"><option value="">Any season</option>${SEASONS.map(([n]) => `<option>${n}</option>`).join("")}</select>
       <select class="t" id="sort" aria-label="Sort"><option value="fit">Best match</option><option value="new">Newest</option><option value="company">Company A–Z</option></select>
-      <label class="chip"><input type="checkbox" id="grad" ${q.grad ? "checked" : ""}>Show grad-only</label>
+      <label class="chip"><input type="checkbox" id="grad" ${q.grad ? "checked" : ""}>Show ineligible</label>
     </div><div id="results"></div>`;
   $("#field").value = q.field; $("#sort").value = q.sort; $("#where").value = q.where; $("#season").value = q.season;
   const go = () => { Object.assign(q, { q: $("#q").value, field: $("#field").value, sort: $("#sort").value, grad: $("#grad").checked, where: $("#where").value, season: $("#season").value, shown: PAGE }); results(); };
@@ -418,7 +450,7 @@ function renderJobs() {
 function results() {
   const q = jobQuery, needle = q.q.trim().toLowerCase(), mine = S.profile.fields || [];
   let rows = ranked().filter(x =>
-    (q.grad || !GRAD_ONLY.test(x.r.title)) &&
+    (q.grad || !x.block) &&
     (q.field === "all" || (q.field === "mine" ? !mine.length || x.r.fields.some(f => mine.includes(f)) : x.r.fields.includes(q.field))) &&
     (!q.season || season(x.r.title).startsWith(q.season)) &&
     (q.where === "any" || placeOk(x.r, q.where === "remote")) &&
@@ -459,6 +491,9 @@ function appCard(a) {
     <b>${esc(a.company)}</b><div class="muted">${esc(a.title)}</div>
     ${due ? `<span class="due">Quiet ${daysSince(a.updated)} days — follow up?</span>` : ""}
     <select class="t" data-act="stage" aria-label="Stage">${STAGES.map(([k, l]) => `<option value="${k}" ${k === a.status ? "selected" : ""}>${l}</option>`).join("")}<option value="_remove">Remove</option></select>
+    ${["oa", "interview"].includes(a.status) ? `<label class="muted" style="display:block;margin-top:6px;font-size:12px">${a.status === "oa" ? "Due" : "When"}<input class="t" type="datetime-local" data-act="when" value="${esc(a.when || "")}" style="font-size:12.5px;padding:5px 8px"></label>
+      ${a.when ? `<button class="btn sm" data-act="ics" style="margin-top:6px">Add to calendar</button>` : ""}` : ""}
+    ${a.status !== "saved" ? `<div style="display:grid;gap:2px;margin-top:6px;font-size:12.5px">${CHECKS.map(([k, l]) => `<label><input type="checkbox" data-check="${k}" ${a.checks?.[k] ? "checked" : ""}> ${l}</label>`).join("")}</div>` : ""}
     <textarea class="t" data-act="notes" placeholder="Notes" style="min-height:0;height:34px;margin-top:6px;font-size:12.5px">${esc(a.notes)}</textarea>
     ${safeUrl(a.url) ? `<a href="${esc(a.url)}" target="_blank" rel="noopener noreferrer" style="font-size:12.5px">Open posting ↗</a>` : ""}
   </article>`;
@@ -480,6 +515,9 @@ function onboarding(step) {
       <p class="lede">${editing ? "Change anything; your matches update right away." : "Two quick questions and you'll see today's roles ranked for you. No account — everything stays in this browser."}</p>
       <div class="grid2"><label class="f">First name<input class="t" id="name" required maxlength="40" value="${esc(p.name)}" autocomplete="given-name"></label>
       <label class="f">Graduating<select class="t" id="year">${[0,1,2,3,4].map(i => { const y = new Date().getFullYear() + i; return `<option ${y == p.year ? "selected" : ""}>${y}</option>`; }).join("")}</select></label></div>
+      <label class="f" style="margin-top:14px">Work authorization <span class="muted" style="font-weight:400">— hides roles you can't take</span><select class="t" id="auth">
+        ${[["", "Prefer not to say"], ["citizen", "US citizen"], ["permanent", "Green card / permanent resident"], ["sponsor", "I'll need visa sponsorship (now or later)"]].map(([v, l]) => `<option value="${v}" ${v === (p.auth || "") ? "selected" : ""}>${l}</option>`).join("")}</select></label>
+      ${editing && S.hidden.length ? `<button type="button" class="btn sm" id="unhide" style="margin-top:14px">Show ${S.hidden.length} hidden job${S.hidden.length > 1 ? "s" : ""} again</button>` : ""}
       <label class="f" style="margin-top:14px">Applications per week (your goal)<input class="t" id="goal" type="number" min="1" max="100" value="${esc(p.goal)}"></label>`,
     () => `<h1>What are you looking for?</h1><p class="lede">Pick every field you'd take an internship in.</p>
       <div class="chips">${Object.entries(FIELDS).map(([k, v]) => `<label class="chip"><input type="checkbox" name="field" value="${k}" ${p.fields.includes(k) ? "checked" : ""}>${esc(v[0])}</label>`).join("")}</div>
@@ -495,7 +533,7 @@ function onboarding(step) {
     <div class="actions">${step ? `<button type="button" class="btn" id="back">Back</button>` : editing ? `<button type="button" class="btn" id="reset" style="color:var(--red)">Erase my data</button>` : "<span></span>"}
       <button class="btn go">${step < steps.length - 1 ? "Continue" : editing ? "Save" : "Show my matches →"}</button></div></form>`;
   const collect = () => {
-    if ($("#name")) Object.assign(p, { name: $("#name").value.trim(), year: +$("#year").value, goal: Math.max(1, +$("#goal").value || 10) });
+    if ($("#name")) Object.assign(p, { name: $("#name").value.trim(), year: +$("#year").value, auth: $("#auth").value, goal: Math.max(1, +$("#goal").value || 10) });
     if ($("#places")) Object.assign(p, { fields: [...view.querySelectorAll("input[name=field]:checked")].map(i => i.value), places: $("#places").value.split(",").map(s => s.trim()).filter(Boolean) });
     if ($("#resume")) Object.assign(p, { resume: $("#resume").value.slice(0, 20000), resumeWords: [...new Set(words($("#resume").value))] });
   };
@@ -512,10 +550,27 @@ function onboarding(step) {
     try { $("#resume").value = await pdfText(f); $(".drop").firstChild.textContent = "Read " + f.name + " ✓ "; }
     catch { $(".drop").firstChild.textContent = "Couldn't read that PDF — paste the text instead. "; }
   });
+  $("#unhide")?.addEventListener("click", e => { S.hidden = []; save(); e.target.remove(); toast("Hidden jobs are back."); });
   $("#back")?.addEventListener("click", () => { collect(); stash = p; onboarding(step - 1); });
   $("#reset")?.addEventListener("click", () => { if (confirm("Erase your profile and tracker from this browser? Download a Backup first if you want to keep them.")) { localStorage.removeItem(KEY); location.reload(); } });
 }
 let stash = null;
+
+// A calendar file the viewer imports themselves; floating local time, 1 hour, 1-day reminder.
+function downloadIcs(a) {
+  const t = a.when.replace(/[-:]/g, "").slice(0, 13) + "00", end = new Date(new Date(a.when).getTime() + 36e5);
+  const pad = n => String(n).padStart(2, "0");
+  const e = `${end.getFullYear()}${pad(end.getMonth() + 1)}${pad(end.getDate())}T${pad(end.getHours())}${pad(end.getMinutes())}00`;
+  const clean = s => String(s || "").replace(/[\\;,]/g, m => "\\" + m).replace(/\r?\n/g, " ");
+  const what = a.status === "oa" ? "Assessment due" : "Interview";
+  const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Internship Engine//EN", "BEGIN:VEVENT", `UID:${Date.now()}@internship-engine`,
+    `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").slice(0, 15)}Z`, `DTSTART:${t}`, `DTEND:${e}`,
+    `SUMMARY:${clean(`${what}: ${a.company}`)}`, `DESCRIPTION:${clean(a.title + (safeUrl(a.url) ? " — " + a.url : ""))}`,
+    "BEGIN:VALARM", "TRIGGER:-P1D", "ACTION:DISPLAY", `DESCRIPTION:${clean(what)}`, "END:VALARM", "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar" }));
+  link.download = `${a.company.replace(/[^a-z0-9]+/gi, "-")}-${a.status}.ics`; link.click();
+}
 
 // PDF text extraction happens in this browser with pdf.js (pinned + integrity-checked); the file is never uploaded.
 const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
@@ -562,6 +617,7 @@ document.addEventListener("click", e => {
   }
   const row = t.closest("[data-url]"), r = row && FEED.find(x => x.url === row.dataset.url);
   if (t.dataset.act === "close") return $("#jobDlg").close();
+  if (t.dataset.act === "ics") return downloadIcs(S.apps[t.closest(".app").dataset.url]);
   if (t.dataset.act === "open" && r) return openJob(r);
   if (t.dataset.act === "hide" && r) {
     S.hidden.push(r.url); save(); $("#jobDlg").close(); render(); return toast("Hidden. You won't see it again.");
@@ -577,6 +633,13 @@ document.addEventListener("click", e => {
 });
 let pendingApply = null;
 document.addEventListener("keydown", e => {
+  if (/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) || document.querySelector("dialog[open]") || e.metaKey || e.ctrlKey) return;
+  const rows = [...document.querySelectorAll(".job")], i = rows.indexOf(document.activeElement.closest?.(".job"));
+  if (e.key === "j" || e.key === "k") { const n = rows[Math.max(0, Math.min(rows.length - 1, i + (e.key === "j" ? 1 : -1)))]; n?.focus(); n?.scrollIntoView({ block: "nearest" }); }
+  if (i >= 0 && (e.key === "o" || e.key === "Enter")) rows[i].querySelector("[data-act=open]").click();
+  if (i >= 0 && e.key === "s") rows[i].querySelector("[data-act=save]").click();
+});
+document.addEventListener("keydown", e => {
   if (e.key !== "/" || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) || document.querySelector("dialog[open]")) return;
   e.preventDefault(); if (tab !== "jobs") { tab = "jobs"; render(); } $("#q")?.focus();
 });
@@ -590,6 +653,8 @@ document.addEventListener("change", e => {
   const card = e.target.closest(".app");
   if (!card) return;
   if (e.target.dataset.act === "stage") move(card.dataset.url, e.target.value);
+  if (e.target.dataset.act === "when") { S.apps[card.dataset.url].when = e.target.value; save(); return renderTracker(); }
+  if (e.target.dataset.check) { const a = S.apps[card.dataset.url]; a.checks = { ...a.checks, [e.target.dataset.check]: e.target.checked }; return save(); }
   if (e.target.dataset.act === "notes") { S.apps[card.dataset.url].notes = e.target.value.slice(0, 2000); save(); }
 });
 async function restore(file) {
