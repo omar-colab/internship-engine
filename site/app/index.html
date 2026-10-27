@@ -130,11 +130,26 @@ textarea.t { min-height: 140px; resize: vertical; }
 
 dialog { border: 0; padding: 0; border-radius: 16px; background: var(--sheet); color: var(--ink); box-shadow: var(--lift); width: min(560px, calc(100% - 32px)); }
 dialog::backdrop { background: rgba(6,27,49,.45); backdrop-filter: blur(3px); }
-dialog .in { padding: 24px; display: grid; gap: 14px; }
+dialog .in { position: relative; padding: 24px; display: grid; gap: 14px; }
 
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); opacity: 0; background: var(--ink); color: var(--page); padding: 10px 16px; border-radius: 999px; font-weight: 500; font-size: 14px; transition: .2s ease; pointer-events: none; z-index: 50; }
 .toast.show { opacity: 1; transform: translateX(-50%); }
 
+.job h3 button { all: unset; cursor: pointer; }
+.job h3 button:hover { color: var(--blue-ink); text-decoration: underline; text-underline-offset: 3px; }
+.job h3 button:focus-visible { outline: 3px solid var(--blue); border-radius: 4px; }
+.season { font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; background: var(--blue-soft); color: var(--blue-ink); }
+.icon-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--sheet); cursor: pointer; display: grid; place-items: center; flex: none; }
+.detail-head { display: flex; gap: 14px; align-items: center; }
+.detail-head h2 { margin: 0; font-size: 20px; }
+.reasons { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.reasons li { display: flex; gap: 8px; font-size: 14px; }
+.reasons li::before { content: "✓"; color: var(--green); font-weight: 700; }
+.reasons li.no::before { content: "–"; color: var(--ink-3); }
+.siblings { display: grid; gap: 4px; max-height: 180px; overflow: auto; font-size: 13.5px; }
+.drop { border: 2px dashed var(--line); border-radius: 12px; padding: 16px; text-align: center; color: var(--ink-3); cursor: pointer; display: block; margin-bottom: 12px; }
+.drop:hover { border-color: var(--blue); color: var(--blue-ink); }
+kbd { font: 12px var(--font); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 0 5px; color: var(--ink-3); }
 @media (max-width: 860px) {
   .stats { grid-template-columns: 1fr 1fr; }
   .cols, .grid2 { grid-template-columns: 1fr; }
@@ -157,6 +172,7 @@ dialog .in { padding: 24px; display: grid; gap: 14px; }
       <button data-tab="jobs">Jobs</button>
       <button data-tab="tracker">Tracker <span class="count" id="trackCount" hidden></span></button>
     </nav>
+    <button class="icon-btn" id="theme" title="Light / dark" aria-label="Toggle light or dark mode">◐</button>
     <button class="avatar" id="me" title="Your profile" hidden></button>
   </div>
 </header>
@@ -172,6 +188,8 @@ dialog .in { padding: 24px; display: grid; gap: 14px; }
   <label class="f">Stage<select class="t" name="status"></select></label>
   <div class="actions"><button class="btn" value="cancel" formnovalidate>Cancel</button><button class="btn go" value="ok">Add</button></div>
 </form></dialog>
+
+<dialog id="jobDlg"><div class="in" id="jobBody"></div></dialog>
 
 <div class="toast" id="toast" role="status"></div>
 
@@ -194,6 +212,11 @@ const FIELDS = {
 const STAGES = [["saved","Saved"],["applied","Applied"],["oa","Assessment"],["interview","Interview"],["offer","Offer"],["rejected","Closed"]];
 const GRAD_ONLY = /\b(ph\.?d|mba|master'?s|graduate student|grad student|doctoral|postdoc|law student|\bjd\b|medical student)\b/i;
 const FOLLOW_DAYS = 14;
+const SEASONS = [["Summer", /summer/i], ["Fall", /\b(fall|autumn)\b/i], ["Spring", /spring/i], ["Winter", /winter/i], ["Co-op", /co-?op\b/i]];
+function season(title) {
+  const s = SEASONS.find(([, rx]) => rx.test(title)), y = (title.match(/\b20(2[5-9])\b/) || [])[0];
+  return s ? s[0] + (y ? " " + y : "") : y || "";
+}
 const PAGE = 40;
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -223,7 +246,8 @@ async function loadFeed() {
     FEED_BUILT = d.built || "";
     const seenUrls = new Set(S.seen);
     FEED = (d.roles || []).filter(r => safeUrl(r.url)).map(r => ({ ...r, fields: fieldsOf(r.title) }));
-    if (seenUrls.size) FEED.forEach(r => { if (!seenUrls.has(r.url)) NEW.add(r.url); });
+    // first_seen comes from the feed builder (#48); until then, "new" means new since this visitor's last visit.
+    FEED.forEach(r => { if (r.first_seen ? daysSince(r.first_seen) <= 2 : seenUrls.size && !seenUrls.has(r.url)) NEW.add(r.url); });
     S.seen = FEED.map(r => r.url); save();
   } catch { FEED = []; }
 }
@@ -231,7 +255,7 @@ function fieldsOf(title) {
   const t = title.toLowerCase();
   return Object.keys(FIELDS).filter(k => FIELDS[k][1].test(t));
 }
-const STOP = new Set("intern internship summer fall spring winter co-op coop the and for of to in a an program student 2025 2026 2027 2028 analyst associate".split(" "));
+const STOP = new Set("intern internship summer fall spring winter co-op coop the and for of to in a an program programs student students 2025 2026 2027 2028 analyst associate university college undergraduate early career level entry new team general corporate global time full part year years remote hybrid office north america".split(" "));
 function words(s) { return (s.toLowerCase().match(/[a-z][a-z+#.&-]{2,}/g) || []).filter(w => !STOP.has(w)); }
 
 // Score 1-5 with the reasons shown to the user. Every point has a reason; nothing is hidden.
@@ -249,6 +273,11 @@ function score(r) {
   if (GRAD_ONLY.test(r.title)) { s = 1; why.length = 0; why.push("grad school only"); }
   return { s: Math.min(5, s), why };
 }
+function placeOk(location, remoteOnly) {
+  const loc = (location || "").toLowerCase();
+  if (/remote/.test(loc)) return true;
+  return !remoteOnly && (S.profile.places || []).some(pl => loc.includes(pl.toLowerCase()));
+}
 function initials(name) { return (name || "?").split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase(); }
 function hue(str) { let h = 0; for (const c of str) h = (h * 31 + c.charCodeAt(0)) % 360; return h; }
 function tile(company) { return `<div class="logo-tile" aria-hidden="true" style="background:hsl(${hue(company)} 62% 52%)">${esc(initials(company))}</div>`; }
@@ -260,8 +289,8 @@ function jobRow(r) {
   const app = S.apps[r.url];
   return `<article class="card job" data-url="${esc(r.url)}">
     ${tile(r.company)}
-    <div><h3>${esc(r.title)} ${NEW.has(r.url) ? '<span class="new">NEW</span>' : ""}</h3>
-      <div class="meta"><span>${esc(r.company)}</span><span>·</span><span>${esc(r.location || "Location not listed")}</span>${ago(r.posted) ? `<span>· ${esc(ago(r.posted))}</span>` : ""}</div>
+    <div><h3><button data-act="open">${esc(r.title)}</button> ${NEW.has(r.url) ? '<span class="new">NEW</span>' : ""} ${season(r.title) ? `<span class="season">${esc(season(r.title))}</span>` : ""}</h3>
+      <div class="meta"><span>${esc(r.company)}</span><span>·</span><span>${esc(r.location || "Location not listed")}</span>${ago(r.posted || r.first_seen) ? `<span>· ${esc(ago(r.posted || r.first_seen))}</span>` : ""}</div>
       ${why.length ? `<div class="why">${fitBars(s)} &nbsp;${esc(why.join(" · "))}</div>` : `<div class="why">${fitBars(s)}</div>`}
     </div>
     <div class="side">
@@ -275,9 +304,34 @@ function track(r, status) {
   save(); counts();
 }
 
+// ---------- job detail ----------
+function openJob(r) {
+  const { s, why } = score(r), p = S.profile, app = S.apps[r.url];
+  const others = FEED.filter(x => x.company === r.company && x.url !== r.url);
+  const missing = [];
+  if (!r.fields.some(f => (p.fields || []).includes(f))) missing.push(r.fields.length ? `Field: ${r.fields.map(f => FIELDS[f][0]).join(", ")} — not one you picked` : "Field unclear from the title");
+  if (!placeOk(r.location, false)) missing.push(`Location: ${r.location || "not listed"}`);
+  if (!p.resume) missing.push("Paste your resume in your profile for skill matching");
+  $("#jobBody").innerHTML = `
+    <button class="icon-btn" data-act="close" aria-label="Close" style="position:absolute;top:14px;right:14px">✕</button>
+    <div class="detail-head" style="padding-right:36px">${tile(r.company)}<div><h2>${esc(r.title)}</h2><div class="muted">${esc(r.company)} · ${esc(r.location || "Location not listed")}</div></div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${fitBars(s)} <b>Match ${s} of 5</b> ${season(r.title) ? `<span class="season">${esc(season(r.title))}</span>` : ""} ${r.ats ? `<span class="tag">via ${esc(r.ats)}</span>` : ""}</div>
+    <ul class="reasons">${why.map(w => `<li>${esc(w)}</li>`).join("")}${missing.map(m => `<li class="no">${esc(m)}</li>`).join("")}</ul>
+    ${others.length ? `<div><b style="font-size:14px">${others.length} more at ${esc(r.company)}</b><div class="siblings">${others.slice(0, 30).map(o => `<a href="#" data-sib="${esc(o.url)}">${esc(o.title)} <span class="muted">· ${esc(o.location || "")}</span></a>`).join("")}</div></div>` : ""}
+    <p class="muted" style="margin:0;font-size:13px">Tip: applying in the first few days after a posting goes up matters more than a perfect cover letter.</p>
+    <div class="actions" style="margin-top:4px">
+      <button class="btn sm" data-act="hide" style="color:var(--ink-3)">Not interested</button>
+      <span style="display:flex;gap:8px"><button class="btn sm ${app ? "on" : ""}" data-act="save">${app ? STAGES.find(x => x[0] === app.status)[1] : "Save"}</button>
+      <a class="btn sm go" data-act="apply" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">Apply on ${esc(r.company)} ↗</a></span>
+    </div>`;
+  $("#jobBody").dataset.url = r.url;
+  if (!$("#jobDlg").open) $("#jobDlg").showModal();
+}
+$("#jobDlg").addEventListener("click", e => { if (e.target === $("#jobDlg")) $("#jobDlg").close(); });
+
 // ---------- views ----------
 const view = $("#view");
-let tab = "today", jobQuery = { q: "", field: "mine", sort: "fit", shown: PAGE, grad: false };
+let tab = "today", jobQuery = { q: "", field: "mine", sort: "fit", shown: PAGE, grad: false, season: "", where: "any" };
 
 function render() {
   document.querySelectorAll("nav.tabs button").forEach(b => b.dataset.tab === tab ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
@@ -323,6 +377,7 @@ function renderToday() {
       <aside style="display:grid;gap:20px">
         <section class="card" style="padding:18px"><h2>Follow up</h2>${due.length ? due.slice(0, 6).map(a => `<div style="padding:8px 0;border-top:1px solid var(--line)"><b style="font-size:14px">${esc(a.company)}</b><div class="muted" style="font-size:13px">${esc(a.title)} · applied ${daysSince(a.applied || a.updated)}d ago</div></div>`).join("") : `<p class="muted" style="margin:0">Nothing's gone quiet. Applications with no news for ${FOLLOW_DAYS} days show up here.</p>`}</section>
         <section class="card" style="padding:18px"><h2>Coming up</h2>${live.length ? live.map(a => `<div style="padding:8px 0;border-top:1px solid var(--line)"><b style="font-size:14px">${esc(a.company)}</b> <span class="tag">${a.status === "oa" ? "Assessment" : "Interview"}</span><div class="muted" style="font-size:13px">${esc(a.title)}</div></div>`).join("") : `<p class="muted" style="margin:0">Assessments and interviews you move on the tracker show up here.</p>`}</section>
+        <section class="card" style="padding:18px"><h2>Searching with friends?</h2><p class="muted" style="margin:0 0 12px">Send them the link. Everyone gets their own private tracker.</p><button class="btn sm" id="invite">Share the app</button></section>
         <section class="card" style="padding:18px"><h2>Fill forms faster</h2><p class="muted" style="margin:0 0 12px">The Chrome extension fills the application form on the page you're on, and never clicks Submit.</p><a class="btn sm" href="https://github.com/omar-colab/internship-engine/releases/latest" target="_blank" rel="noopener">Get the extension</a></section>
       </aside>
     </div>`;
@@ -332,14 +387,16 @@ function renderJobs() {
   const q = jobQuery;
   view.innerHTML = `<h1>Jobs</h1><p class="lede">${FEED.length.toLocaleString()} internships pulled this morning from employers' own job boards.</p>
     <div class="filters">
-      <input class="t" id="q" type="search" placeholder="Search company, role or city" value="${esc(q.q)}" aria-label="Search">
+      <input class="t" id="q" type="search" placeholder="Search company, role or city  ( / )" value="${esc(q.q)}" aria-label="Search">
       <select class="t" id="field" aria-label="Field"><option value="mine">My fields</option><option value="all">All fields</option>${Object.entries(FIELDS).map(([k, v]) => `<option value="${k}">${esc(v[0])}</option>`).join("")}</select>
+      <select class="t" id="where" aria-label="Where"><option value="any">Anywhere</option><option value="mine">My cities + remote</option><option value="remote">Remote only</option></select>
+      <select class="t" id="season" aria-label="Season"><option value="">Any season</option>${SEASONS.map(([n]) => `<option>${n}</option>`).join("")}</select>
       <select class="t" id="sort" aria-label="Sort"><option value="fit">Best match</option><option value="new">Newest</option><option value="company">Company A–Z</option></select>
       <label class="chip"><input type="checkbox" id="grad" ${q.grad ? "checked" : ""}>Show grad-only</label>
     </div><div id="results"></div>`;
-  $("#field").value = q.field; $("#sort").value = q.sort;
-  const go = () => { Object.assign(q, { q: $("#q").value, field: $("#field").value, sort: $("#sort").value, grad: $("#grad").checked, shown: PAGE }); results(); };
-  $("#q").addEventListener("input", go); ["#field", "#sort", "#grad"].forEach(s => $(s).addEventListener("change", go));
+  $("#field").value = q.field; $("#sort").value = q.sort; $("#where").value = q.where; $("#season").value = q.season;
+  const go = () => { Object.assign(q, { q: $("#q").value, field: $("#field").value, sort: $("#sort").value, grad: $("#grad").checked, where: $("#where").value, season: $("#season").value, shown: PAGE }); results(); };
+  $("#q").addEventListener("input", go); ["#field", "#sort", "#grad", "#where", "#season"].forEach(s => $(s).addEventListener("change", go));
   results();
 }
 function results() {
@@ -347,6 +404,8 @@ function results() {
   let rows = ranked().filter(x =>
     (q.grad || !GRAD_ONLY.test(x.r.title)) &&
     (q.field === "all" || (q.field === "mine" ? !mine.length || x.r.fields.some(f => mine.includes(f)) : x.r.fields.includes(q.field))) &&
+    (!q.season || season(x.r.title).startsWith(q.season)) &&
+    (q.where === "any" || placeOk(x.r.location, q.where === "remote")) &&
     (!needle || `${x.r.company} ${x.r.title} ${x.r.location}`.toLowerCase().includes(needle)));
   const by = { fit: (a, b) => b.s - a.s || NEW.has(b.r.url) - NEW.has(a.r.url), new: (a, b) => NEW.has(b.r.url) - NEW.has(a.r.url) || String(b.r.posted || "").localeCompare(String(a.r.posted || "")), company: (a, b) => a.r.company.localeCompare(b.r.company) }[q.sort];
   rows.sort(by);
@@ -404,6 +463,7 @@ function onboarding(step) {
       <label class="f" style="margin-top:20px">Cities or states you'd work in <span class="muted" style="font-weight:400">comma-separated, e.g. New York, Chicago, TX — remote always counts</span><input class="t" id="places" value="${esc(p.places.join(", "))}"></label>`,
     () => `<h1>Paste your resume <span class="muted" style="font-weight:500">(optional)</span></h1>
       <p class="lede">Paste the text of your resume and roles that match your skills rank higher. It never leaves this browser.</p>
+      <label class="drop">Upload your resume PDF <span class="muted">— or paste the text below</span><input type="file" id="pdfIn" accept="application/pdf" hidden></label>
       <textarea class="t" id="resume" placeholder="Paste your resume text here">${esc(p.resume)}</textarea>`,
   ];
   view.innerHTML = `<form class="card welcome" id="ob" novalidate>
@@ -423,15 +483,52 @@ function onboarding(step) {
     S.profile = p; save(); stash = null; tab = "today"; render(); counts();
     toast(editing ? "Saved." : `Welcome, ${p.name}!`);
   });
+  $("#pdfIn")?.addEventListener("change", async e => {
+    const f = e.target.files[0]; if (!f) return;
+    $(".drop").firstChild.textContent = "Reading " + f.name + "…";
+    try { $("#resume").value = await pdfText(f); $(".drop").firstChild.textContent = "Read " + f.name + " ✓ "; }
+    catch { $(".drop").firstChild.textContent = "Couldn't read that PDF — paste the text instead. "; }
+  });
   $("#back")?.addEventListener("click", () => { collect(); stash = p; onboarding(step - 1); });
   $("#reset")?.addEventListener("click", () => { if (confirm("Erase your profile and tracker from this browser? Download a Backup first if you want to keep them.")) { localStorage.removeItem(KEY); location.reload(); } });
 }
 let stash = null;
 
+// PDF text extraction happens in this browser with pdf.js (pinned + integrity-checked); the file is never uploaded.
+const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+async function pdfText(file) {
+  if (!window.pdfjsLib) {
+    await new Promise((ok, fail) => {
+      const sc = document.createElement("script");
+      Object.assign(sc, { src: PDFJS + "pdf.min.js", integrity: "sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e", crossOrigin: "anonymous", onload: ok, onerror: fail });
+      document.head.append(sc);
+    });
+    // Workers must be same-origin, so fetch the worker with its own integrity check and run it from a blob.
+    const w = await fetch(PDFJS + "pdf.worker.min.js", { integrity: "sha384-SnzOobpRMLXZ52iJvZm/C0fYw0OQemTXzTjIsdsfMcrCtCEe9qgzxTd3RSklO5x2" });
+    pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(await w.blob());
+  }
+  const doc = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+  const pages = [];
+  for (let i = 1; i <= Math.min(doc.numPages, 5); i++) pages.push((await (await doc.getPage(i)).getTextContent()).items.map(x => x.str).join(" "));
+  return pages.join("\n");
+}
+
 // ---------- events ----------
 document.addEventListener("click", e => {
-  const t = e.target.closest("[data-tab],[data-go],[data-act],#me,#addApp,#exportBtn");
+  const sib = e.target.closest("[data-sib]");
+  if (sib) { e.preventDefault(); return openJob(FEED.find(x => x.url === sib.dataset.sib)); }
+  const t = e.target.closest("[data-tab],[data-go],[data-act],#me,#addApp,#exportBtn,#theme,#invite");
   if (!t) return;
+  if (t.id === "theme") {
+    const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    const cur = document.documentElement.dataset.theme || (dark ? "dark" : "light");
+    S.theme = document.documentElement.dataset.theme = cur === "dark" ? "light" : "dark"; return save();
+  }
+  if (t.id === "invite") {
+    const url = new URL("./", location.href).href, text = "Free internship finder + tracker — pulls roles straight from company job boards:";
+    if (navigator.share) return navigator.share({ title: "Internship Engine", text, url }).catch(() => {});
+    return navigator.clipboard.writeText(url).then(() => toast("Link copied — send it to a friend."), () => toast(url));
+  }
   if (t.dataset.tab || t.dataset.go) { tab = t.dataset.tab || t.dataset.go; return render(); }
   if (t.id === "me") { tab = "profile"; stash = null; return render(); }
   if (t.id === "addApp") { const f = $("#addForm"); f.reset(); f.status.innerHTML = STAGES.map(([k, l]) => `<option value="${k}" ${k === "applied" ? "selected" : ""}>${l}</option>`).join(""); return $("#addDlg").showModal(); }
@@ -441,6 +538,11 @@ document.addEventListener("click", e => {
     a.download = `internship-engine-backup-${today()}.json`; a.click(); return;
   }
   const row = t.closest("[data-url]"), r = row && FEED.find(x => x.url === row.dataset.url);
+  if (t.dataset.act === "close") return $("#jobDlg").close();
+  if (t.dataset.act === "open" && r) return openJob(r);
+  if (t.dataset.act === "hide" && r) {
+    S.hidden.push(r.url); save(); $("#jobDlg").close(); render(); return toast("Hidden. You won't see it again.");
+  }
   if (t.dataset.act === "save" && r) {
     if (S.apps[r.url]) { tab = "tracker"; return render(); }
     track(r, "saved"); t.classList.add("on"); t.textContent = "Saved"; toast("Saved to your tracker.");
@@ -451,6 +553,10 @@ document.addEventListener("click", e => {
   }
 });
 let pendingApply = null;
+document.addEventListener("keydown", e => {
+  if (e.key !== "/" || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) || document.querySelector("dialog[open]")) return;
+  e.preventDefault(); if (tab !== "jobs") { tab = "jobs"; render(); } $("#q")?.focus();
+});
 window.addEventListener("focus", () => {
   if (!pendingApply) return;
   const r = pendingApply; pendingApply = null;
@@ -477,6 +583,7 @@ $("#addDlg").addEventListener("close", () => {
   toast("Added."); render();
 });
 
+if (S.theme) document.documentElement.dataset.theme = S.theme;
 (async () => {
   view.innerHTML = `<div class="empty">Loading today's internships…</div>`;
   await loadFeed(); counts(); render();
