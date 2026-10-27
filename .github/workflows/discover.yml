@@ -1,0 +1,49 @@
+name: Discover job boards
+
+on:
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+      - run: uv sync
+      - name: Discover boards and open or update a pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          counts="$(uv run python scripts/discover_boards.py)"
+          printf '%s\n' "$counts"
+          if git diff --quiet -- boards.json; then
+            echo "boards.json is unchanged; no pull request needed."
+            exit 0
+          fi
+
+          python scripts/check_tracked_data.py
+          git config user.name "omar-colab"
+          git config user.email "272296338+omar-colab@users.noreply.github.com"
+          git switch -C bot/discover-boards
+          git add boards.json
+          git commit -m "Discover eligible internship boards"
+          git push --force origin HEAD:bot/discover-boards
+
+          pr_number="$(gh pr list --head bot/discover-boards --state open --json number --jq '.[0].number // empty')"
+          if [ -n "$pr_number" ]; then
+            gh pr edit "$pr_number" --body "$counts"
+          else
+            gh pr create \
+              --head bot/discover-boards \
+              --base "$GITHUB_REF_NAME" \
+              --title "Discover eligible internship boards" \
+              --body "$counts"
+          fi
