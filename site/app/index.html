@@ -281,7 +281,8 @@ async function loadFeed() {
     for (const r of FEED) {
       const k = r.company !== "Unknown" ? JSON.stringify([r.company.toLowerCase(), r.title.toLowerCase()]) : r.url, g = groups.get(k);
       if (!g) { groups.set(k, { ...r, locs: [{ location: r.location, url: r.url }] }); continue; }
-      g.locs.push({ location: r.location, url: r.url });
+      // Same city posted twice (two requisitions) is one place to the visitor.
+      if (!g.locs.some(l => (l.location || "").toLowerCase() === (r.location || "").toLowerCase())) g.locs.push({ location: r.location, url: r.url });
       if (NEW.has(r.url)) NEW.add(g.url);
     }
     FEED = [...groups.values()];
@@ -321,7 +322,7 @@ function scoreNow(r) {
   if (locs.some(l => /remote/.test(l))) { s += 1; why.push("remote"); }
   else if (place) { s += 1; why.push("in " + place); }
   const sk = skillMatch(r);
-  if (sk) { if (sk.have.length * 2 >= sk.asked.length) { s += 1; why.push(`you have ${sk.have.length} of ${sk.asked.length} skills it asks for`); } }
+  if (sk) { if (sk.have.length * 2 >= sk.asked.length) { s += 1; why.push(sk.asked.length === 1 ? `you have the one skill it asks for (${sk.have[0]})` : `you have ${sk.have.length} of ${sk.asked.length} skills it asks for`); } }
   else {
     const rw = new Set(p.resumeWords || []);
     const overlap = [...new Set(words(r.title))].filter(w => rw.has(w));
