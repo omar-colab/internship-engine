@@ -54,6 +54,11 @@ _ATS_LINK = re.compile(r"myworkdayjobs\.com|greenhouse\.io|lever\.co|ashbyhq\.co
                        r"jobvite\.com|applytojob\.com|workable\.com|successfactors|taleo\.net|adp\.com|smartrecruiters\.com")
 
 
+def clean_name(name: str) -> str:
+    """Public lists decorate names ("🔥 NVIDIA", "**Figma**"); the feed shows the employer's plain name."""
+    return re.sub(r"^[^\w(]+|[^\w).&!]+$", "", name).strip() or name
+
+
 def parse_readme(markdown: str) -> list[tuple[str, str]]:
     """Extract only (company, employer apply URL); public-list job details are discarded."""
     table = _Table()
@@ -168,7 +173,7 @@ def discover(rows: list[tuple[str, str]], existing: list[dict]) -> tuple[list[di
         if not found:
             continue
         kind, board = found
-        candidate = {"name": name, "ats": kind, **board}
+        candidate = {"name": clean_name(name), "ats": kind, **board}
         counts["detected"] += 1
         key = _board_key(candidate)
         if key in known:
@@ -226,6 +231,8 @@ def main() -> int:
 | ↳ | Data Co-op | Remote | <a href="https://boards.greenhouse.io/fabrikam"><img alt="Apply"></a> | Today |
 | Tailspin | Analyst Intern | Chicago | <a href="https://jobs.ashbyhq.com/tailspin">Apply</a> | Today |
 """
+        assert clean_name("🔥 Northwind") == "Northwind" and clean_name("**Contoso**") == "Contoso"
+        assert clean_name("Tailspin (TT)") == "Tailspin (TT)" and clean_name("Fabrikam & Co.") == "Fabrikam & Co."
         assert parse_readme(markdown_fixture) == [
             ("Fabrikam", "https://jobs.lever.co/fabrikam"),
             ("Fabrikam", "https://boards.greenhouse.io/fabrikam"),
