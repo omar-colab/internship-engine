@@ -57,7 +57,8 @@ def eligibility(title: str, desc: str, p: dict) -> tuple[int, str | None]:
     t, d = title.lower(), (desc or "").lower()
     grad = int(p["graduation"][:4])
     if p["degree_level"] == "bachelors":
-        if re.search(r"\b(mba|ph\.?d|pharm\.?d|doctoral|master'?s|graduate (student )?intern|law student|jd\b|md\b)", t):
+        if re.search(r"\b(mba|ph\.?d|pharm\.?d|doctoral|master'?s|grad(uate)? (student )?(intern|co-?op)|graduate level|pre-grad|law student|jd\b|md\b)", t) \
+                and "undergrad" not in t:
             return 0, "Graduate-level role"
         if re.search(r"(currently (enrolled|pursuing) (in )?(an? )?(mba|ph\.?d|master'?s|graduate|doctoral))", d) and \
                 not re.search(r"bachelor|undergraduate", d):
@@ -177,6 +178,8 @@ def _selfcheck() -> None:
          "strengths": ["python", "sql", "tableau", "consulting", "ai"], "locations": ["CT", "NY", "Remote"]}
     assert eligibility("MBA Summer Associate", "", p)[0] == 0
     assert eligibility("Summer 2026 Analyst Intern", "", p) == (0, "Summer 2026 has already happened")
+    assert eligibility("Pharmacy Grad Intern", "", p) == (0, "Graduate-level role")
+    assert eligibility("Undergraduate/Graduate Intern", "", p)[1] != "Graduate-level role"
     assert eligibility("Analyst Intern", "Candidates graduating between December 2026 and June 2027.", p)[0] == 0
     assert eligibility("Analyst Intern", "Must be graduating between December 2027 and June 2028.", p)[0] == 1
     assert eligibility("Analyst Intern", "Open to sophomores only through our discovery program.", p)[0] == 0
