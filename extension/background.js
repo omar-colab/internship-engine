@@ -57,7 +57,10 @@ async function scheduleWatch() {
 }
 
 if (typeof chrome !== "undefined") {
-  chrome.runtime.onInstalled.addListener(() => { scheduleWatch(); checkAlerts(); });
+  chrome.runtime.onInstalled.addListener(async details => {
+    await scheduleWatch();
+    if (details.reason === "install") await checkAlerts();
+  });
   chrome.runtime.onStartup.addListener(scheduleWatch);
   chrome.alarms.onAlarm.addListener(alarm => {
     if (alarm.name === ALERT) checkAlerts();

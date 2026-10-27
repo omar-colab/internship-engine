@@ -150,6 +150,12 @@ const appPost = data => listeners.message({ source: window, origin: "https://oma
   assert.equal(alertCalls.fetched, 3);
   assert.equal(alertCalls.notifications.length, 1);
   assert.equal(alertCalls.alarms.length, 0);
+  alertStore.profile = { watch: { fields: ["data"], places: [] } };
+  const fetchedBeforeInstall = alertCalls.fetched;
+  await alertListeners.install({ reason: "update" });
+  assert.equal(alertCalls.fetched, fetchedBeforeInstall);                    // updates schedule only; they do not send install alerts
+  await alertListeners.install({ reason: "install" });
+  assert.equal(alertCalls.fetched, fetchedBeforeInstall + 1);
   await alertListeners.startup();
   assert.equal(alertCalls.alarms.length, 1);
   await alertListeners.startup();
