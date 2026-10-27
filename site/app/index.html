@@ -963,6 +963,8 @@ $("#addDlg").addEventListener("close", () => {
 function landFocus() { const h = $("main h1"); if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); } }
 
 if (S.theme) document.documentElement.dataset.theme = S.theme;
+// Offline + instant load (sw.js). Failure is harmless: the page works the same without it.
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 (async () => {
   view.innerHTML = `<div class="empty">Loading today's internships…</div>`;
   await loadFeed(); await importFromHash(); counts(); render(); post({ type: "hello" });
