@@ -274,7 +274,9 @@
   document.addEventListener("click", e => {
     const b = e.target.closest?.("button, input[type=submit]");
     if (b && SUBMIT.test(b.innerText || b.value || "") && !b.closest("#internship-engine-root")) send("/ext/applied", {
-      url: location.href, learned: yoursLeft.map(q => ({ label: q.label, answer: current(q) })).filter(x => x.answer) });
+      url: location.href, company: document.title.split(/[-|–@]/).pop().trim(),
+      title: clean(document.querySelector("h1, h2")?.innerText) || document.title,
+      learned: yoursLeft.map(q => ({ label: q.label, answer: current(q) })).filter(x => x.answer) });
   }, true);
 
   start();
