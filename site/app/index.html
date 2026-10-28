@@ -3,20 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Internship Engine</title>
+<title>Ghostwrite</title>
 <meta name="description" content="Today's internships from employers' own job boards, ranked for you, with a tracker. Free, no account; your data stays in your browser.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%23635BFF%22/%3E%3Cg fill=%22%23fff%22%3E%3Crect x=%227%22 y=%2219%22 width=%224%22 height=%226%22 rx=%222%22/%3E%3Crect x=%2213%22 y=%2216%22 width=%224%22 height=%229%22 rx=%222%22/%3E%3Crect x=%2219%22 y=%2213%22 width=%224%22 height=%2212%22 rx=%222%22/%3E%3Crect x=%2225%22 y=%2210%22 width=%224%22 height=%2215%22 rx=%222%22/%3E%3C/g%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' %3E%3Cdefs%3E%3ClinearGradient id='gmg' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%236538DB'/%3E%3Cstop offset='1' stop-color='%234E22BC'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='24' fill='url(%23gmg)'/%3E%3Cpath transform='translate(6 6)' fill='%23fff' fill-opacity='.24' d='M26 30Q26 20 36 20H58L74 36V70Q74 80 67 77Q61 72 56 77Q50 83 44 77Q39 72 33 77Q26 80 26 70Z'/%3E%3Cpath fill='%23fff' d='M26 30Q26 20 36 20H58L74 36V70Q74 80 67 77Q61 72 56 77Q50 83 44 77Q39 72 33 77Q26 80 26 70Z'/%3E%3Cpath fill='%23D7C9FA' d='M58 20V32Q58 36 62 36H74Z'/%3E%3Ccircle cx='42' cy='48' r='4' fill='%231A0F3D'/%3E%3Ccircle cx='58' cy='48' r='4' fill='%231A0F3D'/%3E%3C/svg%3E">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
-<meta name="theme-color" content="#635BFF">
+<meta name="theme-color" content="#6538DB">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&display=swap" rel="stylesheet">
 <style>
 :root {
   color-scheme: light;
-  --page: #F6F9FC; --sheet: #FFFFFF; --ink: #0A2540; --ink-2: #425466; --ink-3: #697386; --line: #E3E8EE;
-  --blue: #635BFF; --blue-ink: #4B44E0; --blue-soft: #EEF0FF; --on-blue: #FFFFFF; --green: #04704F; --green-soft: #E3F8EF;
+  --page: #FFFFFF; --sheet: #FFFFFF; --ink: #1A0F3D; --ink-2: #3D3366; --ink-3: #6B6491; --line: #1A0F3D; --blue: #6538DB; --blue-ink: #4E22BC; --blue-soft: #F4F1FB; --on-blue: #FFFFFF; --green: #04704F; --green-soft: #E3F8EF;
   --warm: #FFF4E5; --warm-ink: #8A4B08; --red: #D92D20; --red-soft: #FEECEB;
   --font: "Inter Tight", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --shadow: 0 1px 2px rgba(10,37,64,.06), 0 4px 12px -4px rgba(10,37,64,.08);
@@ -24,15 +23,13 @@
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   color-scheme: dark;
-  --page: #061B31; --sheet: #0C2A48; --ink: #F6F9FC; --ink-2: #ADBDCC; --ink-3: #8098B0; --line: #1C3D5E;
-  --blue: #8C86FF; --blue-ink: #A9A5FF; --blue-soft: #1E2A66; --on-blue: #061B31; --green: #3DD9A0; --green-soft: #0D3B33;
+  --page: #120A2E; --sheet: #1A0F3D; --ink: #F4F1FB; --ink-2: #D7C9FA; --ink-3: #A89BD6; --line: #D7C9FA; --blue: #A88BFA; --blue-ink: #C4B2FB; --blue-soft: #2A1A63; --on-blue: #120A2E; --green: #3DD9A0; --green-soft: #0D3B33;
   --warm: #3A2A12; --warm-ink: #FFC46B; --red: #FF8A80; --red-soft: #3D1B1E;
   --shadow: 0 0 0 1px var(--line); --lift: 0 0 0 1px var(--line), 0 24px 48px -12px rgba(0,0,0,.6);
 } }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --page: #061B31; --sheet: #0C2A48; --ink: #F6F9FC; --ink-2: #ADBDCC; --ink-3: #8098B0; --line: #1C3D5E;
-  --blue: #8C86FF; --blue-ink: #A9A5FF; --blue-soft: #1E2A66; --on-blue: #061B31; --green: #3DD9A0; --green-soft: #0D3B33;
+  --page: #120A2E; --sheet: #1A0F3D; --ink: #F4F1FB; --ink-2: #D7C9FA; --ink-3: #A89BD6; --line: #D7C9FA; --blue: #A88BFA; --blue-ink: #C4B2FB; --blue-soft: #2A1A63; --on-blue: #120A2E; --green: #3DD9A0; --green-soft: #0D3B33;
   --warm: #3A2A12; --warm-ink: #FFC46B; --red: #FF8A80; --red-soft: #3D1B1E;
   --shadow: 0 0 0 1px var(--line); --lift: 0 0 0 1px var(--line), 0 24px 48px -12px rgba(0,0,0,.6);
 }
@@ -56,7 +53,7 @@ nav.tabs button { border: 0; background: none; padding: 8px 14px; border-radius:
 nav.tabs button:hover { color: var(--ink); background: var(--sheet); }
 nav.tabs button[aria-current="page"] { background: var(--ink); color: var(--page); }
 .count { font-size: 11px; font-weight: 600; background: var(--blue); color: var(--on-blue); border-radius: 999px; padding: 1px 7px; }
-.avatar { width: 34px; height: 34px; border-radius: 50%; border: 0; background: linear-gradient(135deg, #A960EE, #635BFF 55%, #90E0FF); color: #fff; font-weight: 600; font-size: 13px; cursor: pointer; flex: none; }
+.avatar { width: 34px; height: 34px; border-radius: 50%; border: 0; background: #5A2DCC; color: #fff; font-weight: 600; font-size: 13px; cursor: pointer; flex: none; }
 
 main { width: min(1120px, 100%); margin: 0 auto; padding: 28px 16px 80px; }
 h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.08; letter-spacing: -.035em; font-weight: 600; margin: 0 0 6px; }
@@ -176,12 +173,31 @@ kbd { font: 12px var(--font); border: 1px solid var(--line); border-bottom-width
   .btn:active, .job:hover { transform: none; }
   .toast, .toast.show { transform: translateX(-50%); }
 }
+
+/* ---------- Ghostwrite brand: modernist frames, square corners, Archivo, violet ---------- */
+:root { --font: "Archivo", ui-sans-serif, system-ui, -apple-system, sans-serif; --soft-line: #D7C9FA; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --soft-line: #3B2A7A; } }
+:root[data-theme="dark"] { --soft-line: #3B2A7A; }
+*, *::before, *::after { border-radius: 0 !important; box-shadow: none !important; }
+h1, h2, h3 { font-weight: 800 !important; letter-spacing: -.035em; text-wrap: balance; }
+.gmark { width: 100%; height: 100%; display: block; }
+.mark { background: none !important; padding: 0 !important; width: 32px !important; height: 32px !important; }
+.mark .gmark rect { rx: 24px; }
+.logo { font-weight: 800 !important; letter-spacing: -.035em !important; font-size: 21px !important; }
+.btn { border-width: 2px !important; border-style: solid !important; border-color: var(--ink) !important; font-weight: 600; }
+.btn.go { border-color: var(--blue-ink) !important; background: var(--blue) !important; color: #fff !important; }
+.btn.go:hover { background: var(--blue-ink) !important; }
+.card, .feat, .nums > div, dialog, .lane, .stat { border: 2px solid var(--ink) !important; }
+input, select, textarea, .t { border: 2px solid var(--ink) !important; font-family: var(--font); }
+input:focus, select:focus, textarea:focus, .btn:focus-visible, a:focus-visible { outline: 3px solid var(--blue) !important; outline-offset: 2px; }
+.tag, .chip { border: 1.5px solid var(--soft-line) !important; }
+.kicker, .eyebrow { text-transform: uppercase; letter-spacing: .08em; font-weight: 600; color: var(--blue-ink); }
 </style>
 </head>
 <body>
 <header>
   <div class="bar">
-    <a class="logo" href="../"><span class="mark"><span class="sig"><i style="height:5px"></i><i style="height:8px"></i><i style="height:11px"></i><i style="height:14px"></i></span></span>Internship Engine</a>
+    <a class="logo" href="../"><span class="mark"><svg class="gmark" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="gmg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6538DB"/><stop offset="1" stop-color="#4E22BC"/></linearGradient></defs><rect width="100" height="100" rx="24" fill="url(#gmg)"/><path transform="translate(6 6)" fill="#fff" fill-opacity=".24" d="M26 30Q26 20 36 20H58L74 36V70Q74 80 67 77Q61 72 56 77Q50 83 44 77Q39 72 33 77Q26 80 26 70Z"/><path fill="#fff" d="M26 30Q26 20 36 20H58L74 36V70Q74 80 67 77Q61 72 56 77Q50 83 44 77Q39 72 33 77Q26 80 26 70Z"/><path fill="#D7C9FA" d="M58 20V32Q58 36 62 36H74Z"/><circle cx="42" cy="48" r="4" fill="#1A0F3D"/><circle cx="58" cy="48" r="4" fill="#1A0F3D"/></svg></span>ghostwrite</a>
     <nav class="tabs" aria-label="App" hidden>
       <button data-tab="today">Today</button>
       <button data-tab="jobs">Jobs</button>
@@ -215,9 +231,9 @@ kbd { font: 12px var(--font); border: 1px solid var(--line); border-bottom-width
 const KEY = "ie.app.v1";
 const FIELDS = {
   software: ["Software", /\b(software|developer|swe|sde|backend|back-end|frontend|front-end|full[- ]?stack|web|mobile|ios|android|devops|cloud|platform|site reliability|programm|\bsw\b|\bit\b|information technology|infrastructure|servicenow|technology|systems administrator|information systems|business systems|application develop|technologist)/],
-  data: ["Data & AI", /\b(data|analytics?|analyst|machine learning|\bml\b|\bai\b|artificial intelligence|scien|statistic|quant|power bi|\bbi\b|insights|business intelligence|geographic information|\bgis\b|research assistant)/],
+  data: ["Data & AI", /\b(data|analytics?|analyst|machine learning|\bml\b|\bai\b|artificial intelligence|scien|statistic|quant|power bi|\bbi\b|insights|business intelligence|ai transformation|ai strategy|generative ai|genai|\bllm|automation|geographic information|\bgis\b|research assistant)/],
   finance: ["Finance & accounting", /\b(financ|accounting|accountant|audit|tax|treasury|invest|banking|credit|risk|actuar|fp&a|wealth|capital markets|claims|underwrit|insurance|lending|loan|branch intern|trust|assurance|pricing|payroll|retirement|trade desk|real estate|private equity|fund|private client|endowment)/],
-  consulting: ["Consulting & business", /\b(consult|strategy|transformation|advisory|business analyst|business intern|leadership development|rotational|general management|management intern|performance improvement|corporate development|business intern|business\/)/],
+  consulting: ["Consulting & business", /\b(consult|strategy|transformation|advisory|business analyst|business intern|leadership development|rotational|general management|digital transformation|ai transformation|innovation|management intern|performance improvement|corporate development|business intern|business\/)/],
   product: ["Product & design", /\b(product (manag|design|owner|market|defin|analy|develop)|technical product|design|ux|ui\b|user experience|user research)/],
   marketing: ["Marketing & sales", /\b(marketing|sales|brand|communications|social media|content|public relations|growth|copywrit|photograph|community (manag|engag)|merchandis|business development|partnership|customer success|e-?commerce|go-to-market|customer experience|dealer|market research|strateg|events?\b)/],
   ops: ["Operations & supply chain", /\b(operations|supply chain|logistics|procurement|sourcing|planning|inventory|operational excellence|project manag|program manag|order|customer support|construction|facilities|contracts|supplier|network expansion|production|estimat|ops\b|project coordinat|process improvement|land planner)/],
@@ -367,7 +383,7 @@ function placeOk(r, remoteOnly) {
 }
 // What people type vs. what boards write: "NYC" vs "New York, NY", "Bay Area" vs "San Jose".
 const METROS = [["new york", "nyc", "manhattan", "brooklyn", "jersey city", "hoboken"], ["san francisco", "sf", "bay area", "san jose", "palo alto", "mountain view", "sunnyvale", "menlo park", "oakland"],
-  ["los angeles", "santa monica", "irvine"], ["washington", "dc", "d.c.", "arlington", "mclean", "reston", "bethesda"], ["boston", "cambridge"], ["dallas", "fort worth", "irving", "plano"],
+  ["los angeles", "santa monica", "irvine"], ["washington", "dc", "d.c.", "arlington", "mclean", "reston", "bethesda"], ["boston", "cambridge", "somerville", "waltham", "burlington, ma", "quincy"], ["connecticut", "ct", "hartford", "stamford", "new haven", "greenwich", "norwalk", "danbury", "shelton", "windsor"], ["dallas", "fort worth", "irving", "plano"],
   ["chicago"], ["seattle", "redmond", "bellevue"], ["atlanta"], ["philadelphia", "philly"], ["minneapolis", "st. paul", "saint paul"], ["denver", "boulder"], ["houston"], ["austin"]];
 function placeHit(pl, loc) {
   const want = pl.toLowerCase().trim(), metro = METROS.find(m => m.includes(want));
@@ -377,7 +393,7 @@ function placeHit(pl, loc) {
 const moreLocs = r => r.locs?.length > 1 ? ` +${r.locs.length - 1} more` : "";
 function initials(name) { return (name || "?").split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase(); }
 function hue(str) { let h = 0; for (const c of str) h = (h * 31 + c.charCodeAt(0)) % 360; return h; }
-function tile(company) { return `<div class="logo-tile" aria-hidden="true" style="background:hsl(${hue(company)} 62% 52%)">${esc(initials(company))}</div>`; }
+function tile(company) { return `<div class="logo-tile" aria-hidden="true" style="background:hsl(${252 + hue(company) % 24} ${45 + hue(company) % 25}% ${30 + hue(company) % 22}%)">${esc(initials(company))}</div>`; }
 function fitBars(s) { return `<span class="fit" title="Match ${s} of 5" aria-label="Match ${s} of 5">${[5,8,11,14,17].map((h,i) => `<i style="height:${h}px" class="${i < s ? "on" : ""}"></i>`).join("")}</span>`; }
 function ago(d) { if (!d) return ""; const n = daysSince(d); return n <= 0 ? "today" : n === 1 ? "yesterday" : n < 30 ? n + "d ago" : ""; }
 
@@ -526,7 +542,7 @@ async function importFromHash() {
   history.replaceState(null, "", location.pathname);          // the link holds your data; don't leave it in the address bar
   let d;
   try { d = await unpack(m[1]); } catch { return toast("That link is damaged — copy it again."); }
-  if (!d || d.v !== 1 || typeof d.apps !== "object" || !d.apps || Array.isArray(d.apps)) return toast("That link isn't from Internship Engine.");
+  if (!d || d.v !== 1 || typeof d.apps !== "object" || !d.apps || Array.isArray(d.apps)) return toast("That link isn't from Ghostwrite.");
   const n = Object.keys(d.apps).length;
   if (!confirm(`Bring over ${d.profile?.name ? d.profile.name + "'s" : "a"} profile and ${n} tracked application${n === 1 ? "" : "s"}? Your tracker here is kept; the newer copy of each application wins.`)) return;
   for (const [url, a] of Object.entries(d.apps)) {
@@ -848,7 +864,7 @@ function downloadIcs(a) {
   const e = `${end.getUTCFullYear()}${pad(end.getUTCMonth() + 1)}${pad(end.getUTCDate())}T${pad(end.getUTCHours())}${pad(end.getUTCMinutes())}00`;
   const clean = s => String(s || "").replace(/[\\;,]/g, m => "\\" + m).replace(/\r?\n/g, " ");
   const what = a.status === "oa" ? "Assessment due" : "Interview";
-  const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Internship Engine//EN", "BEGIN:VEVENT", `UID:${Date.now()}@internship-engine`,
+  const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Ghostwrite//EN", "BEGIN:VEVENT", `UID:${Date.now()}@internship-engine`,
     `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").slice(0, 15)}Z`, `DTSTART:${t}`, `DTEND:${e}`,
     `SUMMARY:${clean(`${what}: ${a.company}`)}`, `DESCRIPTION:${clean(a.title + (safeUrl(a.url) ? " — " + a.url : ""))}`,
     "BEGIN:VALARM", "TRIGGER:-P1D", "ACTION:DISPLAY", `DESCRIPTION:${clean(what)}`, "END:VALARM", "END:VEVENT", "END:VCALENDAR"].join("\r\n");
@@ -905,7 +921,7 @@ document.addEventListener("click", e => {
   }
   if (t.id === "invite") {
     const url = new URL("./", location.href).href, text = "Free internship finder + tracker — pulls roles straight from company job boards:";
-    if (navigator.share) return navigator.share({ title: "Internship Engine", text, url }).catch(() => {});
+    if (navigator.share) return navigator.share({ title: "Ghostwrite", text, url }).catch(() => {});
     return navigator.clipboard.writeText(url).then(() => toast("Link copied — send it to a friend."), () => toast(url));
   }
   if (t.dataset.tab || t.dataset.go) { tab = t.dataset.tab || t.dataset.go; return render(); }
@@ -919,7 +935,7 @@ document.addEventListener("click", e => {
       <input class="t" id="handoffUrl" readonly value="${esc(url)}" aria-label="Link">
       <div class="actions" style="margin-top:0"><span></span><span style="display:flex;gap:8px">${navigator.share ? `<button class="btn" id="handoffShare">Share</button>` : ""}<button class="btn go" data-copy="${esc(url)}">Copy link</button></span></div>`;
     $("#jobDlg").open || $("#jobDlg").showModal();
-    $("#handoffShare")?.addEventListener("click", () => navigator.share({ title: "Internship Engine", url }).catch(() => {}));
+    $("#handoffShare")?.addEventListener("click", () => navigator.share({ title: "Ghostwrite", url }).catch(() => {}));
   });
   if (t.id === "exportBtn") {
     const a = document.createElement("a");
@@ -975,7 +991,7 @@ async function restore(file) {
     const d = JSON.parse(await file.text());
     if (!d || typeof d !== "object" || !d.apps || typeof d.apps !== "object" || Array.isArray(d.apps)) throw 0;
     S = fresh(d); PV++; KNOWN = null; save(); counts(); render(); toast("Restored.");
-  } catch { toast("That file isn't an Internship Engine backup."); }
+  } catch { toast("That file isn't an Ghostwrite backup."); }
 }
 $("#addDlg").addEventListener("close", () => {
   if ($("#addDlg").returnValue !== "ok") return;
