@@ -26,7 +26,8 @@ FEED_URL = "https://omar-colab.github.io/internship-engine/feed.json"
 FRESH_HOURS = 36
 ENRICHMENT_BUDGET = 12 * 60
 ENRICHMENT_FIELDS = ("skills", "pay", "auth", "years", "summary")
-ENRICHMENT_VERSION = 3          # bump when a parser changes: every role is re-enriched once instead of carrying old values
+RETRY_PAUSE = 5                 # seconds before the one retry of a board that failed for a passing reason
+ENRICHMENT_VERSION = 3         # bump when a parser changes: every role is re-enriched once instead of carrying old values
 
 
 def load_boards() -> list[dict]:
@@ -141,6 +142,17 @@ def _board_hosts(kind: str, board: dict) -> tuple[str, ...]:
     return tuple(sorted(host for host in hosts if host))
 
 
+def _transient(e: Exception) -> bool:
+    """Worth one more try: timeouts, dropped connections, a cut-off JSON body, 429 and 5xx answers."""
+    if isinstance(e, httpx.HTTPStatusError):
+        return e.response.status_code == 429 or e.response.status_code >= 500
+    return isinstance(e, (httpx.TransportError, json.JSONDecodeError))
+
+
+def _error_name(e: Exception) -> str:
+    return f"{type(e).__name__} {e.response.status_code}" if isinstance(e, httpx.HTTPStatusError) else type(e).__name__
+
+
 def build_feed(previous: dict[str, dict] | None) -> dict:
     """Poll every shared board for intern roles (US + remote). Runs in CI with no personal data around."""
     roles, covered, errors = [], [], []
@@ -160,10 +172,15 @@ def build_feed(previous: dict[str, dict] | None) -> dict:
         with ExitStack() as stack:
             for lock in locks:
                 stack.enter_context(lock)
-            try:
-                return ats.LIST[kind](c["name"], b)
-            finally:
-                time.sleep(0.3)                         # one quiet interval per contacted host
+            for attempt in (1, 2):
+                try:
+                    return ats.LIST[kind](c["name"], b)
+                except Exception as e:
+                    if attempt == 2 or not _transient(e):
+                        raise
+                    time.sleep(RETRY_PAUSE)
+                finally:
+                    time.sleep(0.3)                     # one quiet interval per contacted host
 
     polled: list[tuple[list[dict] | None, str | None]] = [(None, None)] * len(sources)
     with ThreadPoolExecutor(max_workers=8) as pool:
@@ -173,7 +190,7 @@ def build_feed(previous: dict[str, dict] | None) -> dict:
             try:
                 polled[index] = (future.result(), None)
             except Exception as e:
-                polled[index] = (None, f"{company['name']}: {type(e).__name__}")
+                polled[index] = (None, f"{company['name']}: {_error_name(e)}")
 
     for c, (listed, error) in zip(sources, polled):
         if error:
@@ -375,6 +392,25 @@ if __name__ == "__main__":
         assert sleep_intervals == [0.3, 0.3, 0.3]
         assert [role["company"] for role in ordered["roles"]] == ["Contoso", "Northwind"]
         assert ordered["errors"] == ["Fabrikam: ValueError"] and result["errors"] == 1
+
+        calls = []
+        def flaky_listing(company, _board):     # Tailspin times out once; Litware's board is gone (404, never retried)
+            calls.append(company)
+            if company == "Litware":
+                request = httpx.Request("GET", "https://litware.example/jobs")
+                raise httpx.HTTPStatusError("gone", request=request, response=httpx.Response(404, request=request))
+            if calls.count(company) == 1:
+                raise httpx.ReadTimeout("slow")
+            return [{**listing, "company": company, "url": "https://tailspin.example/jobs/1"}]
+        with (patch.object(finder, "SEED", seed), patch.object(finder, "in_us", return_value=True),
+              patch.object(ats, "LIST", {"greenhouse": flaky_listing}),
+              patch.object(ats, "description", return_value=None), patch.object(sys.modules[__name__], "FEED_OUT", output),
+              patch.object(time, "sleep"), patch(__name__ + ".load_boards", return_value=[
+                  {"name": "Tailspin", "ats": "greenhouse"}, {"name": "Litware", "ats": "greenhouse"}])):
+            build_feed(None)
+        retried = json.loads(output.read_text())
+        assert sorted(calls) == ["Litware", "Tailspin", "Tailspin"]
+        assert retried["covered"] == ["Tailspin"] and retried["errors"] == ["Litware: HTTPStatusError 404"]
 
     class FailedResponse:
         def raise_for_status(self):
