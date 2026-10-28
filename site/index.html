@@ -3,30 +3,27 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Internship Engine</title>
+<title>Ghostwrite — internships, tailored and tracked</title>
 <meta name="description" content="Free, no-install internship app. Browse roles from employers' own boards, ranked with reasons, and track applications in your browser. Optional laptop engine and extension add autofill and inbox tracking; they never click Submit.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&display=swap" rel="stylesheet">
 <style>
 :root {
   color-scheme: light;
-  --page: #FFFFFF; --sheet: #FFFFFF; --section: #F6F9FC; --ink: #0A2540; --ink-2: #425466; --ink-3: #697386; --line: #E3E8EE;
-  --blue: #635BFF; --blue-ink: #4B44E0; --blue-soft: #EEF0FF; --warm: #FFF4E5; --warm-ink: #8A4B08;
-  --deep: #0A2540; --deep-sheet: #061B31; --deep-line: #29415A; --deep-muted: #ADBDCC;
+  --section: #F4F1FB; --page: #FFFFFF; --sheet: #FFFFFF; --ink: #1A0F3D; --ink-2: #3D3366; --ink-3: #6B6491; --line: #1A0F3D; --blue: #6538DB; --blue-ink: #4E22BC; --blue-soft: #F4F1FB; --warm: #FFF4E5; --warm-ink: #8A4B08;
+  --deep: #1A0F3D; --deep-sheet: #120A2E; --deep-line: #3B2A7A; --deep-muted: #ADBDCC;
   --font: "Inter Tight", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --float: 0 50px 100px -20px rgba(50,50,93,.25), 0 30px 60px -30px rgba(0,0,0,.3);
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   color-scheme: dark;
-  --page: #061B31; --sheet: #0C2A48; --section: #081F38; --ink: #F6F9FC; --ink-2: #ADBDCC; --ink-3: #8098B0; --line: #1C3D5E;
-  --blue: #8C86FF; --blue-ink: #A9A5FF; --blue-soft: #1E2A66; --warm: #3A2A12; --warm-ink: #FFC46B;
+  --section: #160C38; --page: #120A2E; --sheet: #1A0F3D; --ink: #F4F1FB; --ink-2: #D7C9FA; --ink-3: #A89BD6; --line: #D7C9FA; --blue: #A88BFA; --blue-ink: #C4B2FB; --blue-soft: #2A1A63; --warm: #3A2A12; --warm-ink: #FFC46B;
   --float: 0 0 0 1px var(--line), 0 30px 60px -12px rgba(0,0,0,.5);
 } }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --page: #061B31; --sheet: #0C2A48; --section: #081F38; --ink: #F6F9FC; --ink-2: #ADBDCC; --ink-3: #8098B0; --line: #1C3D5E;
-  --blue: #8C86FF; --blue-ink: #A9A5FF; --blue-soft: #1E2A66; --warm: #3A2A12; --warm-ink: #FFC46B;
+  --section: #160C38; --page: #120A2E; --sheet: #1A0F3D; --ink: #F4F1FB; --ink-2: #D7C9FA; --ink-3: #A89BD6; --line: #D7C9FA; --blue: #A88BFA; --blue-ink: #C4B2FB; --blue-soft: #2A1A63; --warm: #3A2A12; --warm-ink: #FFC46B;
   --float: 0 0 0 1px var(--line), 0 30px 60px -12px rgba(0,0,0,.5);
 }
 * { box-sizing: border-box; }
@@ -39,7 +36,7 @@ a { color: inherit; }
 .wrap > * { grid-column: 1 / -1; min-width: 0; }
 .top { position: relative; isolation: isolate; overflow: hidden; background: var(--page); }
 .top::before { content: ""; position: absolute; z-index: -1; inset: -8% -8% auto; height: 640px; transform: skewY(-8deg); transform-origin: 0 0; opacity: .92;
-  background: conic-gradient(from 210deg at 72% 42%, #A960EE, #FF333D, #90E0FF, #FFCB57, #A960EE), radial-gradient(ellipse at 22% 30%, #635BFF 0, transparent 52%);
+  background: conic-gradient(from 210deg at 72% 42%, #A960EE, #FF333D, #90E0FF, #FFCB57, #A960EE), radial-gradient(ellipse at 22% 30%, #6538DB 0, transparent 52%);
   background-blend-mode: screen; background-size: 180% 180%; animation: mesh-drift 26s ease-in-out infinite alternate; mask-image: linear-gradient(180deg, #000 45%, transparent 100%); -webkit-mask-image: linear-gradient(180deg, #000 45%, transparent 100%); pointer-events: none; }
 .bar { min-height: 82px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .logo { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); font-size: 16px; line-height: 1; font-weight: 600; letter-spacing: -.02em; text-decoration: none; }
@@ -59,7 +56,7 @@ h1 { font-size: clamp(48px, 6.6vw, 76px); line-height: .99; letter-spacing: -.04
 .btn { display: inline-flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; line-height: 1.2; padding: 15px 22px; border-radius: 999px; text-decoration: none; }
 .btn.go { background: var(--blue); color: #fff; box-shadow: 0 2px 5px rgba(50,50,93,.2); transition: background .15s ease, box-shadow .15s ease; }
 .btn.go:hover { background: var(--blue-ink); box-shadow: 0 6px 16px rgba(50,50,93,.22); }
-.btn.ghost { color: var(--ink); padding-inline: 0; }
+.btn.ghost { color: var(--ink); }
 .free { color: var(--ink-3); font-size: 14px; margin: 18px 0 0; }
 .shot { grid-column: 2 / span 10; margin: 82px 0 -44px; position: relative; z-index: 1; background: var(--sheet); color: var(--ink); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--float); overflow: hidden; }
 .shot-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px; }
@@ -159,13 +156,37 @@ footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wr
   .nums b { font-size: 32px; }
   .nums span { font-size: 13px; }
 }
+
+.top::before { display: none !important; }
+.shot { transform: none !important; }
+.hero::before, .mesh, main::before { background: var(--section) !important; animation: none !important; mask-image: none !important; -webkit-mask-image: none !important; }
+header, nav { border-bottom: 2px solid var(--ink); }
+section { border-top: 2px solid var(--ink); }
+/* ---------- Ghostwrite brand: modernist frames, square corners, Archivo, violet ---------- */
+:root { --font: "Archivo", ui-sans-serif, system-ui, -apple-system, sans-serif; --soft-line: #D7C9FA; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --soft-line: #3B2A7A; } }
+:root[data-theme="dark"] { --soft-line: #3B2A7A; }
+*, *::before, *::after { border-radius: 0 !important; box-shadow: none !important; }
+h1, h2, h3 { font-weight: 800 !important; letter-spacing: -.035em; text-wrap: balance; }
+.gmark { width: 100%; height: 100%; display: block; }
+.mark { background: none !important; padding: 0 !important; width: 32px !important; height: 32px !important; }
+.mark .gmark rect { rx: 24px; }
+.logo { font-weight: 800 !important; letter-spacing: -.035em !important; font-size: 21px !important; }
+.btn { border-width: 2px !important; border-style: solid !important; border-color: var(--ink) !important; font-weight: 600; }
+.btn.go { border-color: var(--blue-ink) !important; background: var(--blue) !important; color: #fff !important; }
+.btn.go:hover { background: var(--blue-ink) !important; }
+.card, .feat, .nums > div, dialog, .lane, .stat { border: 2px solid var(--ink) !important; }
+input, select, textarea, .t { border: 2px solid var(--ink) !important; font-family: var(--font); }
+input:focus, select:focus, textarea:focus, .btn:focus-visible, a:focus-visible { outline: 3px solid var(--blue) !important; outline-offset: 2px; }
+.tag, .chip { border: 1.5px solid var(--soft-line) !important; }
+.kicker, .eyebrow { text-transform: uppercase; letter-spacing: .08em; font-weight: 600; color: var(--blue-ink); }
 </style>
 </head>
 <body>
 <header class="top">
   <div class="wrap">
     <div class="bar">
-      <a class="logo" href="#"><span class="mark"><span class="sig" style="gap:2px"><i style="height:5px"></i><i style="height:8px"></i><i style="height:11px"></i><i style="height:14px"></i></span></span>Internship Engine</a>
+      <a class="logo" href="#"><span class="mark"><svg class="gmark" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="gmg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6538DB"/><stop offset="1" stop-color="#4E22BC"/></linearGradient></defs><rect width="100" height="100" rx="24" fill="url(#gmg)"/><path transform="translate(6 6)" fill="#fff" fill-opacity=".24" d="M26 30Q26 20 36 20H58L74 36V70Q74 80 67 77Q61 72 56 77Q50 83 44 77Q39 72 33 77Q26 80 26 70Z"/><path fill="#fff" d="M26 30Q26 20 36 20H58L74 36V70Q74 80 67 77Q61 72 56 77Q50 83 44 77Q39 72 33 77Q26 80 26 70Z"/><path fill="#D7C9FA" d="M58 20V32Q58 36 62 36H74Z"/><circle cx="42" cy="48" r="4" fill="#1A0F3D"/><circle cx="58" cy="48" r="4" fill="#1A0F3D"/></svg></span>ghostwrite</a>
       <nav aria-label="Sections"><a href="app/">Open the app</a><a href="#how">How it works</a><a href="#compare">Compared to JobRight</a><a href="#start">Laptop setup</a></nav>
     </div>
     <div class="hero">
@@ -177,7 +198,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wr
       </div>
       <div class="shot" role="region" aria-label="Example: Needs you list">
         <div class="shot-head"><span class="shot-title">Needs you</span><span class="shot-count">4 roles to review</span></div>
-        <div class="item"><div class="mono" style="--brand:#635BFF">C</div><div><div class="co">Contoso</div><div class="ti">Product Analytics Intern</div><div class="why">Strong match · Python, SQL, product metrics</div></div>
+        <div class="item"><div class="mono" style="--brand:#6538DB">C</div><div><div class="co">Contoso</div><div class="ti">Product Analytics Intern</div><div class="why">Strong match · Python, SQL, product metrics</div></div>
           <div class="fit"><span class="sig"><i class="on" style="height:8px"></i><i class="on" style="height:11px"></i><i class="on" style="height:14px"></i><i class="on" style="height:18px"></i><i class="on" style="height:22px"></i></span>Fit 5</div></div>
         <div class="item"><div class="mono" style="--brand:#217005">N</div><div><div class="co">Northwind</div><div class="ti">Business Intelligence Intern</div><div class="why">Strong match · SQL, Tableau, reporting</div></div>
           <div class="fit"><span class="sig"><i class="on" style="height:8px"></i><i class="on" style="height:11px"></i><i class="on" style="height:14px"></i><i class="on" style="height:18px"></i><i class="on" style="height:22px"></i></span>Fit 5</div></div>
@@ -254,9 +275,9 @@ footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wr
   <section id="compare">
     <div class="wrap">
       <h2>What's different from JobRight.</h2>
-      <p class="lead">Internship Engine keeps the search simple and private. JobRight is ahead if you want an AI copilot or insider connections at scale.</p>
+      <p class="lead">Ghostwrite keeps the search simple and private. JobRight is ahead if you want an AI copilot or insider connections at scale.</p>
       <div class="feats">
-        <div class="feat"><h3>Internship Engine</h3><p>Free and open source, with no account. Your profile and tracker stay in this browser. The app shows roles gathered from employers' own job boards; the laptop extension never clicks Submit.</p></div>
+        <div class="feat"><h3>Ghostwrite</h3><p>Free and open source, with no account. Your profile and tracker stay in this browser. The app shows roles gathered from employers' own job boards; the laptop extension never clicks Submit.</p></div>
         <div class="feat"><h3>JobRight</h3><p>JobRight is ahead on its AI copilot and insider connections at scale.</p></div>
       </div>
     </div>
@@ -290,6 +311,6 @@ cp profile.example.json data/profile.json</code></pre></div>
     </div>
   </section>
 </main>
-<footer><div class="wrap"><span>Internship Engine · MIT licensed · Built by students, for students.</span><span><a href="privacy.html">Privacy</a> · Not affiliated with JobRight.</span></div></footer>
+<footer><div class="wrap"><span>Ghostwrite · MIT licensed · Built by students, for students.</span><span><a href="privacy.html">Privacy</a> · Not affiliated with JobRight.</span></div></footer>
 </body>
 </html>
