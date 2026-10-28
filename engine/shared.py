@@ -198,9 +198,11 @@ def build_feed(previous: dict[str, dict] | None) -> dict:
             continue
         try:
             for r in listed:
-                if r["url"] in seen or not finder.in_us(r["location"]):
+                # Workday paths ignore case, so one posting can arrive as .../Tencent_Careers/job/... and .../tencent_careers/job/...
+                key = r["url"].casefold() if r.get("ats") == "workday" else r["url"]
+                if key in seen or not finder.in_us(r["location"]):
                     continue
-                seen.add(r["url"])
+                seen.add(key)
                 old = previous.get(r["url"], {}) if previous is not None else {}
                 roles.append({k: r.get(k) for k in ("company", "title", "location", "url", "ats", "posted")} |
                              {"track": feed.track(r["title"]), "first_seen": old.get("first_seen", today) if previous is not None else None} |
@@ -411,6 +413,16 @@ if __name__ == "__main__":
         retried = json.loads(output.read_text())
         assert sorted(calls) == ["Litware", "Tailspin", "Tailspin"]
         assert retried["covered"] == ["Tailspin"] and retried["errors"] == ["Litware: HTTPStatusError 404"]
+
+        def cased_listing(company, board):      # one Workday posting reached through two spellings of the site
+            return [{**listing, "ats": "workday", "url": f"https://adatum.wd1.myworkdayjobs.com/{board['site']}/job/X_1"}]
+        with (patch.object(finder, "SEED", seed), patch.object(finder, "in_us", return_value=True),
+              patch.object(ats, "LIST", {"workday": cased_listing}),
+              patch.object(ats, "description", return_value=None), patch.object(sys.modules[__name__], "FEED_OUT", output),
+              patch.object(time, "sleep"), patch(__name__ + ".load_boards", return_value=[
+                  {"name": "Adatum", "ats": "workday", "tenant": "adatum", "wd": "wd1", "site": "Adatum_Careers"},
+                  {"name": "Adatum", "ats": "workday", "tenant": "adatum", "wd": "wd1", "site": "adatum_careers"}])):
+            assert build_feed(None)["roles"] == 1
 
     class FailedResponse:
         def raise_for_status(self):

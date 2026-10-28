@@ -133,7 +133,8 @@ def fetch_source(url: str, _get=None) -> str:
 
 
 def _board_key(board: dict) -> str:
-    return json.dumps({k: v for k, v in board.items() if k != "name"}, sort_keys=True)
+    # Lowercased: Workday answers the same board at Tencent_Careers and tencent_careers.
+    return json.dumps({k: v for k, v in board.items() if k != "name"}, sort_keys=True).lower()
 
 
 def resolve_redirects(rows: list[tuple[str, str]], get=None) -> list[tuple[str, str]]:
@@ -268,6 +269,8 @@ def main() -> int:
         assert resolve_redirects([("Contoso", "https://short.example/a"), ("Northwind", "https://short.example/b"),
                                   ("Fabrikam", "https://boards.greenhouse.io/fabrikam/jobs/2")], get=lambda u: Hop(hops[u])) == \
             [("Contoso", "https://jobs.lever.co/contoso/1"), ("Fabrikam", "https://boards.greenhouse.io/fabrikam/jobs/2")]
+        assert _board_key({"name": "Contoso", "ats": "workday", "site": "Contoso_Careers"}) == \
+            _board_key({"name": "Contoso Ltd", "ats": "workday", "site": "contoso_careers"})
         print("board discovery self-check passed")
         return 0
 
