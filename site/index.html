@@ -3,260 +3,386 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ghostwrite — internships, tailored and tracked</title>
-<meta name="description" content="Free, no-install internship app. Browse roles from employers' own boards, ranked with reasons, and track applications in your browser. Optional laptop engine and extension add autofill and inbox tracking; they never click Submit.">
+<title>Ghostwrite — internships, ranked for you</title>
+<meta name="description" content="Free, open-source internship search. Roles from employers' own job boards, ranked with a match score you can read, and an application tracker that lives in your browser. It never clicks Submit.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 :root {
   color-scheme: light;
-  --section: #F4F1FB; --page: #FFFFFF; --sheet: #FFFFFF; --ink: #1A0F3D; --ink-2: #3D3366; --ink-3: #6B6491; --line: #1A0F3D; --blue: #6538DB; --blue-ink: #4E22BC; --blue-soft: #F4F1FB; --warm: #FFF4E5; --warm-ink: #8A4B08;
-  --deep: #1A0F3D; --deep-sheet: #120A2E; --deep-line: #3B2A7A; --deep-muted: #ADBDCC;
-  --font: "Inter Tight", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --float: 0 50px 100px -20px rgba(50,50,93,.25), 0 30px 60px -30px rgba(0,0,0,.3);
+  --page: #FFFFFF; --tint: #F4F1FB; --ink: #1A0F3D; --ink-2: #3D3366; --rule: #1A0F3D; --soft: #E9E4F5;
+  --violet: #6538DB; --deep: #4E22BC; --field: #5A2DCC; --lav: #D7C9FA; --label: #4E22BC;
+  --night: #1A0F3D; --on-night: #FFFFFF; --code-bg: #1A0F3D; --code-ink: #F4F1FB;
+  --font: "Archivo", ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   color-scheme: dark;
-  --section: #160C38; --page: #120A2E; --sheet: #1A0F3D; --ink: #F4F1FB; --ink-2: #D7C9FA; --ink-3: #A89BD6; --line: #D7C9FA; --blue: #A88BFA; --blue-ink: #C4B2FB; --blue-soft: #2A1A63; --warm: #3A2A12; --warm-ink: #FFC46B;
-  --float: 0 0 0 1px var(--line), 0 30px 60px -12px rgba(0,0,0,.5);
+  --page: #1A0F3D; --tint: #22154D; --ink: #F4F1FB; --ink-2: #D7C9FA; --rule: #D7C9FA; --soft: #33246B;
+  --violet: #6538DB; --deep: #B9A6F5; --label: #C4B2FB; --night: #120A2E; --code-bg: #120A2E; --code-ink: #F4F1FB;
 } }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --section: #160C38; --page: #120A2E; --sheet: #1A0F3D; --ink: #F4F1FB; --ink-2: #D7C9FA; --ink-3: #A89BD6; --line: #D7C9FA; --blue: #A88BFA; --blue-ink: #C4B2FB; --blue-soft: #2A1A63; --warm: #3A2A12; --warm-ink: #FFC46B;
-  --float: 0 0 0 1px var(--line), 0 30px 60px -12px rgba(0,0,0,.5);
+  --page: #1A0F3D; --tint: #22154D; --ink: #F4F1FB; --ink-2: #D7C9FA; --rule: #D7C9FA; --soft: #33246B;
+  --violet: #6538DB; --deep: #B9A6F5; --label: #C4B2FB; --night: #120A2E; --code-bg: #120A2E; --code-ink: #F4F1FB;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 html { scroll-behavior: smooth; }
-body { background: var(--page); color: var(--ink); font: 17px/1.6 var(--font); -webkit-font-smoothing: antialiased; font-feature-settings: "ss01", "cv11"; }
+body { background: var(--page); color: var(--ink); font: 400 17px/1.55 var(--font); -webkit-font-smoothing: antialiased; }
 a { color: inherit; }
-:focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; border-radius: 4px; }
-.wrap { width: min(1080px, 100%); margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); }
-.wrap > * { grid-column: 1 / -1; min-width: 0; }
-.top { position: relative; isolation: isolate; overflow: hidden; background: var(--page); }
-.top::before { content: ""; position: absolute; z-index: -1; inset: -8% -8% auto; height: 640px; transform: skewY(-8deg); transform-origin: 0 0; opacity: .92;
-  background: conic-gradient(from 210deg at 72% 42%, #A960EE, #FF333D, #90E0FF, #FFCB57, #A960EE), radial-gradient(ellipse at 22% 30%, #6538DB 0, transparent 52%);
-  background-blend-mode: screen; background-size: 180% 180%; animation: mesh-drift 26s ease-in-out infinite alternate; mask-image: linear-gradient(180deg, #000 45%, transparent 100%); -webkit-mask-image: linear-gradient(180deg, #000 45%, transparent 100%); pointer-events: none; }
-.bar { min-height: 82px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-.logo { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); font-size: 16px; line-height: 1; font-weight: 600; letter-spacing: -.02em; text-decoration: none; }
-.mark { width: 30px; height: 30px; border-radius: 8px; background: var(--blue); display: grid; place-items: end center; padding-bottom: 6px; }
-.sig { display: inline-flex; gap: 3px; align-items: flex-end; height: 22px; }
-.sig i { width: 5px; border-radius: 3px; background: var(--line); }
-.sig i.on { background: var(--blue); }
-.mark .sig i, .mark .sig i.on { background: #fff; width: 3.5px; }
-.bar nav { display: flex; gap: 26px; font-size: 14px; font-weight: 500; color: var(--ink-2); }
-.bar nav a { text-decoration: none; }
-.bar nav a:hover, footer a:hover { color: var(--blue-ink); }
-.hero { padding: 92px 0 8px; }
-.hero-copy { grid-column: 1 / span 8; }
-h1 { font-size: clamp(48px, 6.6vw, 76px); line-height: .99; letter-spacing: -.04em; font-weight: 600; margin: 0 0 24px; max-width: 11ch; }
-.sub { font-size: clamp(18px, 2vw, 21px); line-height: 1.5; color: var(--ink-2); max-width: 56ch; margin: 0 0 28px; }
-.cta { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
-.btn { display: inline-flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; line-height: 1.2; padding: 15px 22px; border-radius: 999px; text-decoration: none; }
-.btn.go { background: var(--blue); color: #fff; box-shadow: 0 2px 5px rgba(50,50,93,.2); transition: background .15s ease, box-shadow .15s ease; }
-.btn.go:hover { background: var(--blue-ink); box-shadow: 0 6px 16px rgba(50,50,93,.22); }
-.btn.ghost { color: var(--ink); }
-.free { color: var(--ink-3); font-size: 14px; margin: 18px 0 0; }
-.shot { grid-column: 2 / span 10; margin: 82px 0 -44px; position: relative; z-index: 1; background: var(--sheet); color: var(--ink); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--float); overflow: hidden; }
-.shot-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px; }
-.shot-title { font-size: 18px; font-weight: 600; letter-spacing: -.02em; }
-.shot-count { color: var(--ink-3); font-size: 13px; font-variant-numeric: tabular-nums; }
-.shot .item { display: grid; grid-template-columns: 40px minmax(0, 1fr) 52px; gap: 14px; align-items: center; padding: 16px 24px; border-top: 1px solid var(--line); }
-.mono { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; font-size: 16px; line-height: 1; font-weight: 600; color: #fff; background: var(--brand); }
-.co { font-size: 12px; color: var(--ink-3); font-weight: 500; }
-.ti { font-size: 16px; line-height: 1.3; font-weight: 600; letter-spacing: -.01em; }
-.why { font-size: 13px; color: var(--ink-2); margin-top: 2px; }
-.fit { display: grid; justify-items: center; font-size: 11px; line-height: 1; font-weight: 600; color: var(--ink-3); gap: 4px; font-variant-numeric: tabular-nums; }
-/* sections */
-section { padding: 112px 0; }
-main { padding-top: 44px; }
-main > section:nth-child(even) { background: var(--section); }
-main > section > .wrap > * { grid-column: 1 / -1; }
-h2 { font-size: clamp(34px, 4vw, 48px); line-height: 1.04; letter-spacing: -.035em; font-weight: 600; margin: 0 0 16px; max-width: 18ch; }
-.lead { font-size: 19px; line-height: 1.55; color: var(--ink-2); max-width: 58ch; margin: 0 0 42px; }
-.nums { grid-column: 1 / -1 !important; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
-.nums div { background: var(--sheet); padding: 26px 22px; }
-.nums b { display: block; font-size: 42px; line-height: 1; letter-spacing: -.04em; font-weight: 600; color: var(--blue); font-variant-numeric: tabular-nums; }
-.nums span { display: block; margin-top: 9px; font-size: 14px; line-height: 1.4; color: var(--ink-2); }
-.feats { display: grid; grid-column: 1 / -1 !important; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; }
-.feat { grid-column: span 6; background: var(--sheet); border: 1px solid var(--line); border-radius: 12px; padding: 30px; }
-.feat h3 { font-size: 22px; line-height: 1.2; letter-spacing: -.02em; font-weight: 600; margin: 0 0 10px; }
-.feat p { margin: 0; color: var(--ink-2); }
-.feat.big { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; background: var(--deep); color: #fff; border-color: var(--deep); }
-.feat.big p { color: var(--deep-muted); }
-.form { background: var(--deep-sheet); border: 1px solid var(--deep-line); border-radius: 10px; padding: 16px 18px; font-size: 13px; }
-.q { padding: 9px 0; border-top: 1px solid var(--deep-line); display: flex; justify-content: space-between; gap: 12px; }
-.q:first-child { border-top: 0; }
-.q span { color: var(--deep-muted); }
-.q b { font-weight: 500; text-align: right; }
-.q b.you { color: #FFC46B; }
-table { width: 100%; table-layout: fixed; border-collapse: collapse; background: var(--sheet); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; font-size: 14px; }
-th, td { text-align: left; padding: 15px 18px; border-top: 1px solid var(--line); vertical-align: top; overflow-wrap: anywhere; }
-thead th { border-top: 0; font-weight: 600; color: var(--ink-3); }
-td:first-child { font-weight: 600; width: 25%; }
-td.us { color: var(--ink); }
-td.them { color: var(--ink-2); }
-.steps { display: grid; grid-column: 1 / -1 !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; counter-reset: s; }
-.step { min-width: 0; background: var(--sheet); border: 1px solid var(--line); border-radius: 12px; padding: 24px; }
-.step::before { counter-increment: s; content: counter(s); display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--blue); color: #fff; font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; margin-bottom: 16px; }
-.step h3 { font-size: 20px; line-height: 1.2; font-weight: 600; margin: 0 0 8px; letter-spacing: -.02em; }
-.step p { margin: 0 0 12px; color: var(--ink-2); font-size: 15px; }
-code { font: 500 13px/1.5 ui-monospace, "SF Mono", Menlo, monospace; background: var(--section); padding: 2px 6px; border-radius: 4px; overflow-wrap: anywhere; }
-pre { margin: 0; background: var(--ink); color: var(--page); border-radius: 8px; padding: 12px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
-pre code { background: none; color: inherit; padding: 0; }
-.limits { background: var(--section); }
-.rules { display: grid; grid-column: 1 / -1 !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px; }
-.rule { border-top: 2px solid var(--blue); padding-top: 16px; }
-.rule h3 { font-size: 19px; line-height: 1.25; font-weight: 600; margin: 0 0 8px; }
-.rule p { margin: 0; color: var(--ink-2); font-size: 15px; }
-footer { padding: 36px 0 56px; color: var(--ink-3); font-size: 14px; }
-footer .wrap { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
-@media (min-width: 1100px) {
-  .hero { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 0 24px; align-items: center; grid-column: 1 / -1; }
-  .hero-copy { grid-column: 1 / span 6; }
-  .hero { padding-bottom: 120px; }
-  .shot { grid-column: 7 / span 6; margin: 40px -96px 0 0; transform: perspective(1600px) rotateY(-8deg) rotateX(3deg); }
-}
-@media (min-width: 1100px) and (prefers-reduced-motion: no-preference) { .shot { transition: transform .4s; } .shot:hover { transform: none; } }
-@keyframes mesh-drift { to { background-position: 100% 80%; } }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; } }
-@media (max-width: 760px) {
-  .wrap { padding: 0 20px; }
-  .bar { min-height: 72px; }
-  .bar nav { gap: 16px; font-size: 13px; }
-  .hero { padding-top: 72px; }
-  .hero-copy { grid-column: 1 / -1; }
-  h1 { font-size: clamp(44px, 12vw, 64px); max-width: 12ch; }
-  .shot { grid-column: 1 / -1; margin: 64px 0 -34px; }
-  section { padding: 82px 0; }
-  main { padding-top: 34px; }
-  main > section > .wrap > * { grid-column: 1 / -1; }
-  .nums { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .nums div { padding: 20px 16px; }
-  .nums b { font-size: 36px; }
-  .feats { gap: 12px; }
-  .feat { grid-column: 1 / -1; padding: 24px; }
-  .feat.big { grid-template-columns: 1fr; gap: 24px; }
-  .steps, .rules { grid-template-columns: 1fr; }
-  .step { padding: 22px; }
-  th, td { padding: 12px 9px; font-size: 12px; }
-  td:first-child { width: 27%; }
-}
-@media (max-width: 420px) {
-  .wrap { padding: 0 18px; }
-  .bar { align-items: flex-start; flex-direction: column; justify-content: center; gap: 14px; padding: 16px 0; }
-  .bar nav { width: 100%; justify-content: space-between; gap: 8px; font-size: 12px; }
-  .hero { padding-top: 54px; }
-  .shot-head, .shot .item { padding-left: 14px; padding-right: 14px; }
-  .shot .item { grid-template-columns: 34px minmax(0, 1fr) 44px; gap: 9px; }
-  .mono { width: 34px; height: 34px; }
-  .ti { font-size: 14px; }
-  .why { font-size: 12px; }
-  .nums b { font-size: 32px; }
-  .nums span { font-size: 13px; }
-}
+:focus-visible { outline: 3px solid var(--violet); outline-offset: 3px; }
+.frame { max-width: 1440px; margin: 0 auto; border-left: 2px solid var(--rule); border-right: 2px solid var(--rule); }
+.frame > * + *, main > * + * { border-top: 2px solid var(--rule); }
+h1, h2, h3 { font-weight: 800; letter-spacing: -.035em; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(42px, 5.2vw, 72px); line-height: .98; }
+h2 { font-size: clamp(34px, 3.8vw, 52px); line-height: 1; }
+h3 { font-size: 22px; line-height: 1.15; letter-spacing: -.02em; }
+p { margin: 0; text-wrap: pretty; }
+.label { font-size: 14px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--label); }
+.cell { background: var(--page); padding: 40px 48px; min-width: 0; }
+/* Grids draw their own 2px rules: the gap shows the rule colour behind the cells. */
+.grid { display: grid; gap: 2px; background: var(--rule); }
 
-.top::before { display: none !important; }
-.shot { transform: none !important; }
-.hero::before, .mesh, main::before { background: var(--section) !important; animation: none !important; mask-image: none !important; -webkit-mask-image: none !important; }
-header, nav { border-bottom: 2px solid var(--ink); }
-section { border-top: 2px solid var(--ink); }
-/* ---------- Ghostwrite brand: modernist frames, square corners, Archivo, violet ---------- */
-:root { --font: "Archivo", ui-sans-serif, system-ui, -apple-system, sans-serif; --soft-line: #D7C9FA; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --soft-line: #3B2A7A; } }
-:root[data-theme="dark"] { --soft-line: #3B2A7A; }
-*, *::before, *::after { border-radius: 0 !important; box-shadow: none !important; }
-h1, h2, h3 { font-weight: 800 !important; letter-spacing: -.035em; text-wrap: balance; }
-.gmark { width: 100%; height: 100%; display: block; }
-.mark { background: none !important; padding: 0 !important; width: 32px !important; height: 32px !important; }
-.mark .gmark rect { rx: 24px; }
-.logo { font-weight: 800 !important; letter-spacing: -.035em !important; font-size: 21px !important; }
-.btn { border-width: 2px !important; border-style: solid !important; border-color: var(--ink) !important; font-weight: 600; }
-.btn.go { border-color: var(--blue-ink) !important; background: var(--blue) !important; color: #fff !important; }
-.btn.go:hover { background: var(--blue-ink) !important; }
-.card, .feat, .nums > div, dialog, .lane, .stat { border: 2px solid var(--ink) !important; }
-input, select, textarea, .t { border: 2px solid var(--ink) !important; font-family: var(--font); }
-input:focus, select:focus, textarea:focus, .btn:focus-visible, a:focus-visible { outline: 3px solid var(--blue) !important; outline-offset: 2px; }
-.tag, .chip { border: 1.5px solid var(--soft-line) !important; }
-.kicker, .eyebrow { text-transform: uppercase; letter-spacing: .08em; font-weight: 600; color: var(--blue-ink); }
+/* buttons */
+.btn { display: inline-flex; align-items: center; justify-content: space-between; gap: 24px; padding: 16px 22px; border: 2px solid var(--ink); background: transparent; color: var(--ink); font: 600 17px/1.2 var(--font); text-align: left; text-decoration: none; }
+.btn:hover { background: var(--tint); }
+.btn.go { background: var(--violet); border-color: #4E22BC; color: #fff; min-width: 220px; }
+.btn.go:hover { background: #4E22BC; }
+.btn.sm { padding: 10px 18px; font-size: 15px; min-width: 0; }
+
+/* logo */
+.gmark { display: block; flex: none; }
+.brand { display: inline-flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 800; letter-spacing: -.035em; text-decoration: none; line-height: 1; }
+
+/* nav */
+.nav { display: flex; align-items: center; gap: 40px; padding: 20px 48px; flex-wrap: wrap; }
+.nav-links { display: flex; gap: 28px; font-size: 15px; font-weight: 600; }
+.nav-links a { text-decoration: none; }
+.nav-links a:hover { color: var(--deep); text-decoration: underline; text-underline-offset: 4px; }
+.nav .btn { margin-left: auto; }
+
+/* hero */
+.hero { grid-template-columns: 1fr 1fr; }
+.hero-copy { padding: 80px 48px; display: flex; flex-direction: column; gap: 28px; justify-content: center; }
+.hero-copy .sub { font-size: 19px; line-height: 1.5; max-width: 520px; color: var(--ink-2); }
+.ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+.note { font-size: 14px; color: var(--ink-2); }
+.hero-art { background: var(--tint); padding: 64px 48px; display: flex; align-items: center; justify-content: center; }
+
+/* mock job card */
+.stack { position: relative; width: 100%; max-width: 480px; padding: 0 20px 20px 0; }
+.stack::before { content: ""; position: absolute; inset: 20px 0 0 20px; background: var(--lav); }
+.job { position: relative; background: var(--page); border: 2px solid var(--rule); }
+.job-head { display: flex; gap: 14px; align-items: center; padding: 20px 22px; border-bottom: 2px solid var(--rule); }
+.mono { width: 44px; height: 44px; flex: none; display: grid; place-items: center; background: var(--night); color: #fff; font-weight: 800; font-size: 20px; }
+.job-co { font-size: 14px; font-weight: 600; color: var(--ink-2); }
+.job-ti { font-size: 21px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
+.job-meta { font-size: 14px; color: var(--ink-2); }
+.job-score { display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: center; padding: 22px; border-bottom: 2px solid var(--rule); }
+.ring { position: relative; width: 116px; height: 116px; }
+.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring-num { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+.ring-num b { font-size: 34px; font-weight: 800; letter-spacing: -.04em; line-height: 1; }
+.ring-num span { font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--label); margin-top: 4px; line-height: 1.2; }
+.bars { display: grid; gap: 10px; }
+.bar-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; font-size: 13px; font-weight: 600; }
+.bar-row small { font: inherit; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.bar-track { grid-column: 1 / -1; height: 8px; background: var(--soft); }
+.bar-track i { display: block; height: 100%; background: var(--violet); }
+.why { padding: 18px 22px 22px; }
+.why ul { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; font-size: 15px; }
+.why li { display: grid; grid-template-columns: 20px 1fr; gap: 8px; }
+.why li::before { content: "✓"; width: 20px; height: 20px; display: grid; place-items: center; background: var(--violet); color: #fff; font-size: 12px; font-weight: 800; margin-top: 1px; }
+.flag { display: inline-block; margin-top: 8px; padding: 3px 8px; border: 2px solid var(--violet); color: var(--deep); font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+
+/* numbers */
+.nums { grid-template-columns: repeat(4, 1fr); }
+.nums .cell { padding: 32px 48px 36px; }
+.nums b { display: block; font-size: clamp(40px, 4.4vw, 64px); font-weight: 800; letter-spacing: -.045em; line-height: 1; color: var(--violet); font-variant-numeric: tabular-nums; }
+.nums span { display: block; margin-top: 12px; font-size: 15px; color: var(--ink-2); }
+
+/* section heads */
+.head { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 48px; align-items: end; padding: 56px 48px 40px; }
+.head .label { grid-column: 1 / -1; }
+.head p { font-size: 19px; line-height: 1.5; color: var(--ink-2); max-width: 560px; }
+.head + .grid, .weights-wrap + .grid, .head + .cmp { border-top: 2px solid var(--rule); }
+
+/* match score */
+.weights { grid-template-columns: repeat(4, 1fr); }
+.weights .cell { display: flex; flex-direction: column; gap: 14px; }
+.pts { font-size: 88px; font-weight: 800; letter-spacing: -.05em; line-height: .9; color: var(--violet); }
+.pts small { font-size: 22px; letter-spacing: -.02em; color: var(--ink-2); margin-left: 4px; }
+.weights p { color: var(--ink-2); font-size: 16px; }
+.meter { display: flex; height: 22px; gap: 2px; background: var(--rule); border: 2px solid var(--rule); margin: 0 48px 40px; }
+.meter i { display: block; background: var(--violet); }
+.meter i:nth-child(2) { background: var(--deep); }
+.meter i:nth-child(3) { background: var(--lav); }
+.meter i:nth-child(4) { background: var(--page); }
+.weights-wrap { background: var(--page); }
+
+/* steps */
+.steps { grid-template-columns: repeat(4, 1fr); }
+.steps .cell { display: flex; flex-direction: column; gap: 14px; }
+.n { font-size: 56px; font-weight: 800; letter-spacing: -.05em; line-height: 1; color: var(--violet); font-variant-numeric: tabular-nums; }
+.steps p { color: var(--ink-2); font-size: 16px; }
+
+/* compare */
+.cmp { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 16px; }
+.cmp th, .cmp td { text-align: left; vertical-align: top; padding: 18px 24px; border-top: 2px solid var(--rule); overflow-wrap: anywhere; }
+.cmp tr > * + * { border-left: 2px solid var(--rule); }
+.cmp thead > tr > * { border-top: 0; font-size: 14px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--label); }
+.cmp thead th.us { background: var(--violet); color: #fff; }
+.cmp tbody th { font-weight: 600; width: 26%; padding-left: 48px; }
+.cmp td.us { font-weight: 600; background: var(--tint); }
+.cmp td { color: var(--ink-2); }
+.cmp td.us { color: var(--ink); }
+.cmp-note { padding: 20px 48px 28px; border-top: 2px solid var(--rule); font-size: 14px; color: var(--ink-2); }
+
+/* rules */
+.rules-sec { background: var(--field); color: #fff; }
+.rules-sec .head { color: #fff; }
+.rules-sec .head .label, .rules-sec .head p { color: #fff; }
+.rules-sec .grid { background: var(--night); }
+.rules-sec .head + .grid { border-top-color: var(--night); }
+.rules { grid-template-columns: repeat(3, 1fr); }
+.rules .cell { background: var(--field); color: #fff; display: flex; flex-direction: column; gap: 14px; }
+.rules .cell h3 { font-size: 28px; }
+.rules .cell p { color: #F4F1FB; }
+.x { font-size: 15px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--lav); }
+
+/* laptop */
+.feats { grid-template-columns: repeat(3, 1fr); }
+.feats .cell { display: flex; flex-direction: column; gap: 12px; }
+.feats p { color: var(--ink-2); font-size: 16px; }
+.big { grid-column: 1 / -1; display: grid !important; grid-template-columns: 1fr 1fr; gap: 40px !important; align-items: center; background: var(--night) !important; color: #fff; }
+.big p { color: #D7C9FA; }
+.form { border: 2px solid #D7C9FA; font-size: 14px; }
+.q { display: flex; justify-content: space-between; gap: 16px; padding: 11px 16px; }
+.q + .q { border-top: 2px solid #3B2A7A; }
+.q span { color: #D7C9FA; }
+.q b { font-weight: 600; text-align: right; }
+.q b.you { color: #FFC46B; }
+.setup { grid-template-columns: repeat(3, 1fr); }
+.setup .cell { display: flex; flex-direction: column; gap: 12px; }
+.setup p { color: var(--ink-2); font-size: 16px; }
+.setup a { color: var(--deep); font-weight: 600; }
+code { font: 500 14px/1.5 ui-monospace, "SF Mono", Menlo, monospace; background: var(--tint); padding: 1px 5px; overflow-wrap: anywhere; }
+pre { margin: 4px 0 0; background: var(--code-bg); color: var(--code-ink); padding: 16px; white-space: pre-wrap; overflow-wrap: anywhere; border: 2px solid var(--rule); }
+pre code { background: none; padding: 0; color: inherit; font-size: 13px; }
+
+/* footer */
+.foot { background: var(--night); color: #fff; padding: 80px 48px 40px; display: flex; flex-direction: column; gap: 28px; }
+.foot-mark { display: flex; align-items: center; gap: 20px; }
+.foot-word { font-size: clamp(52px, 8vw, 112px); font-weight: 800; letter-spacing: -.045em; line-height: 1; }
+.foot-line { font-size: 22px; font-weight: 600; }
+.foot-meta { display: flex; justify-content: space-between; gap: 16px 32px; flex-wrap: wrap; padding-top: 24px; margin-top: 24px; border-top: 2px solid #3B2A7A; font-size: 14px; color: #D7C9FA; }
+.foot-meta nav { display: flex; gap: 24px; flex-wrap: wrap; }
+.foot a:hover { color: #fff; }
+.foot :focus-visible, .big :focus-visible, .rules-sec :focus-visible { outline-color: #D7C9FA; }
+
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+@media (max-width: 1100px) {
+  .nums, .weights, .steps { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 900px) {
+  .cell, .hero-copy, .hero-art, .nums .cell { padding-left: 24px; padding-right: 24px; }
+  .nav { padding: 16px 24px; gap: 14px 24px; }
+  .nav-links { order: 3; width: 100%; gap: 8px 20px; flex-wrap: wrap; font-size: 14px; }
+  .hero, .head, .rules, .feats, .setup, .big { grid-template-columns: 1fr; }
+  .hero-copy { padding-top: 56px; padding-bottom: 56px; }
+  .head { padding: 44px 24px 32px; }
+  .meter { margin: 0 24px 32px; }
+  .cmp tbody th, .cmp-note { padding-left: 24px; }
+  .foot { padding: 56px 24px 32px; }
+}
+@media (max-width: 560px) {
+  .cell, .hero-copy, .hero-art, .nums .cell { padding-left: 16px; padding-right: 16px; }
+  .nav { padding: 14px 16px; }
+  .nav .btn { padding: 10px 14px; }
+  .brand { font-size: 21px; }
+  .hero-art { padding-top: 32px; padding-bottom: 32px; }
+  .stack { padding: 0 12px 12px 0; }
+  .stack::before { inset: 12px 0 0 12px; }
+  .job-head, .job-score, .why { padding-left: 14px; padding-right: 14px; }
+  .job-score { gap: 14px; }
+  .ring { width: 92px; height: 92px; }
+  .ring-num b { font-size: 26px; }
+  .ring-num span { font-size: 8px; }
+  .nums, .weights, .steps { grid-template-columns: 1fr; }
+  .nums { grid-template-columns: 1fr 1fr; }
+  .nums .cell { padding-top: 22px; padding-bottom: 24px; }
+  .nums span { font-size: 13px; }
+  .head { padding: 36px 16px 28px; }
+  .meter { margin: 0 16px 28px; }
+  .pts { font-size: 72px; }
+  .cmp { font-size: 13px; }
+  .cmp th, .cmp td { padding: 12px 8px; }
+  .cmp tbody th { padding-left: 16px; width: 30%; }
+  .cmp thead > tr > * { font-size: 11px; letter-spacing: .04em; }
+  .cmp-note { padding: 16px; }
+  .btn { width: 100%; }
+  .nav .btn { width: auto; }
+  .foot { padding: 48px 16px 28px; }
+  .foot-mark { gap: 12px; }
+  .foot-mark .gmark { width: 56px; height: 56px; }
+  .foot-line { font-size: 18px; }
+}
 </style>
 </head>
 <body>
-<header class="top">
-  <div class="wrap">
-    <div class="bar">
-      <a class="logo" href="#"><span class="mark"><svg class="gmark" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="gmg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6538DB"/><stop offset="1" stop-color="#4E22BC"/></linearGradient></defs><rect width="100" height="100" rx="24" fill="url(#gmg)"/><path transform="translate(6 6)" fill="#fff" fill-opacity=".24" d="M26 30Q26 20 36 20H58L74 36V70Q74 80 67 77Q61 72 56 77Q50 83 44 77Q39 72 33 77Q26 80 26 70Z"/><path fill="#fff" d="M26 30Q26 20 36 20H58L74 36V70Q74 80 67 77Q61 72 56 77Q50 83 44 77Q39 72 33 77Q26 80 26 70Z"/><path fill="#D7C9FA" d="M58 20V32Q58 36 62 36H74Z"/><circle cx="42" cy="48" r="4" fill="#1A0F3D"/><circle cx="58" cy="48" r="4" fill="#1A0F3D"/></svg></span>ghostwrite</a>
-      <nav aria-label="Sections"><a href="app/">Open the app</a><a href="#how">How it works</a><a href="#compare">Compared to JobRight</a><a href="#start">Laptop setup</a></nav>
-    </div>
-    <div class="hero">
-      <div class="hero-copy">
-        <h1>Find internships. Keep your search in one browser.</h1>
-        <p class="sub">Open the free app—no install, no account. See ranked jobs with reasons, then track applications. Your profile and tracker stay in this browser.</p>
-        <div class="cta"><a class="btn go" href="app/">Open the app</a><a class="btn ghost" href="#laptop">Run it on your laptop</a></div>
-        <p class="free">Browser-only storage. Your resume and tracker stay in this browser.</p>
-      </div>
-      <div class="shot" role="region" aria-label="Example: Needs you list">
-        <div class="shot-head"><span class="shot-title">Needs you</span><span class="shot-count">4 roles to review</span></div>
-        <div class="item"><div class="mono" style="--brand:#6538DB">C</div><div><div class="co">Contoso</div><div class="ti">Product Analytics Intern</div><div class="why">Strong match · Python, SQL, product metrics</div></div>
-          <div class="fit"><span class="sig"><i class="on" style="height:8px"></i><i class="on" style="height:11px"></i><i class="on" style="height:14px"></i><i class="on" style="height:18px"></i><i class="on" style="height:22px"></i></span>Fit 5</div></div>
-        <div class="item"><div class="mono" style="--brand:#217005">N</div><div><div class="co">Northwind</div><div class="ti">Business Intelligence Intern</div><div class="why">Strong match · SQL, Tableau, reporting</div></div>
-          <div class="fit"><span class="sig"><i class="on" style="height:8px"></i><i class="on" style="height:11px"></i><i class="on" style="height:14px"></i><i class="on" style="height:18px"></i><i class="on" style="height:22px"></i></span>Fit 5</div></div>
-        <div class="item"><div class="mono" style="--brand:#A82C00">F</div><div><div class="co">Fabrikam</div><div class="ti">Software Engineering Intern</div><div class="why">Good match · Python, APIs, testing</div></div>
-          <div class="fit"><span class="sig"><i class="on" style="height:8px"></i><i class="on" style="height:11px"></i><i class="on" style="height:14px"></i><i class="on" style="height:18px"></i><i style="height:22px"></i></span>Fit 4</div></div>
-        <div class="item"><div class="mono" style="--brand:#B3093C">T</div><div><div class="co">Tailspin</div><div class="ti">Operations Research Intern</div><div class="why">Review eligibility · class year may not match</div></div>
-          <div class="fit"><span class="sig"><i class="on" style="height:8px"></i><i class="on" style="height:11px"></i><i class="on" style="height:14px"></i><i class="on" style="height:18px"></i><i style="height:22px"></i></span>Fit 4</div></div>
-      </div>
-    </div>
-  </div>
-</header>
+<!-- The ghost mark is drawn once and reused. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs><linearGradient id="gmg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6538DB"/><stop offset="1" stop-color="#4E22BC"/></linearGradient></defs>
+  <symbol id="gw" viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="url(#gmg)"/><path transform="translate(6 6)" fill="#fff" fill-opacity=".24" d="M26 30Q26 20 36 20H58L74 36V70Q74 80 67 77Q61 72 56 77Q50 83 44 77Q39 72 33 77Q26 80 26 70Z"/><path fill="#fff" d="M26 30Q26 20 36 20H58L74 36V70Q74 80 67 77Q61 72 56 77Q50 83 44 77Q39 72 33 77Q26 80 26 70Z"/><path fill="#D7C9FA" d="M58 20V32Q58 36 62 36H74Z"/><circle cx="42" cy="48" r="4" fill="#1A0F3D"/><circle cx="58" cy="48" r="4" fill="#1A0F3D"/></symbol>
+</svg>
 
-<main>
-  <section id="how">
-    <div class="wrap">
-      <h2>A useful shortlist, ready in your browser.</h2>
-      <p class="lead">Browse internships collected from employers' own job boards. Set your field, location and season, then decide which roles deserve your time.</p>
-      <div class="feats">
-        <div class="feat"><h3>See why a role fits</h3><p>Jobs are ranked with a match score and the reasons behind it. Open a role for details and the employer's application link.</p></div>
-        <div class="feat"><h3>Filter your search</h3><p>Narrow roles by field, location and season, or search by company and title.</p></div>
-        <div class="feat"><h3>Track what happens next</h3><p>Save jobs to your tracker, update their status, and see when it may be time to follow up.</p></div>
-        <div class="feat"><h3>Bring your resume privately</h3><p>Import a PDF in your browser for matching. Back up or restore your profile and tracker whenever you like; switch to dark mode if you prefer.</p></div>
-      </div>
-    </div>
-  </section>
+<div class="frame">
+  <header class="nav">
+    <a class="brand" href="#"><svg class="gmark" width="36" height="36" aria-hidden="true"><use href="#gw"/></svg>ghostwrite</a>
+    <nav class="nav-links" aria-label="Sections"><a href="#how">How it works</a><a href="#score">Match score</a><a href="#compare">Compare</a><a href="#laptop">Laptop setup</a></nav>
+    <a class="btn go sm" href="app/">Open the app →</a>
+  </header>
 
-  <section>
-    <div class="wrap">
-      <h2>Today's feed, straight from employers' own boards.</h2>
-      <p class="lead">The app uses a shared feed of roles gathered directly from company job boards.</p>
-      <div class="nums" id="nums">
-        <div><b data-n="roles">11,249</b><span>internships in today's feed</span></div>
-        <div><b data-n="companies">686</b><span>employers hiring interns</span></div>
-        <div><b data-n="boards">780</b><span>employer job boards read directly</span></div>
-        <div><b data-n="pay">3,235</b><span>with pay listed on the posting</span></div>
+  <main>
+    <section class="grid hero" aria-labelledby="hero-title">
+      <div class="cell hero-copy">
+        <span class="label">Internship search, done right</span>
+        <h1 id="hero-title">Every internship worth applying to. Ranked for you.</h1>
+        <p class="sub">Ghostwrite reads employers' own job boards every day, ranks each role against your resume with a match score you can actually read, and tracks every application. Free, no account, and your data stays in your browser.</p>
+        <div class="ctas"><a class="btn go" href="app/">Open the app <span aria-hidden="true">→</span></a><a class="btn" href="#how">See how it works</a></div>
+        <p class="note">You decide where to apply. Ghostwrite never clicks Submit.</p>
       </div>
-      <script>
-        // Numbers come from the same feed the app reads; the ones above are only a fallback.
-        fetch("feed.json").then(r => r.json()).then(d => {
-          const roles = d.roles || [], set = (k, v) => { const el = document.querySelector(`[data-n="${k}"]`); if (el && v != null) el.textContent = v.toLocaleString(); };
-          set("roles", roles.length); set("companies", new Set(roles.map(r => r.company)).size);
-          set("boards", Array.isArray(d.boards) ? d.boards.length : d.boards); set("pay", roles.filter(r => r.pay).length);
-        }).catch(() => {});
-      </script>
-    </div>
-  </section>
+      <div class="cell hero-art">
+        <div class="stack">
+          <article class="job" aria-label="Example job card">
+            <div class="job-head">
+              <div class="mono" aria-hidden="true">C</div>
+              <div><div class="job-co">Contoso</div><div class="job-ti">Product Analytics Intern</div><div class="job-meta">Seattle, WA · Summer 2027 · $38/hr</div></div>
+            </div>
+            <div class="job-score">
+              <div class="ring">
+                <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" fill="none" stroke="var(--soft)" stroke-width="12"/><circle cx="60" cy="60" r="52" fill="none" stroke="var(--violet)" stroke-width="12" stroke-dasharray="300.6 326.7" stroke-linecap="butt"/></svg>
+                <div class="ring-num"><b>92%</b><span>Strong<br>match</span></div>
+              </div>
+              <div class="bars">
+                <div class="bar-row">Role fit <small>33/35</small><span class="bar-track"><i style="width:94%"></i></span></div>
+                <div class="bar-row">Skills <small>27/30</small><span class="bar-track"><i style="width:90%"></i></span></div>
+                <div class="bar-row">Location <small>20/20</small><span class="bar-track"><i style="width:100%"></i></span></div>
+                <div class="bar-row">Timing <small>12/15</small><span class="bar-track"><i style="width:80%"></i></span></div>
+              </div>
+            </div>
+            <div class="why">
+              <span class="label">Why you match</span>
+              <ul>
+                <li>Analytics internship, your first-choice field</li>
+                <li>Python and SQL are on your resume</li>
+                <li>In Seattle, one of your cities</li>
+              </ul>
+              <span class="flag">Early applicant · posted 6h ago</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
 
-  <section id="laptop">
-    <div class="wrap">
-      <h2>Run it on your laptop for the power tools.</h2>
-      <p class="lead">Install the engine and Chrome extension for daily inbox tracking and application autofill that stops before Submit.</p>
-      <div class="feats">
-        <div class="feat"><h3>Find</h3><p>Reads Workday, Greenhouse, Lever, Ashby, iCIMS, UKG, Oracle Cloud, Phenom, SuccessFactors, Jobvite, JazzHR and Workable boards directly, plus public internship lists. Any company it meets once gets watched from then on.</p></div>
-        <div class="feat"><h3>Rank</h3><p>Every posting is read in full and scored 1 to 5 against your resume, with the reason in one line. Graduate-only roles, the wrong class year and seasons already past are hidden before you see them.</p></div>
-        <div class="feat big">
+    <section class="grid nums" id="nums" aria-label="Today's feed">
+      <div class="cell"><b data-n="roles">11,249</b><span>internships in today's feed</span></div>
+      <div class="cell"><b data-n="companies">686</b><span>employers hiring interns</span></div>
+      <div class="cell"><b data-n="boards">780</b><span>employer job boards read directly</span></div>
+      <div class="cell"><b data-n="pay">3,235</b><span>with pay listed on the posting</span></div>
+    </section>
+    <script>
+      // Numbers come from the same feed the app reads; the ones above are only a fallback.
+      fetch("feed.json").then(r => r.json()).then(d => {
+        const roles = d.roles || [], set = (k, v) => { const el = document.querySelector(`[data-n="${k}"]`); if (el && v != null) el.textContent = v.toLocaleString(); };
+        set("roles", roles.length); set("companies", new Set(roles.map(r => r.company)).size);
+        set("boards", Array.isArray(d.boards) ? d.boards.length : d.boards); set("pay", roles.filter(r => r.pay).length);
+      }).catch(() => {});
+    </script>
+
+    <section id="score" aria-labelledby="score-title">
+      <div class="head">
+        <span class="label">02 — Match score</span>
+        <h2 id="score-title">A percentage you can check, point by point.</h2>
+        <p>Every role gets a score out of 100, built from four parts. Each point comes with a reason from your profile or the posting. No black box, no mystery model.</p>
+      </div>
+      <div class="weights-wrap">
+        <div class="meter" aria-hidden="true"><i style="flex:35"></i><i style="flex:30"></i><i style="flex:20"></i><i style="flex:15"></i></div>
+      </div>
+      <div class="grid weights">
+        <div class="cell"><div class="pts">35<small>pts</small></div><h3>Role fit</h3><p>Does the title and the work match the fields you picked?</p></div>
+        <div class="cell"><div class="pts">30<small>pts</small></div><h3>Skills</h3><p>Which skills the posting asks for are on your resume, named one by one.</p></div>
+        <div class="cell"><div class="pts">20<small>pts</small></div><h3>Location</h3><p>In one of your cities, remote, or somewhere you'd rather not move.</p></div>
+        <div class="cell"><div class="pts">15<small>pts</small></div><h3>Timing &amp; eligibility</h3><p>The right season and class year. Graduate-only roles are flagged, not hidden in the fine print.</p></div>
+      </div>
+    </section>
+
+    <section id="how" aria-labelledby="how-title">
+      <div class="head">
+        <span class="label">03 — How it works</span>
+        <h2 id="how-title">Four steps. No sign-up.</h2>
+        <p>Open the app and you're searching in a minute. Nothing to install and no account to create.</p>
+      </div>
+      <div class="grid steps">
+        <div class="cell"><span class="n">01</span><h3>Tell us your fields and cities</h3><p>Pick the kinds of roles you want, where you'd work, and your season.</p></div>
+        <div class="cell"><span class="n">02</span><h3>Add your resume</h3><p>Drop in a PDF. It's read in your browser and never uploaded anywhere.</p></div>
+        <div class="cell"><span class="n">03</span><h3>Get ranked roles daily</h3><p>Fresh roles from employers' own job boards, sorted by match, with the reasons shown.</p></div>
+        <div class="cell"><span class="n">04</span><h3>Track every application</h3><p>Save roles, move them through applied, interview and offer, and see when to follow up.</p></div>
+      </div>
+    </section>
+
+    <section id="compare" aria-labelledby="compare-title">
+      <div class="head">
+        <span class="label">04 — Versus JobRight</span>
+        <h2 id="compare-title">An honest comparison.</h2>
+        <p>JobRight is a good product with a bigger network and an AI copilot. Ghostwrite is smaller, free, and private by design. Pick what fits.</p>
+      </div>
+      <table class="cmp">
+        <thead><tr><td></td><th scope="col" class="us">Ghostwrite</th><th scope="col">JobRight</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Price</th><td class="us">Free and open source (MIT)</td><td>Free tier with paid plans</td></tr>
+          <tr><th scope="row">Account</th><td class="us">None needed</td><td>Required</td></tr>
+          <tr><th scope="row">Your data</th><td class="us">Stays in your browser</td><td>Stored with your account</td></tr>
+          <tr><th scope="row">Where roles come from</th><td class="us">Employers' own job boards, read daily</td><td>Its own aggregated listings</td></tr>
+          <tr><th scope="row">Match score</th><td class="us">Transparent %, every point explained</td><td>Match score shown</td></tr>
+          <tr><th scope="row">Early-applicant flags</th><td class="us">Yes</td><td>See their site</td></tr>
+          <tr><th scope="row">Grad-only and class-year filtering</th><td class="us">Yes</td><td>See their site</td></tr>
+          <tr><th scope="row">AI copilot chat</th><td class="us">No</td><td>Yes</td></tr>
+          <tr><th scope="row">Insider connections</th><td class="us">Your own LinkedIn export (laptop version)</td><td>Larger network built in</td></tr>
+          <tr><th scope="row">Submits applications</th><td class="us">Never. You press Submit.</td><td>See their site</td></tr>
+        </tbody>
+      </table>
+      <p class="cmp-note">Based on JobRight's public website as of October 2026; “See their site” means we couldn't confirm it either way. Ghostwrite is not affiliated with JobRight.</p>
+    </section>
+
+    <section class="rules-sec" aria-labelledby="rules-title">
+      <div class="head">
+        <span class="label">05 — Rules it never breaks</span>
+        <h2 id="rules-title">It takes the busywork. Never your judgment.</h2>
+        <p>These hold in the browser app, the laptop engine and the extension.</p>
+      </div>
+      <div class="grid rules">
+        <div class="cell"><span class="x">Rule 1</span><h3>It never clicks Submit</h3><p>Every application ends with you reading it and pressing the button yourself.</p></div>
+        <div class="cell"><span class="x">Rule 2</span><h3>It never invents</h3><p>Every answer points at your profile, a line in your resume, or an answer you gave yourself. No backing, no answer.</p></div>
+        <div class="cell"><span class="x">Rule 3</span><h3>It never pretends to be you</h3><p>No CAPTCHA solving, no LinkedIn automation, no sending messages. Drafts only.</p></div>
+      </div>
+    </section>
+
+    <section id="laptop" aria-labelledby="laptop-title">
+      <div class="head">
+        <span class="label">06 — Laptop version</span>
+        <h2 id="laptop-title">Run it on your laptop for the power tools.</h2>
+        <p>Optional. Install the engine and Chrome extension for daily inbox tracking and application autofill that stops before Submit.</p>
+      </div>
+      <div class="grid feats">
+        <div class="cell"><h3>Find</h3><p>Reads Workday, Greenhouse, Lever, Ashby, iCIMS, UKG, Oracle Cloud, Phenom, SuccessFactors, Jobvite, JazzHR and Workable boards directly, plus public internship lists. Any company it meets once gets watched from then on.</p></div>
+        <div class="cell"><h3>Rank</h3><p>Every posting is read in full and scored against your resume, with the reason in one line. Graduate-only roles, the wrong class year and seasons already past are hidden before you see them.</p></div>
+        <div class="cell"><h3>Your answers</h3><p>Answer a question once and it's reused when the same question, word for word, comes back. Essays come back as a draft for you to edit, never filled. SSN, birth date, bank and login answers are never saved.</p></div>
+        <div class="cell big">
           <div><h3>Fill the forms other autofills give up on</h3>
-            <p>It clicks through to the real form, opens every dropdown to read the hidden options, types into search-as-you-type fields, attaches your resume, then checks each answer stuck and refills anything the page wiped. Anything your resume doesn't back is left for you, never guessed. Hits a sign-in wall (Workday)? It waits while you sign in, then keeps going.</p></div>
-          <div class="form" aria-label="Example: an application after filling">
+            <p style="margin-top:12px">It clicks through to the real form, opens every dropdown to read the hidden options, types into search-as-you-type fields, attaches your resume, then checks each answer stuck. Anything your resume doesn't back is left for you, never guessed. Then it stops, and you press Submit.</p></div>
+          <div class="form" role="group" aria-label="Example: an application after filling">
             <div class="q"><span>School</span><b>State University</b></div>
             <div class="q"><span>Degree</span><b>Bachelor's Degree</b></div>
             <div class="q"><span>Location (City)</span><b>Springfield, Illinois</b></div>
@@ -265,52 +391,35 @@ input:focus, select:focus, textarea:focus, .btn:focus-visible, a:focus-visible {
             <div class="q"><span>Can you work in our Chicago office 3–4 days a week?</span><b class="you">Yours to answer</b></div>
           </div>
         </div>
-        <div class="feat"><h3>Your answers</h3><p>Answer a question once and it's reused when the same question, word for word, comes back. On a dropdown it's used only if your answer is one of the choices. Essays come back as a draft for you to edit, never filled. SSN, birth date, bank and login answers are never saved.</p></div>
-        <div class="feat"><h3>Track, from your inbox</h3><p>Confirmation, assessment, interview and rejection emails update each application on their own. Quiet for two weeks? It reminds you to follow up.</p></div>
-        <div class="feat"><h3>Warm leads first</h3><p>Drop in your LinkedIn connections and roles where you know someone get flagged, with a short note drafted from your real experience, ready to copy.</p></div>
+        <div class="cell"><h3>Track, from your inbox</h3><p>Confirmation, assessment, interview and rejection emails update each application on their own. Quiet for two weeks? It reminds you to follow up.</p></div>
+        <div class="cell"><h3>Warm leads first</h3><p>Drop in your LinkedIn connections and roles where you know someone get flagged, with a short note drafted from your real experience, ready to copy.</p></div>
+        <div class="cell"><h3>Open source</h3><p>Every line is on GitHub under the MIT license. Read it, run it, change it.</p><p><a class="btn" href="https://github.com/omar-colab/internship-engine">View on GitHub <span aria-hidden="true">→</span></a></p></div>
       </div>
-    </div>
-  </section>
-
-  <section id="compare">
-    <div class="wrap">
-      <h2>What's different from JobRight.</h2>
-      <p class="lead">Ghostwrite keeps the search simple and private. JobRight is ahead if you want an AI copilot or insider connections at scale.</p>
-      <div class="feats">
-        <div class="feat"><h3>Ghostwrite</h3><p>Free and open source, with no account. Your profile and tracker stay in this browser. The app shows roles gathered from employers' own job boards; the laptop extension never clicks Submit.</p></div>
-        <div class="feat"><h3>JobRight</h3><p>JobRight is ahead on its AI copilot and insider connections at scale.</p></div>
+      <div class="head" id="start" style="border-top:2px solid var(--rule)">
+        <span class="label">Setup</span>
+        <h2>Three steps on a Mac or Linux laptop.</h2>
+        <p>You need Chrome and uv. Claude Code is optional for assisted setup.</p>
       </div>
-    </div>
-  </section>
-
-  <section class="limits">
-    <div class="wrap">
-      <h2>Three rules it never breaks.</h2>
-      <p class="lead">Automation should take the busywork, not your judgment.</p>
-      <div class="rules">
-        <div class="rule"><h3>It never clicks Submit</h3><p>Every application ends with you reading it and pressing the button yourself.</p></div>
-        <div class="rule"><h3>It never invents</h3><p>Every answer points at your profile, a line in your resume, or an answer you gave yourself. No backing, no answer.</p></div>
-        <div class="rule"><h3>It never pretends to be you</h3><p>No CAPTCHA solving, no LinkedIn automation, no sending messages. Drafts only.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section id="start">
-    <div class="wrap">
-      <h2>Optional: set up the laptop version.</h2>
-      <p class="lead">You need a Mac or Linux laptop, Chrome, and uv. Claude Code is optional for assisted setup.</p>
-      <div class="steps">
-        <div class="step"><h3>Get the engine</h3><p>Clone the repo, install it, and copy the example profile.</p><pre><code>git clone https://github.com/omar-colab/internship-engine
+      <div class="grid setup">
+        <div class="cell"><span class="n">01</span><h3>Get the engine</h3><p>Clone the repo, install it, and copy the example profile.</p><pre><code>git clone https://github.com/omar-colab/internship-engine
 cd internship-engine
 uv sync
 mkdir -p data
 cp profile.example.json data/profile.json</code></pre></div>
-        <div class="step"><h3>Tell it about you</h3><p>Edit <code>data/profile.json</code> with your information. Or use Claude Code's optional <code>/setup</code> flow to build the profile from your resume and run your first search.</p></div>
-        <div class="step"><h3>Add the extension</h3><p><a href="https://github.com/omar-colab/internship-engine/releases/latest">Download the latest GitHub Release</a>, extract it, and load the folder containing <code>manifest.json</code> from <code>chrome://extensions</code> with Developer mode on. Paste your token from <code>engine token</code>.</p></div>
+        <div class="cell"><span class="n">02</span><h3>Tell it about you</h3><p>Edit <code>data/profile.json</code> with your information. Or use Claude Code's optional <code>/setup</code> flow to build the profile from your resume and run your first search.</p></div>
+        <div class="cell"><span class="n">03</span><h3>Add the extension</h3><p><a href="https://github.com/omar-colab/internship-engine/releases/latest">Download the latest GitHub Release</a>, extract it, and load the folder containing <code>manifest.json</code> from <code>chrome://extensions</code> with Developer mode on. Paste your token from <code>engine token</code>.</p></div>
       </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="foot-mark"><svg class="gmark" width="96" height="96" aria-hidden="true"><use href="#gw"/></svg><span class="foot-word">ghostwrite</span></div>
+    <p class="foot-line">Tailored to every role, approved by you.</p>
+    <div class="foot-meta">
+      <span>MIT licensed · Built by students, for students · Not affiliated with JobRight.</span>
+      <nav aria-label="Footer"><a href="app/">Open the app</a><a href="privacy.html">Privacy</a><a href="https://github.com/omar-colab/internship-engine">GitHub</a></nav>
     </div>
-  </section>
-</main>
-<footer><div class="wrap"><span>Ghostwrite · MIT licensed · Built by students, for students.</span><span><a href="privacy.html">Privacy</a> · Not affiliated with JobRight.</span></div></footer>
+  </footer>
+</div>
 </body>
 </html>
