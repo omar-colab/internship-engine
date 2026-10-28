@@ -13,193 +13,287 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&display=swap" rel="stylesheet">
 <style>
+/* Ghostwrite — modernist editorial grid: 2px Night rules, square corners, Archivo, violet. */
 :root {
   color-scheme: light;
-  --page: #FFFFFF; --sheet: #FFFFFF; --ink: #1A0F3D; --ink-2: #3D3366; --ink-3: #6B6491; --line: #1A0F3D; --blue: #6538DB; --blue-ink: #4E22BC; --blue-soft: #F4F1FB; --on-blue: #FFFFFF; --green: #04704F; --green-soft: #E3F8EF;
-  --warm: #FFF4E5; --warm-ink: #8A4B08; --red: #D92D20; --red-soft: #FEECEB;
-  --font: "Inter Tight", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --shadow: 0 1px 2px rgba(10,37,64,.06), 0 4px 12px -4px rgba(10,37,64,.08);
-  --lift: 0 18px 40px -16px rgba(50,50,93,.35), 0 8px 18px -10px rgba(0,0,0,.2);
+  --page: #FFFFFF; --sheet: #FFFFFF; --tint: #F4F1FB; --ink: #1A0F3D; --ink-2: #3D3366; --ink-3: #6B6491; --line: #1A0F3D; --soft: #D7C9FA;
+  --blue: #6538DB; --blue-ink: #4E22BC; --field: #5A2DCC; --blue-soft: #F4F1FB; --on-blue: #FFFFFF;
+  --green: #0B7A52; --green-soft: #E2F5EC; --warm: #FFF2DE; --warm-ink: #8A4B08; --red: #C2261B; --red-soft: #FDECEA;
+  --font: "Archivo", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --rule: 2px solid var(--line);
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   color-scheme: dark;
-  --page: #120A2E; --sheet: #1A0F3D; --ink: #F4F1FB; --ink-2: #D7C9FA; --ink-3: #A89BD6; --line: #D7C9FA; --blue: #A88BFA; --blue-ink: #C4B2FB; --blue-soft: #2A1A63; --on-blue: #120A2E; --green: #3DD9A0; --green-soft: #0D3B33;
-  --warm: #3A2A12; --warm-ink: #FFC46B; --red: #FF8A80; --red-soft: #3D1B1E;
-  --shadow: 0 0 0 1px var(--line); --lift: 0 0 0 1px var(--line), 0 24px 48px -12px rgba(0,0,0,.6);
+  --page: #120A2E; --sheet: #1A0F3D; --tint: #22145A; --ink: #F4F1FB; --ink-2: #D7C9FA; --ink-3: #A89BD6; --line: #7E6CC9; --soft: #3B2A7A;
+  --blue: #A88BFA; --blue-ink: #C4B2FB; --field: #5A2DCC; --blue-soft: #2A1A63; --on-blue: #120A2E;
+  --green: #45D9A5; --green-soft: #0D3B33; --warm: #3A2A12; --warm-ink: #FFC46B; --red: #FF8A80; --red-soft: #3D1B1E;
 } }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --page: #120A2E; --sheet: #1A0F3D; --ink: #F4F1FB; --ink-2: #D7C9FA; --ink-3: #A89BD6; --line: #D7C9FA; --blue: #A88BFA; --blue-ink: #C4B2FB; --blue-soft: #2A1A63; --on-blue: #120A2E; --green: #3DD9A0; --green-soft: #0D3B33;
-  --warm: #3A2A12; --warm-ink: #FFC46B; --red: #FF8A80; --red-soft: #3D1B1E;
-  --shadow: 0 0 0 1px var(--line); --lift: 0 0 0 1px var(--line), 0 24px 48px -12px rgba(0,0,0,.6);
+  --page: #120A2E; --sheet: #1A0F3D; --tint: #22145A; --ink: #F4F1FB; --ink-2: #D7C9FA; --ink-3: #A89BD6; --line: #7E6CC9; --soft: #3B2A7A;
+  --blue: #A88BFA; --blue-ink: #C4B2FB; --field: #5A2DCC; --blue-soft: #2A1A63; --on-blue: #120A2E;
+  --green: #45D9A5; --green-soft: #0D3B33; --warm: #3A2A12; --warm-ink: #FFC46B; --red: #FF8A80; --red-soft: #3D1B1E;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
-body { background: var(--page); color: var(--ink); font: 15px/1.5 var(--font); -webkit-font-smoothing: antialiased; min-height: 100vh; }
+body { background: var(--tint); color: var(--ink); font: 15px/1.5 var(--font); -webkit-font-smoothing: antialiased; min-height: 100vh; }
 a { color: var(--blue-ink); }
 button, input, select, textarea { font: inherit; color: inherit; }
-:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; border-radius: 6px; }
+:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
 [hidden] { display: none !important; }
+h1, h2, h3 { font-weight: 800; letter-spacing: -.035em; text-wrap: balance; }
 
-/* top bar */
-header { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--page) 82%, transparent); backdrop-filter: saturate(1.6) blur(14px); border-bottom: 1px solid var(--line); }
-.bar { width: min(1120px, 100%); margin: 0 auto; padding: 0 16px; height: 64px; display: flex; align-items: center; gap: 20px; }
-.logo { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -.02em; text-decoration: none; color: var(--ink); white-space: nowrap; }
-.mark { width: 28px; height: 28px; border-radius: 8px; background: var(--blue); display: grid; place-items: end center; padding-bottom: 6px; }
-.sig { display: inline-flex; gap: 2px; align-items: flex-end; }
-.sig i { width: 3.5px; border-radius: 2px; background: #fff; }
-nav.tabs { display: flex; gap: 4px; margin-left: auto; }
-nav.tabs button { border: 0; background: none; padding: 8px 14px; border-radius: 999px; font-weight: 500; color: var(--ink-2); cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
-nav.tabs button:hover { color: var(--ink); background: var(--sheet); }
+/* the frame: one page, ruled like the brand board */
+.frame { max-width: 1440px; margin: 0 auto; min-height: 100vh; background: var(--page); border-left: var(--rule); border-right: var(--rule); }
+header { position: sticky; top: 0; z-index: 10; background: var(--page); border-bottom: var(--rule); }
+.bar { display: flex; align-items: stretch; height: 68px; }
+.logo { display: inline-flex; align-items: center; gap: 12px; padding: 0 28px; text-decoration: none; color: var(--ink); font-weight: 800; letter-spacing: -.035em; font-size: 22px; border-right: var(--rule); white-space: nowrap; }
+.mark { width: 34px; height: 34px; flex: none; }
+.gmark { width: 100%; height: 100%; display: block; }
+nav.tabs { display: flex; }
+#theme { margin-left: auto; }
+nav.tabs button { border: 0; border-right: var(--rule); background: none; padding: 0 22px; font-weight: 600; font-size: 15px; color: var(--ink-2); cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
+nav.tabs button:hover { background: var(--tint); color: var(--ink); }
 nav.tabs button[aria-current="page"] { background: var(--ink); color: var(--page); }
-.count { font-size: 11px; font-weight: 600; background: var(--blue); color: var(--on-blue); border-radius: 999px; padding: 1px 7px; }
-.avatar { width: 34px; height: 34px; border-radius: 50%; border: 0; background: #5A2DCC; color: #fff; font-weight: 600; font-size: 13px; cursor: pointer; flex: none; }
+.count { font-size: 11px; font-weight: 700; background: var(--blue); color: #fff; padding: 1px 7px; }
+nav.tabs button[aria-current="page"] .count { background: var(--soft); color: var(--ink); }
+.icon-btn { width: 68px; border: 0; border-left: var(--rule); background: var(--page); cursor: pointer; display: grid; place-items: center; font-size: 18px; flex: none; color: var(--ink); }
+.icon-btn:hover { background: var(--tint); }
+.avatar { width: 68px; border: 0; border-left: var(--rule); background: var(--field); color: #fff; font-weight: 800; font-size: 16px; cursor: pointer; flex: none; }
 
-main { width: min(1120px, 100%); margin: 0 auto; padding: 28px 16px 80px; }
-h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.08; letter-spacing: -.035em; font-weight: 600; margin: 0 0 6px; }
-h2 { font-size: 18px; letter-spacing: -.02em; font-weight: 600; margin: 0 0 12px; }
+main { min-height: calc(100vh - 70px); }
+.band { padding: 40px 48px 32px; border-bottom: var(--rule); display: flex; gap: 24px; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; }
+.band.violet { background: var(--field); color: #fff; }
+.band.violet .eyebrow, .band.violet .lede { color: #E9E1FF; }
+.eyebrow { display: block; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: var(--blue-ink); margin-bottom: 12px; }
+h1 { font-size: clamp(36px, 5vw, 64px); line-height: .98; margin: 0 0 12px; }
+h2 { font-size: 22px; line-height: 1.1; margin: 0 0 14px; }
+.lede { color: var(--ink-2); font-size: 18px; margin: 0; max-width: 62ch; }
+.pad { padding: 28px 48px; }
 .muted { color: var(--ink-3); }
-.lede { color: var(--ink-2); font-size: 17px; margin: 0 0 24px; max-width: 60ch; }
 
-.card { background: var(--sheet); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--line); background: var(--sheet); color: var(--ink); font-weight: 600; font-size: 14px; padding: 9px 14px; border-radius: 999px; cursor: pointer; text-decoration: none; white-space: nowrap; transition: transform .12s ease, background .12s ease; }
-.btn:hover { border-color: var(--ink-3); }
-.btn:active { transform: scale(.97); }
-.btn.go { background: var(--blue); border-color: var(--blue); color: var(--on-blue); }
+.card { background: var(--sheet); border: var(--rule); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: var(--rule); background: var(--sheet); color: var(--ink); font-weight: 600; font-size: 14px; padding: 10px 16px; cursor: pointer; text-decoration: none; white-space: nowrap; transition: background .12s ease, color .12s ease; }
+.btn:hover { background: var(--tint); }
+.btn.go { background: var(--blue); border-color: var(--blue-ink); color: #fff; }
 .btn.go:hover { background: var(--blue-ink); }
-.btn.sm { padding: 6px 11px; font-size: 13px; }
-.btn.on { background: var(--green-soft); border-color: transparent; color: var(--green); }
-.chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--sheet); padding: 7px 13px; border-radius: 999px; cursor: pointer; font-weight: 500; font-size: 14px; user-select: none; }
-.chip:has(input:checked) { background: var(--blue-soft); border-color: var(--blue); color: var(--blue-ink); }
+.btn.big { padding: 16px 22px; font-size: 17px; min-width: 220px; justify-content: space-between; }
+.btn.sm { padding: 7px 12px; font-size: 13px; }
+.btn.on { background: var(--green-soft); border-color: var(--green); color: var(--green); }
+.btn.quiet { border-color: transparent; color: var(--ink-3); background: transparent; }
+.btn.quiet:hover { color: var(--ink); background: var(--tint); }
+.chip { position: relative; display: inline-flex; align-items: center; gap: 6px; border: var(--rule); background: var(--sheet); padding: 8px 14px; cursor: pointer; font-weight: 600; font-size: 14px; user-select: none; }
+.chip:hover { background: var(--tint); }
+.chip:has(input:checked) { background: var(--ink); color: var(--page); }
 .chip input { position: absolute; opacity: 0; pointer-events: none; }
 .chip:has(input:focus-visible) { outline: 3px solid var(--blue); outline-offset: 2px; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-label.f { display: grid; gap: 6px; font-weight: 500; font-size: 14px; }
-input.t, select.t, textarea.t { width: 100%; border: 1px solid var(--line); background: var(--sheet); border-radius: 10px; padding: 10px 12px; }
+label.f { display: grid; gap: 6px; font-weight: 600; font-size: 14px; }
+input.t, select.t, textarea.t { width: 100%; border: var(--rule); background: var(--sheet); padding: 11px 12px; }
 textarea.t { min-height: 140px; resize: vertical; }
-.tag { display: inline-block; font-size: 12px; font-weight: 500; padding: 2px 8px; border-radius: 6px; background: var(--page); color: var(--ink-2); border: 1px solid var(--line); }
+.tag { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; padding: 2px 8px; background: var(--tint); color: var(--ink-2); border: 1.5px solid var(--soft); white-space: nowrap; }
+.tag.good { background: var(--green-soft); color: var(--green); border-color: transparent; }
+.tag.warn { background: var(--warm); color: var(--warm-ink); border-color: transparent; }
+.tag.bad { background: var(--red-soft); color: var(--red); border-color: transparent; }
+.tag.hot { background: var(--blue); color: #fff; border-color: transparent; }
 
-/* onboarding */
-.welcome { max-width: 720px; margin: 24px auto; padding: 32px; }
-.welcome h1 { font-size: clamp(32px, 5vw, 46px); }
-.step-dots { display: flex; gap: 6px; margin-bottom: 22px; }
-.step-dots i { height: 6px; width: 28px; border-radius: 3px; background: var(--line); }
-.step-dots i.on { background: var(--blue); }
-.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.actions { display: flex; justify-content: space-between; align-items: center; margin-top: 26px; gap: 12px; }
+/* onboarding: brand field on the left, the form on the right */
+.ob { display: grid; grid-template-columns: minmax(300px, 5fr) 7fr; min-height: calc(100vh - 70px); }
+.ob-side { background: var(--field); color: #fff; padding: 56px 48px; display: flex; flex-direction: column; gap: 28px; border-right: var(--rule); }
+.ob-side h2 { font-size: clamp(34px, 4vw, 54px); line-height: .98; margin: 0; }
+.ob-side p { margin: 0; color: #E9E1FF; font-size: 17px; max-width: 40ch; }
+.ob-nums { display: grid; grid-template-columns: 1fr 1fr; border: 2px solid #fff; margin-top: auto; }
+.ob-nums div { padding: 16px; border-right: 2px solid #fff; } .ob-nums div:last-child { border-right: 0; }
+.ob-nums b { display: block; font-size: 34px; font-weight: 800; letter-spacing: -.03em; line-height: 1; }
+.ob-nums span { font-size: 13px; color: #E9E1FF; }
+.welcome { padding: 56px 48px; max-width: 760px; }
+.welcome h1 { font-size: clamp(32px, 4vw, 52px); }
+.welcome .lede { margin-bottom: 26px; }
+.step-dots { display: flex; gap: 0; margin-bottom: 28px; border: var(--rule); width: max-content; }
+.step-dots i { font-style: normal; font-size: 12px; font-weight: 700; letter-spacing: .06em; padding: 6px 12px; border-right: var(--rule); color: var(--ink-3); }
+.step-dots i:last-child { border-right: 0; } .step-dots i.on { background: var(--ink); color: var(--page); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.actions { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; gap: 12px; }
+.drop { border: 2px dashed var(--line); padding: 28px; text-align: center; color: var(--ink-2); cursor: pointer; display: block; margin-bottom: 12px; font-weight: 600; background: var(--tint); }
+.drop:hover { border-color: var(--blue); color: var(--blue-ink); }
 
-/* today */
-.hello { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; margin-bottom: 24px; }
-.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
-.stat { padding: 18px; }
-.stat b { display: block; font-size: 30px; letter-spacing: -.03em; font-weight: 600; line-height: 1.1; }
-.stat span { color: var(--ink-3); font-size: 13px; }
-.goal { display: flex; align-items: center; gap: 16px; padding: 18px; }
-.ring { --p: 0; width: 64px; height: 64px; border-radius: 50%; flex: none; display: grid; place-items: center; font-weight: 600;
-  background: radial-gradient(closest-side, var(--sheet) 76%, transparent 78%), conic-gradient(var(--blue) calc(var(--p) * 1%), var(--line) 0); }
-.cols { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; align-items: start; }
+/* stats strip: one ruled row, like the board's grids */
+.strip { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: var(--rule); }
+.strip > div { padding: 22px 28px; border-right: var(--rule); display: flex; gap: 16px; align-items: center; }
+.strip > div:last-child { border-right: 0; }
+.strip b { display: block; font-size: 40px; font-weight: 800; letter-spacing: -.04em; line-height: 1; }
+.strip span { color: var(--ink-3); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.goalbar { width: 100%; height: 8px; background: var(--tint); border: 1.5px solid var(--line); margin-top: 8px; }
+.goalbar i { display: block; height: 100%; background: var(--blue); }
+.cols { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
+.cols > section { padding: 28px 32px 40px 48px; border-right: var(--rule); min-width: 0; }
+.cols > aside { display: grid; align-content: start; min-width: 0; }
+.widget { padding: 24px 28px; border-bottom: var(--rule); }
+.widget h2 { font-size: 18px; margin-bottom: 8px; }
+.widget .row { padding: 10px 0; border-top: 1.5px solid var(--soft); }
 
-/* job rows */
-.filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; align-items: center; }
-.filters input.t { flex: 1 1 240px; width: auto; }
+/* job cards */
+.filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 20px 48px; border-bottom: var(--rule); background: var(--page); }
+.filters input.t { flex: 1 1 260px; width: auto; }
 .filters select.t { width: auto; }
-.list { display: grid; gap: 10px; }
-.job { display: grid; grid-template-columns: 46px 1fr auto; gap: 14px; align-items: center; padding: 14px 16px; transition: box-shadow .15s ease, transform .15s ease; }
-.job:focus { outline: 2px solid var(--blue); outline-offset: 2px; }
-.job:hover { box-shadow: var(--lift); transform: translateY(-1px); }
-.logo-tile { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; font-weight: 700; color: #fff; font-size: 17px; }
-.job h3 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
-.job .meta { font-size: 13px; color: var(--ink-3); display: flex; gap: 6px 10px; flex-wrap: wrap; margin-top: 3px; }
-.why { font-size: 12.5px; color: var(--ink-2); margin-top: 6px; }
-.job .side { display: flex; gap: 8px; align-items: center; }
-.fit { display: inline-flex; align-items: flex-end; gap: 2px; height: 18px; }
-.fit i { width: 4px; border-radius: 2px; background: var(--line); }
-.fit i.on { background: var(--blue); }
-.new { font-size: 11px; font-weight: 700; color: var(--green); background: var(--green-soft); padding: 1px 7px; border-radius: 999px; letter-spacing: .02em; }
-.more { display: flex; justify-content: center; margin-top: 16px; }
-.empty { padding: 36px; text-align: center; color: var(--ink-3); }
-
-/* tracker board */
-.board { display: grid; grid-template-columns: repeat(6, minmax(168px, 1fr)); gap: 12px; overflow-x: auto; padding-bottom: 12px; }
-.lane { background: color-mix(in srgb, var(--sheet) 55%, var(--page)); border: 1px solid var(--line); border-radius: 14px; padding: 10px; min-height: 240px; }
-.lane.over { outline: 2px dashed var(--blue); }
-.lane h3 { font-size: 13px; font-weight: 600; margin: 4px 6px 10px; display: flex; justify-content: space-between; color: var(--ink-2); }
-.app { padding: 12px; margin-bottom: 8px; cursor: grab; }
-.app:active { cursor: grabbing; }
-.app b { display: block; font-size: 14px; }
-.app .muted { font-size: 12.5px; }
-.app select { margin-top: 8px; font-size: 12.5px; padding: 5px 8px; }
-.due { color: var(--warm-ink); background: var(--warm); font-size: 11.5px; font-weight: 600; padding: 2px 7px; border-radius: 6px; display: inline-block; margin-top: 6px; }
-
-dialog { border: 0; padding: 0; border-radius: 16px; background: var(--sheet); color: var(--ink); box-shadow: var(--lift); width: min(560px, calc(100% - 32px)); }
-dialog::backdrop { background: rgba(6,27,49,.45); backdrop-filter: blur(3px); }
-dialog .in { position: relative; padding: 24px; display: grid; gap: 14px; }
-
-.toast { position: fixed; left: 50%; top: 76px; transform: translateX(-50%) translateY(-12px); opacity: 0; background: var(--ink); color: var(--page); padding: 10px 16px; border-radius: 999px; font-weight: 500; font-size: 14px; transition: .2s ease; pointer-events: none; z-index: 50; }
-.toast.show { opacity: 1; transform: translateX(-50%); }
-
+.quick { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 48px; border-bottom: var(--rule); background: var(--tint); align-items: center; }
+.quick .lbl { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-right: 4px; }
+.list { display: grid; gap: 14px; }
+.job { display: grid; grid-template-columns: 52px minmax(0, 1fr) 112px; gap: 18px; padding: 18px 20px; position: relative; cursor: pointer; transition: transform .12s ease, background .12s ease; }
+.job:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--line); }
+.job.sel { box-shadow: 6px 6px 0 var(--blue); transform: translate(-3px, -3px); border-color: var(--blue-ink); }
+.job:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+.logo-tile { width: 52px; height: 52px; display: grid; place-items: center; font-weight: 800; color: #fff; font-size: 18px; letter-spacing: -.02em; }
+.job .top { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-3); font-weight: 600; margin-bottom: 4px; }
+.job h3 { margin: 0; font-size: 19px; line-height: 1.2; letter-spacing: -.025em; }
 .job h3 button { all: unset; cursor: pointer; }
 .job h3 button:hover { color: var(--blue-ink); text-decoration: underline; text-underline-offset: 3px; }
-.job h3 button:focus-visible { outline: 3px solid var(--blue); border-radius: 4px; }
-.season { font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; background: var(--blue-soft); color: var(--blue-ink); }
-.icon-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--sheet); cursor: pointer; display: grid; place-items: center; flex: none; }
-.detail-head { display: flex; gap: 14px; align-items: center; }
-.detail-head h2 { margin: 0; font-size: 20px; }
-.reasons { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
-.reasons li { display: flex; gap: 8px; font-size: 14px; }
-.reasons li::before { content: "✓"; color: var(--green); font-weight: 700; }
-.reasons li.no::before { content: "–"; color: var(--ink-3); }
-.siblings { display: grid; gap: 4px; max-height: 180px; overflow: auto; font-size: 13.5px; }
-.drop { border: 2px dashed var(--line); border-radius: 12px; padding: 16px; text-align: center; color: var(--ink-3); cursor: pointer; display: block; margin-bottom: 12px; }
-.drop:hover { border-color: var(--blue); color: var(--blue-ink); }
-kbd { font: 12px var(--font); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 0 5px; color: var(--ink-3); }
+.job h3 button:focus-visible { outline: 3px solid var(--blue); }
+.job .meta { font-size: 14px; color: var(--ink-2); display: flex; gap: 4px 14px; flex-wrap: wrap; margin-top: 6px; }
+.job .meta span { display: inline-flex; gap: 5px; align-items: center; }
+.job .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.job .side { display: flex; gap: 8px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
+.job .side .grow { margin-left: auto; }
+.why { font-size: 13px; color: var(--ink-2); margin-top: 10px; }
+
+/* the score tile: big %, tier, fill bar — every point explained in the detail */
+.score { border: var(--rule); display: grid; align-content: space-between; padding: 10px 10px 0; text-align: left; background: var(--page); align-self: start; min-height: 112px; }
+.score b { font-size: 34px; font-weight: 800; letter-spacing: -.04em; line-height: 1; }
+.score b small { font-size: 16px; }
+.score span { font-size: 10.5px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; line-height: 1.2; margin: 6px 0 10px; }
+.score i { display: block; height: 8px; margin: 0 -10px; border-top: var(--rule); background: linear-gradient(90deg, var(--c) calc(var(--p) * 1%), transparent 0); }
+.score.t5 { --c: var(--blue); } .score.t5 span { color: var(--blue-ink); }
+.score.t4 { --c: #8E6BEA; } .score.t4 span { color: var(--blue-ink); }
+.score.t3 { --c: var(--soft); } .score.t2, .score.t1 { --c: var(--soft); } .score.t1 span, .score.t2 span { color: var(--ink-3); }
+.score.big { min-height: 0; padding: 16px 16px 0; }
+.score.big b { font-size: 64px; } .score.big span { font-size: 13px; }
+.score.big i { margin: 0 -16px; height: 12px; }
+.subs { display: grid; gap: 12px; }
+.sub { display: grid; grid-template-columns: 110px 1fr 54px; gap: 12px; align-items: center; font-size: 14px; }
+.sub b { font-weight: 700; }
+.sub .bar2 { height: 10px; border: 1.5px solid var(--line); background: var(--page); }
+.sub .bar2 i { display: block; height: 100%; background: var(--blue); }
+.sub em { font-style: normal; font-size: 13px; color: var(--ink-3); text-align: right; font-weight: 600; }
+.sub p { grid-column: 2 / -1; margin: -6px 0 0; font-size: 13px; color: var(--ink-3); }
+
+/* split view: list + sticky detail pane */
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); }
+.split > .listcol { padding: 24px 28px 48px 48px; border-right: var(--rule); min-width: 0; }
+.pane { position: sticky; top: 70px; max-height: calc(100vh - 70px); overflow: auto; min-width: 0; }
+.pane .in { padding: 28px 36px 40px; display: grid; gap: 22px; }
+.pane-empty { padding: 48px 36px; color: var(--ink-3); }
+.pane-empty h2 { color: var(--ink); }
+.detail-head { display: grid; grid-template-columns: 56px 1fr; gap: 16px; align-items: start; }
+.detail-head h2 { margin: 0; font-size: 26px; line-height: 1.1; }
+.dsec { border-top: var(--rule); padding-top: 18px; display: grid; gap: 12px; }
+.dsec > h3 { margin: 0; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; color: var(--blue-ink); }
+.scorebox { display: grid; grid-template-columns: 170px 1fr; gap: 24px; align-items: start; }
+.reasons { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.reasons li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; font-size: 14.5px; }
+.reasons li::before { content: "✓"; color: var(--green); font-weight: 800; }
+.reasons li.no::before { content: "✕"; color: var(--red); }
+.reasons li.maybe::before { content: "?"; color: var(--warm-ink); }
+.siblings { display: grid; gap: 4px; max-height: 200px; overflow: auto; font-size: 14px; }
+.ctabar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; position: sticky; bottom: 0; background: var(--page); border-top: var(--rule); padding: 16px 36px; margin: 0 -36px -40px; }
+.ctabar .grow { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+
+.more { display: flex; justify-content: center; margin-top: 20px; }
+.empty { padding: 40px; text-align: center; color: var(--ink-3); }
+.count-line { margin: 0 0 14px; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+
+/* companies grid: cells split by rules */
+.cgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); border-top: var(--rule); border-left: var(--rule); }
+.cgrid > article { border-right: var(--rule); border-bottom: var(--rule); padding: 20px; display: grid; gap: 12px; background: var(--page); }
+.cgrid > article:hover { background: var(--tint); }
+
+/* tracker board */
+.board { display: grid; grid-template-columns: repeat(6, minmax(190px, 1fr)); overflow-x: auto; border-top: var(--rule); }
+.lane { border-right: var(--rule); padding: 14px; min-height: 420px; background: var(--page); }
+.lane:last-child { border-right: 0; }
+.lane.over { background: var(--tint); outline: 3px dashed var(--blue); outline-offset: -6px; }
+.lane h3 { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 12px; display: flex; justify-content: space-between; color: var(--ink); }
+.app { padding: 12px; margin-bottom: 10px; cursor: grab; }
+.app:active { cursor: grabbing; }
+.app b { display: block; font-size: 15px; }
+.app .muted { font-size: 13px; }
+.app select { margin-top: 8px; font-size: 13px; padding: 6px 8px; }
+.due { color: var(--warm-ink); background: var(--warm); font-size: 12px; font-weight: 700; padding: 2px 8px; display: inline-block; margin-top: 6px; }
+
+dialog { border: var(--rule); padding: 0; background: var(--page); color: var(--ink); width: min(720px, calc(100% - 24px)); max-height: calc(100vh - 32px); box-shadow: 10px 10px 0 var(--line); }
+dialog::backdrop { background: rgba(26,15,61,.55); }
+dialog .in { position: relative; padding: 28px; display: grid; gap: 20px; }
+dialog .ctabar { margin: 0 -28px -28px; padding: 16px 28px; }
+.close { position: absolute; top: 0; right: 0; width: 52px; height: 52px; border: 0; border-left: var(--rule); border-bottom: var(--rule); background: var(--page); cursor: pointer; font-size: 18px; color: var(--ink); }
+.close:hover { background: var(--tint); }
+
+.toast { position: fixed; left: 50%; top: 84px; transform: translateX(-50%) translateY(-12px); opacity: 0; background: var(--ink); color: var(--page); padding: 12px 18px; font-weight: 600; font-size: 14px; transition: .2s ease; pointer-events: none; z-index: 50; border: 2px solid var(--blue); }
+.toast.show { opacity: 1; transform: translateX(-50%); }
+kbd { font: 12px var(--font); border: 1.5px solid var(--line); border-bottom-width: 3px; padding: 0 5px; color: var(--ink-3); }
+
+@media (max-width: 1100px) {
+  .split { grid-template-columns: 1fr; }
+  .split > .listcol { border-right: 0; padding: 20px 24px 48px; }
+  .pane { display: none; }
+  .cols { grid-template-columns: 1fr; }
+  .cols > section { border-right: 0; border-bottom: var(--rule); padding: 24px; }
+}
 @media (max-width: 860px) {
-  .stats { grid-template-columns: 1fr 1fr; }
-  .cols, .grid2 { grid-template-columns: 1fr; }
-  header { backdrop-filter: none; background: var(--page); }
-  #theme { margin-left: auto; }   /* a filtered ancestor would pin the fixed nav to the header */
-  nav.tabs { position: fixed; bottom: 0; left: 0; right: 0; justify-content: space-around; background: var(--sheet); border-top: 1px solid var(--line); padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); margin: 0; }
-  .job { grid-template-columns: 40px 1fr; }
-  .job .side { grid-column: 1 / -1; justify-content: flex-end; }
-  .logo-tile { width: 40px; height: 40px; }
-  .welcome { padding: 22px; }
-  main { padding-bottom: 110px; }
-  .btn.sm, nav.tabs button, .chip { min-height: 44px; }
-  .icon-btn, .avatar { width: 44px; height: 44px; }
-  .toast { top: auto; bottom: calc(84px + env(safe-area-inset-bottom)); }
+  .frame { border: 0; }
+  .band, .pad, .filters, .quick { padding-left: 16px; padding-right: 16px; }
+  .band { padding-top: 24px; padding-bottom: 20px; gap: 16px; }
+  .band h1 { font-size: 34px; } .band .lede { font-size: 15px; }
+  .filters { flex-wrap: nowrap; overflow-x: auto; padding-top: 12px; padding-bottom: 12px; }
+  .filters input.t { flex: 0 0 210px; } .filters select.t { flex: none; }
+  .quick { flex-wrap: nowrap; overflow-x: auto; padding-top: 10px; padding-bottom: 10px; }
+  .quick .chip, .quick .lbl { flex: none; }
+  .band .btn.big { min-width: 0; }
+  .strip { grid-template-columns: 1fr 1fr; }
+  .strip > div { padding: 16px; border-bottom: var(--rule); }
+  .strip > div:nth-child(2n) { border-right: 0; }
+  .strip b { font-size: 30px; }
+  .split > .listcol, .cols > section { padding: 16px; }
+  .widget { padding: 20px 16px; }
+  .ob { grid-template-columns: 1fr; }
+  .ob-side { padding: 28px 16px; border-right: 0; border-bottom: var(--rule); gap: 16px; }
+  .ob-side p, .ob-nums { display: none; }
+  .welcome { padding: 28px 16px 120px; }
+  .grid2 { grid-template-columns: 1fr; }
+  .logo { padding: 0 16px; font-size: 20px; border-right: 0; }
+  .bar { height: 60px; }
+  header .icon-btn, header .avatar { width: 60px; }
+  #theme { margin-left: auto; }
+  nav.tabs { position: fixed; bottom: 0; left: 0; right: 0; z-index: 20; background: var(--page); border-top: var(--rule); margin: 0; padding-bottom: env(safe-area-inset-bottom); }
+  nav.tabs button { flex: 1; justify-content: center; min-height: 56px; padding: 0 6px; font-size: 14px; }
+  nav.tabs button:last-child { border-right: 0; }
+  .job { grid-template-columns: 44px minmax(0, 1fr) 84px; gap: 12px; padding: 14px; }
+  .logo-tile { width: 44px; height: 44px; font-size: 15px; }
+  .job h3 { font-size: 16.5px; }
+  .score { min-height: 84px; padding: 8px 8px 0; } .score b { font-size: 26px; } .score i { margin: 0 -8px; }
+  .job .side { grid-column: 1 / -1; margin-top: 4px; }
+  .scorebox { grid-template-columns: 1fr; }
+  .sub { grid-template-columns: 90px 1fr 48px; }
+  main { padding-bottom: 80px; }
+  .btn.sm, .chip { min-height: 44px; }
+  .toast { top: auto; bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .board { grid-template-columns: repeat(6, 240px); }
+  dialog { width: 100%; max-height: 100%; height: 100%; margin: 0; max-width: none; box-shadow: none; border: 0; }
+  dialog .in { padding: 20px 16px 0; }
+  dialog .ctabar { margin: 0 -16px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
 }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
-  .btn:active, .job:hover { transform: none; }
+  .job:hover, .job.sel { transform: none; }
   .toast, .toast.show { transform: translateX(-50%); }
 }
-
-/* ---------- Ghostwrite brand: modernist frames, square corners, Archivo, violet ---------- */
-:root { --font: "Archivo", ui-sans-serif, system-ui, -apple-system, sans-serif; --soft-line: #D7C9FA; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --soft-line: #3B2A7A; } }
-:root[data-theme="dark"] { --soft-line: #3B2A7A; }
-*, *::before, *::after { border-radius: 0 !important; box-shadow: none !important; }
-h1, h2, h3 { font-weight: 800 !important; letter-spacing: -.035em; text-wrap: balance; }
-.gmark { width: 100%; height: 100%; display: block; }
-.mark { background: none !important; padding: 0 !important; width: 32px !important; height: 32px !important; }
-.mark .gmark rect { rx: 24px; }
-.logo { font-weight: 800 !important; letter-spacing: -.035em !important; font-size: 21px !important; }
-.btn { border-width: 2px !important; border-style: solid !important; border-color: var(--ink) !important; font-weight: 600; }
-.btn.go { border-color: var(--blue-ink) !important; background: var(--blue) !important; color: #fff !important; }
-.btn.go:hover { background: var(--blue-ink) !important; }
-.card, .feat, .nums > div, dialog, .lane, .stat { border: 2px solid var(--ink) !important; }
-input, select, textarea, .t { border: 2px solid var(--ink) !important; font-family: var(--font); }
-input:focus, select:focus, textarea:focus, .btn:focus-visible, a:focus-visible { outline: 3px solid var(--blue) !important; outline-offset: 2px; }
-.tag, .chip { border: 1.5px solid var(--soft-line) !important; }
-.kicker, .eyebrow { text-transform: uppercase; letter-spacing: .08em; font-weight: 600; color: var(--blue-ink); }
 </style>
 </head>
 <body>
+<div class="frame">
 <header>
   <div class="bar">
     <a class="logo" href="../"><span class="mark"><svg class="gmark" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="gmg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6538DB"/><stop offset="1" stop-color="#4E22BC"/></linearGradient></defs><rect width="100" height="100" rx="24" fill="url(#gmg)"/><path transform="translate(6 6)" fill="#fff" fill-opacity=".24" d="M26 30Q26 20 36 20H58L74 36V70Q74 80 67 77Q61 72 56 77Q50 83 44 77Q39 72 33 77Q26 80 26 70Z"/><path fill="#fff" d="M26 30Q26 20 36 20H58L74 36V70Q74 80 67 77Q61 72 56 77Q50 83 44 77Q39 72 33 77Q26 80 26 70Z"/><path fill="#D7C9FA" d="M58 20V32Q58 36 62 36H74Z"/><circle cx="42" cy="48" r="4" fill="#1A0F3D"/><circle cx="58" cy="48" r="4" fill="#1A0F3D"/></svg></span>ghostwrite</a>
     <nav class="tabs" aria-label="App" hidden>
-      <button data-tab="today">Today</button>
+      <button data-tab="today">For you</button>
       <button data-tab="jobs">Jobs</button>
       <button data-tab="companies">Companies</button>
       <button data-tab="tracker">Tracker <span class="count" id="trackCount" hidden></span></button>
@@ -208,8 +302,8 @@ input:focus, select:focus, textarea:focus, .btn:focus-visible, a:focus-visible {
     <button class="avatar" id="me" title="Your profile" hidden></button>
   </div>
 </header>
-
 <main id="view" aria-live="polite"></main>
+</div>
 
 <dialog id="addDlg" aria-labelledby="addTitle"><form method="dialog" class="in" id="addForm">
   <h2 id="addTitle">Add an application</h2>
@@ -328,29 +422,44 @@ function score(r) {
   r._pv = PV;
   return r._sc = scoreNow(r);
 }
+const TIERS = [[80, "Strong match"], [65, "Good match"], [50, "Fair match"], [0, "Low match"]];
+// Match % = Role fit 35 + Skills 30 + Location 20 + Timing 15. Every point has a reason the person can read.
 function scoreNow(r) {
-  const p = S.profile || {}, why = [];
-  let s = 1;
-  const hit = r.fields.filter(f => (p.fields || []).includes(f));
-  if (hit.length) { s += 2; why.push(FIELDS[hit[0]][0]); }
-  const locs = (r.locs || [r]).map(l => (l.location || "").toLowerCase());
-  const place = (p.places || []).find(pl => pl && locs.some(l => placeHit(pl, l)));
-  if (locs.some(l => /remote/.test(l))) { s += 1; why.push("remote"); }
-  else if (place) { s += 1; why.push("in " + place); }
+  const p = S.profile || {}, mine = p.fields || [], places = p.places || [], parts = [], why = [];
+  const t = r.title.toLowerCase(), titleHit = mine.filter(f => FIELDS[f][1].test(t)), hit = r.fields.filter(f => mine.includes(f));
+  const role = !mine.length ? [.6, "Pick fields in your profile to rank by role"]
+    : titleHit.length ? [1, `${FIELDS[titleHit[0]][0]} — a field you picked`]
+    : hit.length ? [.7, `What it asks for points to ${FIELDS[hit[0]][0]}`]
+    : !r.fields.length ? [.35, "Field isn't clear from the title"]
+    : [0, `${FIELDS[r.fields[0]][0]} — not a field you picked`];
+  parts.push({ k: "Role fit", max: 35, v: role[0], why: role[1] });
   const sk = skillMatch(r);
-  if (sk) { if (sk.have.length * 2 >= sk.asked.length) { s += 1; why.push(sk.asked.length === 1 ? `you have the one skill it asks for (${sk.have[0]})` : `you have ${sk.have.length} of ${sk.asked.length} skills it asks for`); } }
-  else {
-    const rw = new Set(p.resumeWords || []);
-    const overlap = [...new Set(words(r.title))].filter(w => rw.has(w));
-    if (overlap.length) { s += 1; why.push("your resume mentions " + overlap.slice(0, 2).join(", ")); }
-  }
+  let skill;
+  if (sk) skill = [(sk.have.length + 1) / (sk.asked.length + 2), sk.asked.length === 1 ? (sk.have.length ? `You have the one skill it names (${sk.have[0]})` : `It names ${sk.asked[0]}; your resume doesn't show it`) : `You have ${sk.have.length} of the ${sk.asked.length} skills it names`];
+  else if (p.resume) { const rw = new Set(p.resumeWords || []), ov = [...new Set(words(r.title))].filter(w => rw.has(w)); skill = ov.length ? [.65, "Your resume mentions " + ov.slice(0, 2).join(", ")] : [.5, "The posting names no specific skills"]; }
+  else skill = [.5, "Add your resume to score skills"];
+  parts.push({ k: "Skills", max: 30, v: skill[0], why: skill[1] });
+  const locs = (r.locs || [r]).map(l => (l.location || "").toLowerCase());
+  const remote = locs.some(l => /remote/.test(l)), place = places.find(pl => pl && locs.some(l => placeHit(pl, l)));
+  parts.push({ k: "Location", max: 20, v: remote || place || !places.length ? 1 : 0,
+    why: remote ? "Remote" : place ? "In " + place : !places.length ? "Add cities in your profile" : `${r.location || "Location not listed"} — not a place you picked` });
+  const classOk = r.years?.length && p.year && r.years.includes(+p.year), fresh = isEarly(r), age = daysSince(r.posted || r.first_seen || today());
+  const timing = Math.min(1, (classOk ? .6 : .4) + (fresh ? .4 : age <= 14 ? .25 : .1));
+  parts.push({ k: "Timing", max: 15, v: timing, why: [classOk ? `Made for the class of ${p.year}` : "", fresh ? "New posting — early applicants get read first" : age <= 14 ? "Posted in the last two weeks" : "Posted a while ago"].filter(Boolean).join(" · ") });
+  let pct = Math.round(parts.reduce((n, x) => n + x.v * x.max, 0));
+  if (titleHit.length || hit.length) why.push(FIELDS[(titleHit[0] || hit[0])][0]);
+  if (remote) why.push("remote"); else if (place) why.push("in " + place);
+  if (sk && sk.have.length) why.push(sk.asked.length === 1 ? `has your skill (${sk.have[0]})` : `${sk.have.length} of ${sk.asked.length} skills`);
   if ((r.auth || []).includes("sponsor") && p.auth === "sponsor") why.push("sponsors visas");
   const block = blocker(r);
-  if (block) return { s: 1, why: [block], block };
+  if (block) return { s: 1, pct: Math.min(pct, 20), tier: "Not eligible", parts, why: [block], block };
   // F-1 students can often intern on CPT even where a posting won't sponsor, so this warns instead of hiding.
-  if ((r.auth || []).includes("no_sponsor") && p.auth === "sponsor") { s = Math.min(s, 2); why.unshift("says no visa sponsorship — check if CPT/OPT works"); }
-  return { s: Math.min(5, s), why };
+  if ((r.auth || []).includes("no_sponsor") && p.auth === "sponsor") { pct = Math.min(pct, 45); why.unshift("says no visa sponsorship — check if CPT/OPT works"); }
+  const s = pct >= 80 ? 5 : pct >= 65 ? 4 : pct >= 50 ? 3 : pct >= 35 ? 2 : 1;
+  return { s, pct, tier: TIERS.find(x => pct >= x[0])[1], parts, why };
 }
+// "Early applicant": the posting is new to the feed (or dated) within 3 days.
+const isEarly = r => NEW.has(r.url) || !!r.posted && daysSince(r.posted) <= 3;
 // Hard eligibility: shown as the reason, hidden from lists unless "Show ineligible" is on.
 function blocker(r) {
   const p = S.profile || {}, auth = r.auth || [];
@@ -394,22 +503,34 @@ const moreLocs = r => r.locs?.length > 1 ? ` +${r.locs.length - 1} more` : "";
 function initials(name) { return (name || "?").split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase(); }
 function hue(str) { let h = 0; for (const c of str) h = (h * 31 + c.charCodeAt(0)) % 360; return h; }
 function tile(company) { return `<div class="logo-tile" aria-hidden="true" style="background:hsl(${252 + hue(company) % 24} ${45 + hue(company) % 25}% ${30 + hue(company) % 22}%)">${esc(initials(company))}</div>`; }
-function fitBars(s) { return `<span class="fit" title="Match ${s} of 5" aria-label="Match ${s} of 5">${[5,8,11,14,17].map((h,i) => `<i style="height:${h}px" class="${i < s ? "on" : ""}"></i>`).join("")}</span>`; }
+function scoreTile(x, big) { return `<div class="score t${x.s}${big ? " big" : ""}" style="--p:${x.pct}" role="img" aria-label="${x.pct}% match, ${esc(x.tier)}"><b>${x.pct}<small>%</small></b><span>${esc(x.tier)}</span><i></i></div>`; }
+function workModel(r) { const l = (r.locs || [r]).map(x => x.location || "").join(" ").toLowerCase(); return /remote/.test(l) ? "Remote" : /hybrid/.test(l) ? "Hybrid" : "On-site"; }
+function authTag(r) {
+  const a = r.auth || [];
+  return a.includes("sponsor") ? `<span class="tag good">Sponsors visas</span>` : a.includes("citizen") ? `<span class="tag warn">US citizens only</span>`
+    : a.includes("us_person") ? `<span class="tag warn">Citizens & green card holders</span>` : a.includes("no_sponsor") ? `<span class="tag">No visa sponsorship</span>` : "";
+}
+const subRow = x => `<div class="sub"><b>${esc(x.k)}</b><div class="bar2"><i style="width:${Math.round(x.v * 100)}%"></i></div><em>${Math.round(x.v * x.max)}/${x.max}</em><p>${esc(x.why)}</p></div>`;
 function ago(d) { if (!d) return ""; const n = daysSince(d); return n <= 0 ? "today" : n === 1 ? "yesterday" : n < 30 ? n + "d ago" : ""; }
 
 function jobRow(r) {
-  const { s, why } = score(r);
-  const app = S.apps[r.url];
+  const x = score(r), app = S.apps[r.url], sea = season(r.title), age = ago(r.posted || r.first_seen), people = known(r.company).length;
   return `<article class="card job" tabindex="-1" data-url="${esc(r.url)}">
     ${tile(r.company)}
-    <div><h3><button data-act="open">${esc(r.title)}</button> ${NEW.has(r.url) ? '<span class="new">NEW</span>' : ""} ${season(r.title) ? `<span class="season">${esc(season(r.title))}</span>` : ""}</h3>
-      <div class="meta"><span>${esc(r.company)}</span><span>·</span><span>${esc((r.location || "Location not listed") + moreLocs(r))}</span>${ago(r.posted || r.first_seen) ? `<span>· ${esc(ago(r.posted || r.first_seen))}</span>` : ""}${r.pay ? `<span class="tag">${esc(r.pay)}</span>` : ""}${known(r.company).length ? `<span class="tag" style="background:var(--green-soft);color:var(--green);border-color:transparent">${known(r.company).length} you know</span>` : ""}</div>
-      ${why.length ? `<div class="why">${fitBars(s)} &nbsp;${esc(why.join(" · "))}</div>` : `<div class="why">${fitBars(s)}</div>`}
+    <div style="min-width:0">
+      <div class="top">${isEarly(r) ? `<span class="tag hot">Early applicant</span>` : ""}${age ? `<span>${esc(age === "today" || age === "yesterday" ? "Posted " + age : "Posted " + age)}</span>` : ""}${people ? `<span class="tag good">${people} you know</span>` : ""}</div>
+      <h3><button data-act="open">${esc(r.title)}</button></h3>
+      <div class="meta"><span><b>${esc(r.company)}</b></span><span>${esc((r.location || "Location not listed") + moreLocs(r))}</span><span>${workModel(r)}</span>${r.pay ? `<span>${esc(r.pay)}</span>` : ""}</div>
+      <div class="tags">${sea ? `<span class="tag">${esc(sea)}</span>` : ""}${authTag(r)}${r.years?.length ? `<span class="tag">Class of ${esc(r.years.join(" / "))}</span>` : ""}${x.block ? `<span class="tag bad">${esc(x.block)}</span>` : ""}</div>
+      ${x.why.length && !x.block ? `<div class="why">${esc(x.why.join(" · "))}</div>` : ""}
+      <div class="side">
+        <button class="btn sm ${app ? "on" : ""}" data-act="save">${app ? "✓ " + STAGES.find(y => y[0] === app.status)[1] : "Save"}</button>
+        <button class="btn sm quiet" data-act="hide" title="Not interested">Not for me</button>
+        <a class="btn sm go grow" data-act="apply" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">Apply ↗</a>
+      </div>
     </div>
-    <div class="side">
-      <button class="btn sm ${app ? "on" : ""}" data-act="save">${app ? STAGES.find(x => x[0] === app.status)[1] : "Save"}</button>
-      <a class="btn sm go" data-act="apply" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">Apply ↗</a>
-    </div></article>`;
+    ${scoreTile(x)}
+  </article>`;
 }
 function track(r, status) {
   const prev = S.apps[r.url];
@@ -430,13 +551,13 @@ function skillGaps(all) {
     sk.missing.filter(k => !EVERYDAY.has(k)).forEach(k => count[k] = (count[k] || 0) + 1);
   }
   const top = Object.entries(count).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  if (!S.profile.resume) return `<section class="card" style="padding:18px"><h2>What to learn next</h2><p class="muted" style="margin:0 0 12px">Add your resume and we'll show which skills would open up the most roles for you.</p><button class="btn sm" id="me2">Add resume</button></section>`;
+  if (!S.profile.resume) return `<section class="widget"><h2>What to learn next</h2><p class="muted" style="margin:0 0 12px">Add your resume and we'll show which skills would open up the most roles for you.</p><button class="btn sm" id="me2">Add resume</button></section>`;
   if (!top.length) return "";
   const max = top[0][1];
-  return `<section class="card" style="padding:18px"><h2>What to learn next</h2>
+  return `<section class="widget"><h2>What to learn next</h2>
     <p class="muted" style="margin:0 0 12px;font-size:13.5px">Skills your resume doesn't show, ranked by how many of your ${n.toLocaleString()} matching roles ask for them.</p>
     ${top.map(([k, c]) => `<div style="margin:8px 0"><div style="display:flex;justify-content:space-between;font-size:14px"><b>${esc(k)}</b><span class="muted">${c} role${c > 1 ? "s" : ""}</span></div>
-      <div style="height:6px;border-radius:3px;background:var(--line);margin-top:4px"><div style="height:100%;width:${Math.round(c / max * 100)}%;border-radius:3px;background:var(--blue)"></div></div></div>`).join("")}
+      <div class="goalbar" style="height:10px"><i style="width:${Math.round(c / max * 100)}%"></i></div></div>`).join("")}
     <p class="muted" style="margin:10px 0 0;font-size:12.5px">Already know one? Add it to your resume, honestly, and your matches update.</p></section>`;
 }
 
@@ -510,7 +631,7 @@ async function openPrep(a) {
   const fields = fieldsOf(a.title, FEED.find(r => r.url === a.url)?.skills).filter(f => PREP[f]);
   const list = (title, items) => `<div><b style="font-size:14px">${esc(title)}</b><ol style="margin:6px 0 0;padding-left:20px;display:grid;gap:8px">${items.map(x =>
     `<li><div>${esc(x.q)}</div><div class="muted" style="font-size:13px">${esc(x.tip)}</div></li>`).join("")}</ol></div>`;
-  $("#jobBody").innerHTML = `<button class="icon-btn" data-act="close" aria-label="Close" style="position:absolute;top:14px;right:14px">✕</button>
+  $("#jobBody").innerHTML = `<button class="close" data-act="close" aria-label="Close">✕</button>
     <h2 id="jobTitle" style="padding-right:36px">Prep: ${esc(a.company)} — ${esc(a.title)}</h2>
     <p class="muted" style="margin:0;font-size:13.5px">Practice out loud. Build each answer from something you actually did (Situation, Task, Action, Result).</p>
     <div style="max-height:60vh;overflow:auto;display:grid;gap:16px">
@@ -555,39 +676,59 @@ async function importFromHash() {
   PV++; save(); toast("Brought over.");
 }
 
-// ---------- job detail ----------
-function openJob(r) {
-  const { s, why } = score(r), p = S.profile, app = S.apps[r.url], sk = skillMatch(r);
-  const others = FEED.filter(x => x.company === r.company && x.url !== r.url).sort((a, b) => score(b).s - score(a).s);  // best fits first
-  const missing = [];
-  if (!r.fields.some(f => (p.fields || []).includes(f))) missing.push(r.fields.length ? `Field: ${r.fields.map(f => FIELDS[f][0]).join(", ")} — not one you picked` : "Field unclear from the title");
-  if (!placeOk(r, false)) missing.push(`Location: ${r.location || "not listed"}`);
-  if (!p.resume) missing.push("Add your resume in your profile for skill matching");
-  $("#jobBody").innerHTML = `
-    <button class="icon-btn" data-act="close" aria-label="Close" style="position:absolute;top:14px;right:14px">✕</button>
-    <div class="detail-head" style="padding-right:36px">${tile(r.company)}<div><h2 id="jobTitle">${esc(r.title)}</h2><div class="muted">${esc(r.company)} · ${esc((r.location || "Location not listed") + moreLocs(r))}</div></div></div>
-    ${r.locs?.length > 1 ? `<div><b style="font-size:14px">Posted in ${r.locs.length} places — apply to the one you want</b><div class="siblings">${r.locs.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.location || "Location not listed")} ↗</a>`).join("")}</div></div>` : ""}
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">${fitBars(s)} <b>Match ${s} of 5</b> ${r.pay ? `<span class="tag">${esc(r.pay)}</span>` : ""} ${season(r.title) ? `<span class="season">${esc(season(r.title))}</span>` : ""} ${r.ats ? `<span class="tag">via ${esc(r.ats)}</span>` : ""}</div>
-    <ul class="reasons">${why.map(w => `<li${score(r).block ? ' class="no"' : ""}>${esc(w)}</li>`).join("")}${missing.map(m => `<li class="no">${esc(m)}</li>`).join("")}</ul>
-    ${(() => { const mine = Object.values(S.apps).filter(a => a.company === r.company && a.url !== r.url && a.applied); return mine.length ? `<p class="due" style="margin:0">You've applied to ${mine.length} other role${mine.length > 1 ? "s" : ""} here (${mine.map(a => esc(a.title)).slice(0, 2).join("; ")}). Some employers cap applications per season.</p>` : ""; })()}
-    ${r.summary ? `<p style="margin:0;font-size:14px;color:var(--ink-2)">${esc(r.summary.replace(/[.…\s]+$/, ""))}…</p>` : ""}
-    ${sk ? `<div><b style="font-size:14px">Skills it asks for</b> <span class="muted" style="font-size:13px">— gaps are things to learn, not words to paste into your resume</span>
-      <div class="chips" style="margin-top:8px">${sk.have.map(k => `<span class="tag" style="background:var(--green-soft);color:var(--green);border-color:transparent">✓ ${esc(k)}</span>`).join("")}${sk.missing.map(k => `<span class="tag">${esc(k)}</span>`).join("")}</div></div>`
-      : r.skills?.length ? `<div><b style="font-size:14px">Skills it asks for:</b> <span class="muted">${esc(r.skills.join(", "))}</span> <span class="muted" style="font-size:13px">(add your resume in your profile to see which you have)</span></div>` : ""}
-    ${others.length ? `<div><b style="font-size:14px">${others.length} more at ${esc(r.company)}</b><div class="siblings">${others.slice(0, 30).map(o => `<a href="#" data-sib="${esc(o.url)}">${esc(o.title)} <span class="muted">· ${esc(o.location || "")}</span></a>`).join("")}</div></div>` : ""}
-    ${known(r.company).length ? `<div><b style="font-size:14px">People you know at ${esc(r.company)}</b> <span class="muted" style="font-size:13px">— a referral beats a cold application</span>
-      <div class="siblings" style="margin-top:6px">${known(r.company).slice(0, 8).map((x, i) => `<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding:4px 0">
-        <span>${x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer">${esc(x.first + " " + x.last)}</a>` : esc(x.first + " " + x.last)} <span class="muted">· ${esc(x.position)}</span></span>
-        <button class="btn sm" data-copy="${esc(draftNote(x, r))}">Copy note</button></div>`).join("")}</div></div>` : ""}
-    <div><b style="font-size:14px">Ask an AI</b> <span class="muted" style="font-size:13px">— copies a prompt for ChatGPT, Claude or Gemini, with rules that stop it inventing anything</span>
-      <div class="chips" style="margin-top:8px">${[["resume", "Tailor my resume"], ["cover", "Draft a cover letter"], ["prep", "Prep me for the interview"]].map(([k, l]) => `<button class="btn sm" data-ai="${k}">${l}</button>`).join("")}</div></div>
-    <p class="muted" style="margin:0;font-size:13px">Tip: applying in the first few days after a posting goes up matters more than a perfect cover letter.</p>
-    <div class="actions" style="margin-top:4px">
-      <button class="btn sm" data-act="hide" style="color:var(--ink-3)">Not interested</button>
-      <span style="display:flex;gap:8px"><button class="btn sm ${app ? "on" : ""}" data-act="save">${app ? STAGES.find(x => x[0] === app.status)[1] : "Save"}</button>
-      <a class="btn sm go" data-act="apply" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">Apply on ${esc(r.company)} ↗</a></span>
+// ---------- job detail: the side pane on wide screens, a dialog everywhere else ----------
+function detailHTML(r) {
+  const x = score(r), p = S.profile, app = S.apps[r.url], sk = skillMatch(r), a = r.auth || [];
+  const others = FEED.filter(o => o.company === r.company && o.url !== r.url).sort((m, n) => score(n).pct - score(m).pct);  // best fits first
+  const checks = [];  // one line per qualification: ✓ meets, ✕ doesn't, ? can't tell yet
+  checks.push([x.parts[0].v >= .7 ? "" : x.parts[0].v > .3 ? "maybe" : "no", x.parts[0].why]);
+  checks.push([x.parts[2].v ? "" : "no", x.parts[2].why]);
+  if (r.years?.length) checks.push([p.year && r.years.includes(+p.year) ? "" : p.year ? "no" : "maybe", `For the class of ${r.years.join(" or ")}${p.year ? ` — you graduate in ${p.year}` : ""}`]);
+  if (gradOnly(r.title)) checks.push(["no", "For grad-school students"]);
+  if (a.includes("citizen")) checks.push([p.auth === "citizen" ? "" : p.auth ? "no" : "maybe", "Requires US citizenship"]);
+  else if (a.includes("us_person")) checks.push([["citizen", "permanent"].includes(p.auth) ? "" : p.auth ? "no" : "maybe", "US citizens and permanent residents only"]);
+  else if (a.includes("sponsor")) checks.push(["", "Sponsors work visas"]);
+  else if (a.includes("no_sponsor")) checks.push([p.auth === "sponsor" ? "no" : "", "Doesn't sponsor visas"]);
+  if (sk) { sk.have.forEach(k => checks.push(["", `${k} — on your resume`])); sk.missing.forEach(k => checks.push(["no", `${k} — not on your resume yet`])); }
+  else if (r.skills?.length) checks.push(["maybe", `Names ${r.skills.join(", ")} — add your resume to check`]);
+  checks.push([isEarly(r) ? "" : "maybe", x.parts[3].why]);
+  const mineHere = Object.values(S.apps).filter(o => o.company === r.company && o.url !== r.url && o.applied);
+  return `
+    <div class="detail-head">${tile(r.company)}<div><h2 id="jobTitle">${esc(r.title)}</h2>
+      <div class="muted" style="margin-top:6px;font-size:15px"><b style="color:var(--ink)">${esc(r.company)}</b> · ${esc((r.location || "Location not listed") + moreLocs(r))} · ${workModel(r)}</div>
+      <div class="tags" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">${isEarly(r) ? `<span class="tag hot">Early applicant</span>` : ""}${r.pay ? `<span class="tag good">${esc(r.pay)}</span>` : ""}${season(r.title) ? `<span class="tag">${esc(season(r.title))}</span>` : ""}${authTag(r)}${r.ats ? `<span class="tag">via ${esc(r.ats)}</span>` : ""}</div></div></div>
+    <div class="dsec"><h3>Your match</h3><div class="scorebox">${scoreTile(x, true)}<div class="subs">${x.parts.map(subRow).join("")}</div></div>
+      ${x.block ? `<p class="tag bad" style="font-size:14px;padding:8px 12px">Not eligible: ${esc(x.block)}</p>` : ""}</div>
+    <div class="dsec"><h3>Why you match</h3><ul class="reasons">${checks.map(([c, w]) => `<li${c ? ` class="${c}"` : ""}>${esc(w)}</li>`).join("")}</ul>
+      ${mineHere.length ? `<p class="due" style="margin:0">You've applied to ${mineHere.length} other role${mineHere.length > 1 ? "s" : ""} here (${mineHere.map(o => esc(o.title)).slice(0, 2).join("; ")}). Some employers cap applications per season.</p>` : ""}</div>
+    ${r.summary ? `<div class="dsec"><h3>About the role</h3><p style="margin:0;font-size:15px;color:var(--ink-2)">${esc(r.summary.replace(/[.…\s]+$/, ""))}…</p></div>` : ""}
+    ${r.locs?.length > 1 ? `<div class="dsec"><h3>Posted in ${r.locs.length} places — apply to the one you want</h3><div class="siblings">${r.locs.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.location || "Location not listed")} ↗</a>`).join("")}</div></div>` : ""}
+    ${known(r.company).length ? `<div class="dsec"><h3>People you know at ${esc(r.company)}</h3><p class="muted" style="margin:0;font-size:13px">A referral beats a cold application. Notes are drafts — you send them yourself.</p>
+      <div class="siblings">${known(r.company).slice(0, 8).map(k => `<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding:4px 0">
+        <span>${k.url ? `<a href="${esc(k.url)}" target="_blank" rel="noopener noreferrer">${esc(k.first + " " + k.last)}</a>` : esc(k.first + " " + k.last)} <span class="muted">· ${esc(k.position)}</span></span>
+        <button class="btn sm" data-copy="${esc(draftNote(k, r))}">Copy note</button></div>`).join("")}</div></div>` : ""}
+    <div class="dsec"><h3>Ghostwrite it with any AI</h3><p class="muted" style="margin:0;font-size:13.5px">Copies a prompt with this posting and your resume for ChatGPT, Claude or Gemini — with rules that stop it inventing anything.</p>
+      <div class="chips">${[["resume", "Tailor my resume"], ["cover", "Draft a cover letter"], ["prep", "Prep me for the interview"]].map(([k, l]) => `<button class="btn sm" data-ai="${k}">${l}</button>`).join("")}</div></div>
+    ${others.length ? `<div class="dsec"><h3>${others.length} more at ${esc(r.company)}</h3><div class="siblings">${others.slice(0, 30).map(o => `<a href="#" data-sib="${esc(o.url)}">${esc(o.title)} <span class="muted">· ${score(o).pct}% · ${esc(o.location || "")}</span></a>`).join("")}</div></div>` : ""}
+    <div class="ctabar">
+      <button class="btn sm quiet" data-act="hide">Not for me</button>
+      <span class="grow"><button class="btn ${app ? "on" : ""}" data-act="save">${app ? "✓ " + STAGES.find(y => y[0] === app.status)[1] : "Save"}</button>
+      <a class="btn go" data-act="apply" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">Apply on ${esc(r.company)} ↗</a></span>
     </div>`;
-  $("#jobBody").dataset.url = r.url;
+}
+const wide = () => matchMedia("(min-width: 1101px)").matches;
+function openJob(r) {
+  if (!r) return;
+  const pane = $("#pane");
+  if (pane && wide()) {
+    pane.innerHTML = `<div class="in" data-url="${esc(r.url)}" data-detail="${esc(r.url)}">${detailHTML(r)}</div>`;
+    pane.scrollTop = 0;
+    document.querySelectorAll(".job.sel").forEach(j => j.classList.remove("sel"));
+    document.querySelector(`.job[data-url="${CSS.escape(r.url)}"]`)?.classList.add("sel");
+    return;
+  }
+  $("#jobBody").innerHTML = `<button class="close" data-act="close" aria-label="Close">✕</button>${detailHTML(r)}`;
+  $("#jobBody").dataset.url = $("#jobBody").dataset.detail = r.url;
   if (!$("#jobDlg").open) $("#jobDlg").showModal();
 }
 $("#jobDlg").addEventListener("click", e => { if (e.target === $("#jobDlg")) $("#jobDlg").close(); });
@@ -613,79 +754,93 @@ function tiebreak(x) {
   const sk = skillMatch(x.r);
   return (sk ? sk.have.length / sk.asked.length : 0) + (NEW.has(x.r.url) ? 0.5 : 0);
 }
-const byFit = (a, b) => b.s - a.s || tiebreak(b) - tiebreak(a) || String(b.r.first_seen || "").localeCompare(String(a.r.first_seen || ""));
+const byFit = (a, b) => b.pct - a.pct || tiebreak(b) - tiebreak(a) || String(b.r.first_seen || "").localeCompare(String(a.r.first_seen || ""));
 function ranked() {
   return FEED.map(r => ({ r, ...score(r) })).filter(x => !S.hidden.includes(x.r.url));
 }
 
+const band = (n, eyebrow, title, lede, side = "", cls = "") => `<section class="band ${cls}"><div><span class="eyebrow">${n} — ${eyebrow}</span><h1>${title}</h1>${lede ? `<p class="lede">${lede}</p>` : ""}</div>${side}</section>`;
 function renderToday() {
   const p = S.profile, apps = Object.values(S.apps);
   const all = ranked();
-  const strong = all.filter(x => x.s >= 4 && !S.apps[x.r.url]).sort(byFit);
-  const fresh = all.filter(x => NEW.has(x.r.url) && x.s >= 3).length;
+  const open = all.filter(x => !x.block && !S.apps[x.r.url]).sort(byFit);
+  const strong = open.filter(x => x.pct >= 65);
+  const fresh = open.filter(x => isEarly(x.r) && x.pct >= 50).length;
   const weekAgo = Date.now() - 7 * 864e5;
   const thisWeek = apps.filter(a => a.applied && new Date(a.applied).getTime() >= weekAgo).length;
   const goal = p.goal || 10, pct = Math.min(100, Math.round(thisWeek / goal * 100));
   const due = apps.filter(a => a.status === "applied" && daysSince(a.updated) >= FOLLOW_DAYS);
   const live = apps.filter(a => ["oa", "interview"].includes(a.status)).sort((a, b) => (a.when || "9").localeCompare(b.when || "9"));
-  const hour = new Date().getHours();
-  const hi = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const hour = new Date().getHours(), hi = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const shown = (strong.length ? strong : open).slice(0, 8);
   view.innerHTML = `
-    <div class="hello"><div><h1>${hi}, ${esc(p.name.split(" ")[0])}.</h1>
-      <p class="lede" style="margin:0">${fresh ? `<b>${fresh}</b> new roles fit you since your last visit.` : "Here's where your search stands."} ${FEED_BUILT ? `<span class="muted">Feed updated ${esc(ago(FEED_BUILT) || new Date(FEED_BUILT).toLocaleDateString())}.</span>` : ""}</p></div>
-      <button class="btn" id="addApp">+ Add application</button></div>
-    <div class="stats">
-      <div class="card stat"><b>${strong.length}</b><span>strong matches to look at</span></div>
-      <div class="card stat"><b>${apps.filter(a => a.applied).length}</b><span>applications sent</span></div>
-      <div class="card stat"><b>${live.length}</b><span>assessments & interviews</span></div>
-      <div class="card goal"><div class="ring" style="--p:${pct}">${thisWeek}/${goal}</div><div><b>This week's goal</b><div class="muted" style="font-size:13px">${thisWeek >= goal ? "Done. Nice work." : `${goal - thisWeek} more to go`}</div></div></div>
+    ${band("01", "For you", `${hi}, ${esc(p.name.split(" ")[0])}.`,
+      `${strong.length ? `<b style="color:#fff">${strong.length.toLocaleString()}</b> roles match you 65% or better${fresh ? ` — <b style="color:#fff">${fresh}</b> are new, so you'd be an early applicant` : ""}.` : "Here's where your search stands."} ${FEED_BUILT ? `Feed updated ${esc(ago(FEED_BUILT) || new Date(FEED_BUILT).toLocaleDateString())} from ${new Set(FEED.map(r => r.company)).size.toLocaleString()} employers' own job boards.` : ""}`,
+      `<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn big go" data-go="jobs" style="background:#fff;color:var(--field);border-color:#fff">Browse all matches <span>→</span></button><button class="btn" id="addApp" style="background:transparent;color:#fff;border-color:#fff">+ Add application</button></div>`, "violet")}
+    <div class="strip">
+      <div><div><b>${strong.length.toLocaleString()}</b><span>Matches 65%+</span></div></div>
+      <div><div><b>${apps.filter(a => a.applied).length}</b><span>Applications sent</span></div></div>
+      <div><div><b>${live.length}</b><span>Assessments & interviews</span></div></div>
+      <div><div style="width:100%"><b>${thisWeek}<small style="font-size:20px;color:var(--ink-3)">/${goal}</small></b><span>${thisWeek >= goal ? "Weekly goal — done" : "This week's goal"}</span><div class="goalbar"><i style="width:${pct}%"></i></div></div></div>
     </div>
     <div class="cols">
-      <section><h2>Best for you today</h2><div class="list">${strong.slice(0, 8).map(x => jobRow(x.r)).join("") || `<div class="card empty">${FEED.length ? "No strong matches yet — add more fields or cities in your profile." : "Couldn't load today's feed. Check your connection and refresh."}</div>`}</div>
-        ${strong.length > 8 ? `<div class="more"><button class="btn" data-go="jobs">See all ${strong.length} matches →</button></div>` : ""}</section>
-      <aside style="display:grid;gap:20px">
-        <section class="card" style="padding:18px"><h2>Follow up</h2>${due.length ? due.slice(0, 6).map(a => `<div style="padding:8px 0;border-top:1px solid var(--line)"><b style="font-size:14px">${esc(a.company)}</b><div class="muted" style="font-size:13px">${esc(a.title)} · applied ${daysSince(a.applied || a.updated)}d ago</div></div>`).join("") : `<p class="muted" style="margin:0">Nothing's gone quiet. Applications with no news for ${FOLLOW_DAYS} days show up here.</p>`}</section>
-        <section class="card" style="padding:18px"><h2>Coming up</h2>${live.length ? live.map(a => `<div style="padding:8px 0;border-top:1px solid var(--line)"><b style="font-size:14px">${esc(a.company)}</b> <span class="tag">${a.status === "oa" ? "Assessment" : "Interview"}</span><div class="muted" style="font-size:13px">${esc(a.title)}${a.when ? " · " + esc(new Date(a.when).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })) : ""}</div></div>`).join("") : `<p class="muted" style="margin:0">Assessments and interviews you move on the tracker show up here.</p>`}</section>
+      <section><h2>${strong.length ? "Best for you today" : "Closest matches today"}</h2><div class="list">${shown.map(x => jobRow(x.r)).join("") || `<div class="card empty">${FEED.length ? "Nothing open right now — try more fields or cities in your profile." : "Couldn't load today's feed. Check your connection and refresh."}</div>`}</div>
+        ${open.length > 8 ? `<div class="more"><button class="btn big" data-go="jobs">See all ${(strong.length || open.length).toLocaleString()} matches <span>→</span></button></div>` : ""}</section>
+      <aside>
+        <section class="widget"><h2>Follow up</h2>${due.length ? due.slice(0, 6).map(a => `<div class="row"><b style="font-size:14px">${esc(a.company)}</b><div class="muted" style="font-size:13px">${esc(a.title)} · applied ${daysSince(a.applied || a.updated)}d ago</div></div>`).join("") : `<p class="muted" style="margin:0">Nothing's gone quiet. Applications with no news for ${FOLLOW_DAYS} days show up here.</p>`}</section>
+        <section class="widget"><h2>Coming up</h2>${live.length ? live.map(a => `<div class="row"><b style="font-size:14px">${esc(a.company)}</b> <span class="tag">${a.status === "oa" ? "Assessment" : "Interview"}</span><div class="muted" style="font-size:13px">${esc(a.title)}${a.when ? " · " + esc(new Date(a.when).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })) : ""}</div></div>`).join("") : `<p class="muted" style="margin:0">Assessments and interviews you move on the tracker show up here.</p>`}</section>
         ${skillGaps(all)}
-        <section class="card" style="padding:18px"><h2>People you know</h2>${S.contacts?.length
+        <section class="widget"><h2>People you know</h2>${S.contacts?.length
           ? `<p class="muted" style="margin:0 0 12px">${S.contacts.length.toLocaleString()} connections loaded · <b>${new Set(all.filter(x => !x.block && known(x.r.company).length).map(x => x.r.company)).size}</b> companies hiring where you know someone.</p><label class="btn sm">Update<input type="file" id="csvIn" accept=".csv,text/csv" hidden></label>`
           : `<p class="muted" style="margin:0 0 12px">Upload LinkedIn's Connections.csv (Settings → Data privacy → Get a copy of your data → Connections). Jobs where you know someone get flagged. Stays in this browser.</p><label class="btn sm">Upload connections<input type="file" id="csvIn" accept=".csv,text/csv" hidden></label>`}</section>
-        <section class="card" style="padding:18px"><h2>Searching with friends?</h2><p class="muted" style="margin:0 0 12px">Send them the link. Everyone gets their own private tracker.</p><button class="btn sm" id="invite">Share the app</button></section>
-        <section class="card" style="padding:18px"><h2>Fill forms faster</h2>${extVersion ? `<p class="muted" style="margin:0 0 12px"><b style="color:var(--green)">Extension connected.</b> It fills forms with your autofill details and adds what you apply to here.</p>${p.autofill?.email ? "" : `<button class="btn sm" id="me2">Add autofill details</button>`}` : `<p class="muted" style="margin:0 0 12px">The Chrome extension fills the application form on the page you're on, and never clicks Submit.</p><a class="btn sm" href="https://github.com/omar-colab/internship-engine/releases/latest" target="_blank" rel="noopener">Get the extension</a>`}</section>
+        <section class="widget"><h2>Searching with friends?</h2><p class="muted" style="margin:0 0 12px">Send them the link. Everyone gets their own private tracker.</p><button class="btn sm" id="invite">Share Ghostwrite</button></section>
+        <section class="widget"><h2>Fill forms faster</h2>${extVersion ? `<p class="muted" style="margin:0 0 12px"><b style="color:var(--green)">Extension connected.</b> It fills forms with your autofill details and adds what you apply to here.</p>${p.autofill?.email ? "" : `<button class="btn sm" id="me2">Add autofill details</button>`}` : `<p class="muted" style="margin:0 0 12px">The Chrome extension fills the application form on the page you're on, and never clicks Submit.</p><a class="btn sm" href="https://github.com/omar-colab/internship-engine/releases/latest" target="_blank" rel="noopener">Get the extension</a>`}</section>
       </aside>
     </div>`;
 }
 
+const QUICK = [["early", "Early applicant"], ["good", "65%+ match"], ["remote", "Remote"], ["pay", "Pay listed"], ["sponsor", "Sponsors visas"]];
 function renderJobs() {
   const q = jobQuery;
-  view.innerHTML = `<h1>Jobs</h1><p class="lede">${FEED.length.toLocaleString()} internships from employers' own job boards${FEED_BUILT ? `, updated ${esc(ago(FEED_BUILT) || new Date(FEED_BUILT).toLocaleDateString())}` : ""}.</p>
+  q.quick ||= {};
+  view.innerHTML = `${band("02", "Jobs", "Every internship, ranked for you.", `${FEED.length.toLocaleString()} internships from employers' own job boards${FEED_BUILT ? `, updated ${esc(ago(FEED_BUILT) || new Date(FEED_BUILT).toLocaleDateString())}` : ""}. Click any role to see exactly why it matches.`)}
     <div class="filters">
       <input class="t" id="q" type="search" placeholder="Search company, role or city  ( / )" title="Keys: / search · j k move · o open · s save" value="${esc(q.q)}" aria-label="Search">
       <select class="t" id="field" aria-label="Field"><option value="mine">My fields</option><option value="all">All fields</option>${Object.entries(FIELDS).map(([k, v]) => `<option value="${k}">${esc(v[0])}</option>`).join("")}</select>
       <select class="t" id="where" aria-label="Where"><option value="any">Anywhere</option><option value="mine">My cities + remote</option><option value="remote">Remote only</option></select>
       <select class="t" id="season" aria-label="Season"><option value="">Any season</option>${SEASONS.map(([n]) => `<option>${n}</option>`).join("")}</select>
       <select class="t" id="sort" aria-label="Sort"><option value="fit">Best match</option><option value="new">Newest</option><option value="company">Company A–Z</option></select>
-      <label class="chip"><input type="checkbox" id="grad" ${q.grad ? "checked" : ""}>Show ineligible</label>
-    </div><div id="results"></div>`;
+    </div>
+    <div class="quick"><span class="lbl">Quick filters</span>${QUICK.map(([k, l]) => `<label class="chip"><input type="checkbox" data-quick="${k}" ${q.quick[k] ? "checked" : ""}>${l}</label>`).join("")}<label class="chip"><input type="checkbox" id="grad" ${q.grad ? "checked" : ""}>Show ineligible</label></div>
+    <div class="split"><div class="listcol" id="results"></div><aside class="pane" id="pane" aria-label="Job details"></aside></div>`;
   $("#field").value = q.field; $("#sort").value = q.sort; $("#where").value = q.where; $("#season").value = q.season;
-  const go = () => { Object.assign(q, { q: $("#q").value, field: $("#field").value, sort: $("#sort").value, grad: $("#grad").checked, where: $("#where").value, season: $("#season").value, shown: PAGE }); results(); };
+  const go = () => { Object.assign(q, { q: $("#q").value, field: $("#field").value, sort: $("#sort").value, grad: $("#grad").checked, where: $("#where").value, season: $("#season").value, shown: PAGE,
+    quick: Object.fromEntries([...view.querySelectorAll("[data-quick]")].map(i => [i.dataset.quick, i.checked])) }); results(); };
   $("#q").addEventListener("input", go); ["#field", "#sort", "#grad", "#where", "#season"].forEach(s => $(s).addEventListener("change", go));
+  view.querySelectorAll("[data-quick]").forEach(i => i.addEventListener("change", go));
   results();
 }
 function results() {
-  const q = jobQuery, needle = q.q.trim().toLowerCase(), mine = S.profile.fields || [];
+  const q = jobQuery, k = q.quick || {}, needle = q.q.trim().toLowerCase(), mine = S.profile.fields || [];
   let rows = ranked().filter(x =>
     (q.grad || !x.block) &&
     (q.field === "all" || (q.field === "mine" ? !mine.length || x.r.fields.some(f => mine.includes(f)) : x.r.fields.includes(q.field))) &&
     (!q.season || season(x.r.title).startsWith(q.season)) &&
     (q.where === "any" || placeOk(x.r, q.where === "remote")) &&
+    (!k.early || isEarly(x.r)) && (!k.good || x.pct >= 65) && (!k.remote || workModel(x.r) === "Remote") && (!k.pay || x.r.pay) && (!k.sponsor || (x.r.auth || []).includes("sponsor")) &&
     (!needle || `${x.r.company} ${x.r.title} ${x.r.location}`.toLowerCase().includes(needle)));
-  const by = { fit: byFit, new: (a, b) => NEW.has(b.r.url) - NEW.has(a.r.url) || String(b.r.posted || b.r.first_seen || "").localeCompare(String(a.r.posted || a.r.first_seen || "")), company: (a, b) => a.r.company.localeCompare(b.r.company) }[q.sort];
+  const by = { fit: byFit, new: (a, b) => isEarly(b.r) - isEarly(a.r) || String(b.r.posted || b.r.first_seen || "").localeCompare(String(a.r.posted || a.r.first_seen || "")), company: (a, b) => a.r.company.localeCompare(b.r.company) }[q.sort];
   rows.sort(by);
-  $("#results").innerHTML = `<p class="muted" style="margin:0 0 10px">${rows.length.toLocaleString()} roles</p>
-    <div class="list">${rows.slice(0, q.shown).map(x => jobRow(x.r)).join("") || `<div class="card empty">No roles match. Try "All fields" or a shorter search.</div>`}</div>
-    ${rows.length > q.shown ? `<div class="more"><button class="btn" id="moreBtn">Show more</button></div>` : ""}`;
+  $("#results").innerHTML = `<p class="count-line">${rows.length.toLocaleString()} roles${rows.length ? ` · best ${rows.reduce((m, x) => Math.max(m, x.pct), 0)}%` : ""}</p>
+    <div class="list">${rows.slice(0, q.shown).map(x => jobRow(x.r)).join("") || `<div class="card empty">No roles match. Try "All fields", "Anywhere" or fewer quick filters.</div>`}</div>
+    ${rows.length > q.shown ? `<div class="more"><button class="btn big" id="moreBtn">Show more <span>↓</span></button></div>` : ""}`;
   $("#moreBtn")?.addEventListener("click", () => { q.shown += PAGE; results(); });
+  if ($("#pane")) {
+    const cur = $("#pane .in")?.dataset.url, keep = cur && rows.find(x => x.r.url === cur);
+    if (keep) document.querySelector(`.job[data-url="${CSS.escape(cur)}"]`)?.classList.add("sel");
+    else if (rows.length && wide()) openJob(rows[0].r);
+    else $("#pane").innerHTML = `<div class="pane-empty"><h2>Pick a role</h2><p>Its match %, the reasons behind it, and everything you need to apply show up here.</p></div>`;
+  }
 }
 
 let companyQuery = "";
@@ -695,22 +850,22 @@ function renderCompanies() {
     if (x.block) continue;
     const c = by.get(x.r.company) || { name: x.r.company, roles: 0, best: 0, top: null, fields: new Set() };
     c.roles++; x.r.fields.forEach(f => c.fields.add(f));
-    if (x.s > c.best) { c.best = x.s; c.top = x.r; }
+    if (x.pct > c.best) { c.best = x.pct; c.top = x.r; }
     by.set(x.r.company, c);
   }
   const all = [...by.values()].map(c => ({ ...c, people: known(c.name).length, applied: Object.values(S.apps).filter(a => a.company === c.name && a.applied).length }))
     .sort((a, b) => b.people - a.people || b.best - a.best || b.roles - a.roles);
-  view.innerHTML = `<h1>Companies</h1><p class="lede">${all.length.toLocaleString()} employers hiring interns you can apply to. People you know come first.</p>
+  view.innerHTML = `${band("03", "Companies", "Who's hiring interns.", `${all.length.toLocaleString()} employers with roles you can apply to. People you know come first, then your best matches.`)}
     <div class="filters"><input class="t" id="cq" type="search" placeholder="Search companies" value="${esc(companyQuery)}" aria-label="Search companies"></div>
-    <div id="clist" class="list" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))"></div>`;
+    <div id="clist" class="cgrid"></div>`;
   const draw = () => {
     const q = companyQuery.toLowerCase();
     $("#clist").innerHTML = all.filter(c => !q || c.name.toLowerCase().includes(q)).slice(0, 120).map(c => `
-      <article class="card" style="padding:16px;display:grid;gap:10px">
-        <div style="display:flex;gap:12px;align-items:center">${tile(c.name)}<div><b>${esc(c.name)}</b><div class="muted" style="font-size:13px">${c.roles} role${c.roles > 1 ? "s" : ""} · best match ${c.best}/5</div></div></div>
-        <div class="chips">${c.people ? `<span class="tag" style="background:var(--green-soft);color:var(--green);border-color:transparent">${c.people} you know</span>` : ""}${c.applied ? `<span class="tag">applied ${c.applied}</span>` : ""}${[...c.fields].slice(0, 2).map(f => `<span class="tag">${esc(FIELDS[f][0])}</span>`).join("")}</div>
-        <button class="btn sm" data-company="${esc(c.name)}">See roles</button>
-      </article>`).join("") || `<div class="card empty">No company matches "${esc(companyQuery)}".</div>`;
+      <article>
+        <div style="display:flex;gap:12px;align-items:center">${tile(c.name)}<div style="min-width:0"><b style="font-size:17px">${esc(c.name)}</b><div class="muted" style="font-size:13px">${c.roles} role${c.roles > 1 ? "s" : ""} · best match <b style="color:var(--blue-ink)">${c.best}%</b></div></div></div>
+        <div class="chips">${c.people ? `<span class="tag good">${c.people} you know</span>` : ""}${c.applied ? `<span class="tag">applied ${c.applied}</span>` : ""}${[...c.fields].slice(0, 2).map(f => `<span class="tag">${esc(FIELDS[f][0])}</span>`).join("")}</div>
+        <button class="btn sm" data-company="${esc(c.name)}">See roles →</button>
+      </article>`).join("") || `<div class="empty">No company matches "${esc(companyQuery)}".</div>`;
   };
   $("#cq").addEventListener("input", e => { companyQuery = e.target.value; draw(); });
   draw();
@@ -720,13 +875,13 @@ function renderTracker() {
   const apps = Object.values(S.apps);
   const sent = apps.filter(a => a.applied), heard = sent.filter(a => ["oa", "interview", "offer", "rejected"].includes(a.status));
   const pct = n => sent.length ? Math.round(n / sent.length * 100) + "%" : "–";
-  view.innerHTML = `<div class="hello"><div><h1>Tracker</h1><p class="lede" style="margin:0">Drag cards or pick a stage on each card. ${apps.length ? "" : "Save a job or add one you applied to elsewhere."}</p></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="addApp">+ Add application</button><button class="btn" id="phoneBtn">Open on another device</button><button class="btn" id="exportBtn">Backup</button><label class="btn">Restore<input type="file" id="importIn" accept="application/json" hidden></label></div></div>
-    ${sent.length ? `<div class="stats" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
-      <div class="card stat"><b>${sent.length}</b><span>applied</span></div>
-      <div class="card stat"><b>${pct(heard.length)}</b><span>heard back</span></div>
-      <div class="card stat"><b>${pct(sent.filter(a => ["interview", "offer"].includes(a.status)).length)}</b><span>reached interview</span></div>
-      <div class="card stat"><b>${sent.filter(a => a.status === "applied" && daysSince(a.updated) >= FOLLOW_DAYS).length}</b><span>to follow up</span></div></div>` : ""}
+  view.innerHTML = `${band("04", "Tracker", "Every application, one board.", `Drag cards or pick a stage on each card. ${apps.length ? "" : "Save a job or add one you applied to elsewhere."}`,
+      `<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn go" id="addApp">+ Add application</button><button class="btn" id="phoneBtn">Open on another device</button><button class="btn" id="exportBtn">Backup</button><label class="btn">Restore<input type="file" id="importIn" accept="application/json" hidden></label></div>`)}
+    ${sent.length ? `<div class="strip">
+      <div><div><b>${sent.length}</b><span>Applied</span></div></div>
+      <div><div><b>${pct(heard.length)}</b><span>Heard back</span></div></div>
+      <div><div><b>${pct(sent.filter(a => ["interview", "offer"].includes(a.status)).length)}</b><span>Reached interview</span></div></div>
+      <div><div><b>${sent.filter(a => a.status === "applied" && daysSince(a.updated) >= FOLLOW_DAYS).length}</b><span>To follow up</span></div></div></div>` : ""}
     <div class="board">${STAGES.map(([k, label]) => {
       const here = apps.filter(a => a.status === k).sort((a, b) => b.updated.localeCompare(a.updated));
       return `<section class="lane" data-stage="${k}"><h3><span>${label}</span><span>${here.length}</span></h3>${here.length ? here.map(appCard).join("") : `<p class="muted" style="font-size:13px;margin:4px 0 0">${LANE_HINT[k]}</p>`}</section>`;
@@ -764,20 +919,20 @@ function onboarding(step) {
   const p = stash || (S.profile ? structuredClone(S.profile) : null) || { name: "", year: new Date().getFullYear() + 2, fields: [], places: [], goal: 10, resume: "" };
   const editing = !!S.profile;
   const steps = [
-    () => `<h1>${editing ? "Your profile" : "Hey! Let's find your internship."}</h1>
-      <p class="lede">${editing ? "Change anything; your matches update right away." : "Two quick questions and you'll see today's roles ranked for you. No account — everything stays in this browser."}</p>
-      ${editing || !FEED.length ? "" : `<div class="chips" style="margin:-8px 0 22px"><span class="tag">${FEED.length.toLocaleString()} internships today</span><span class="tag">${new Set(FEED.map(r => r.company)).size.toLocaleString()} employers</span><span class="tag">straight from their own job boards</span></div>`}
+    () => `<h1>${editing ? "Your profile" : "Let's find your internship."}</h1>
+      <p class="lede">${editing ? "Change anything; your matches update right away." : "Four quick steps. Only your first name is required."}</p>
+      
       <div class="grid2"><label class="f">First name<input class="t" id="name" required maxlength="40" value="${esc(p.name)}" autocomplete="given-name"></label>
       <label class="f">Graduating<select class="t" id="year">${[0,1,2,3,4].map(i => { const y = new Date().getFullYear() + i; return `<option ${y == p.year ? "selected" : ""}>${y}</option>`; }).join("")}</select></label></div>
-      <label class="f" style="margin-top:14px">Work authorization <span class="muted" style="font-weight:400">— hides roles you can't take</span><select class="t" id="auth">
+      <label class="f" style="margin-top:14px"><span>Work authorization <span class="muted" style="font-weight:400">— hides roles you can't take</span></span><select class="t" id="auth">
         ${[["", "Prefer not to say"], ["citizen", "US citizen"], ["permanent", "Green card / permanent resident"], ["sponsor", "I'll need visa sponsorship (now or later)"]].map(([v, l]) => `<option value="${v}" ${v === (p.auth || "") ? "selected" : ""}>${l}</option>`).join("")}</select></label>
       ${editing && S.hidden.length ? `<button type="button" class="btn sm" id="unhide" style="margin-top:14px">Show ${S.hidden.length} hidden job${S.hidden.length > 1 ? "s" : ""} again</button>` : ""}
       <label class="f" style="margin-top:14px">Applications per week (your goal)<input class="t" id="goal" type="number" min="1" max="100" value="${esc(p.goal)}"></label>`,
     () => `<h1>What are you looking for?</h1><p class="lede">Pick every field you'd take an internship in.</p>
       <div class="chips">${Object.entries(FIELDS).map(([k, v]) => `<label class="chip"><input type="checkbox" name="field" value="${k}" ${p.fields.includes(k) ? "checked" : ""}>${esc(v[0])}</label>`).join("")}</div>
       <label class="f" style="margin-top:20px">Cities or states you'd work in <span class="muted" style="font-weight:400">comma-separated, e.g. New York, Chicago, TX — remote always counts</span><input class="t" id="places" value="${esc(p.places.join(", "))}"></label>`,
-    () => `<h1>Paste your resume <span class="muted" style="font-weight:500">(optional)</span></h1>
-      <p class="lede">Paste the text of your resume and roles that match your skills rank higher. It never leaves this browser.</p>
+    () => `<h1>Add your resume</h1>
+      <p class="lede">It's read right here in your browser — never uploaded — and turns on skill matching: every role shows which skills you have and which you're missing.</p>
       <label class="drop">Upload your resume PDF <span class="muted">— or paste the text below</span><input type="file" id="pdfIn" accept="application/pdf" hidden></label>
       <textarea class="t" id="resume" placeholder="Paste your resume text here">${esc(p.resume)}</textarea>`,
     () => { const a = p.autofill || {}, f = (id, label, type = "text", ac = "") => `<label class="f">${label}<input class="t" id="af_${id}" type="${type}" autocomplete="${ac}" maxlength="120" value="${esc(a[id] || "")}"></label>`;
@@ -789,11 +944,16 @@ function onboarding(step) {
       <label class="f">Graduation month<select class="t" id="af_month">${["05", "06", "08", "12", "01", "03"].map(m => `<option value="${m}" ${m === (a.graduation || "-05").slice(5) ? "selected" : ""}>${new Date(2000, m - 1).toLocaleString([], { month: "long" })}</option>`).join("")}</select></label></div>
       <p class="muted" style="font-size:13px;margin:14px 0 0">Demographic questions are always answered "decline to self-identify". SSN, birth date and passwords are never stored or filled.</p>`; },
   ];
-  view.innerHTML = `<form class="card welcome" id="ob" novalidate>
-    <div class="step-dots">${steps.map((_, i) => `<i class="${i <= step ? "on" : ""}"></i>`).join("")}</div>
+  const roles = FEED.length, cos = new Set(FEED.map(r => r.company)).size;
+  view.innerHTML = `<div class="ob"><aside class="ob-side"><span class="eyebrow" style="color:#E9E1FF">${editing ? "Your profile" : "Welcome to Ghostwrite"}</span>
+      <h2>${editing ? "Tune what you see." : "Every internship worth applying to. Ranked for you."}</h2>
+      <p>Straight from employers' own job boards, refreshed every morning. Each role gets a match % with the reasons behind it. No account — everything stays in this browser.</p>
+      ${roles ? `<div class="ob-nums"><div><b>${roles.toLocaleString()}</b><span>internships today</span></div><div><b>${cos.toLocaleString()}</b><span>employers</span></div></div>` : ""}</aside>
+    <form class="welcome" id="ob" novalidate>
+    <div class="step-dots">${["You", "Fields", "Resume", "Autofill"].map((l, i) => `<i class="${i === step ? "on" : ""}">${i + 1} ${l}</i>`).join("")}</div>
     ${steps[step]()}
     <div class="actions">${step ? `<button type="button" class="btn" id="back">Back</button>` : editing ? `<button type="button" class="btn" id="reset" style="color:var(--red)">Erase my data</button>` : "<span></span>"}
-      <button class="btn go">${step < steps.length - 1 ? "Continue" : editing ? "Save" : "Show my matches →"}</button></div></form>`;
+      <button class="btn go big">${step < steps.length - 1 ? "Continue" : editing ? "Save" : "Show my matches"} <span>→</span></button></div></form></div>`;
   const collect = () => {
     if ($("#name")) Object.assign(p, { name: $("#name").value.trim(), year: +$("#year").value, auth: $("#auth").value, goal: Math.max(1, +$("#goal").value || 10) });
     if ($("#places")) Object.assign(p, { fields: [...view.querySelectorAll("input[name=field]:checked")].map(i => i.value), places: $("#places").value.split(",").map(s => s.trim()).filter(Boolean) });
@@ -907,12 +1067,14 @@ document.addEventListener("click", e => {
   const co = e.target.closest("[data-company]");
   if (co) { Object.assign(jobQuery, { q: co.dataset.company, field: "all", where: "any", season: "", shown: PAGE }); tab = "jobs"; return render(); }
   const ai = e.target.closest("[data-ai]");
-  if (ai) { const r = FEED.find(x => x.url === $("#jobBody").dataset.url); return navigator.clipboard.writeText(aiPrompt(ai.dataset.ai, r)).then(() => toast("Prompt copied — paste it into ChatGPT, Claude or Gemini."), () => toast("Couldn't copy — your browser blocked the clipboard.")); }
+  if (ai) { const r = FEED.find(x => x.url === ai.closest("[data-detail]")?.dataset.detail); return navigator.clipboard.writeText(aiPrompt(ai.dataset.ai, r)).then(() => toast("Prompt copied — paste it into ChatGPT, Claude or Gemini."), () => toast("Couldn't copy — your browser blocked the clipboard.")); }
   const cp = e.target.closest("[data-copy]");
   if (cp) return navigator.clipboard.writeText(cp.dataset.copy).then(() => toast("Note copied — paste it into LinkedIn yourself."), () => toast(cp.dataset.copy));
   const sib = e.target.closest("[data-sib]");
   if (sib) { e.preventDefault(); return openJob(FEED.find(x => x.url === sib.dataset.sib)); }
   const t = e.target.closest("[data-tab],[data-go],[data-act],#me,#me2,#addApp,#exportBtn,#phoneBtn,#theme,#invite");
+  const card = e.target.closest(".job");
+  if (!t && card && !e.target.closest("a,button,input,select,label")) return openJob(FEED.find(x => x.url === card.dataset.url));
   if (!t) return;
   if (t.id === "theme") {
     const dark = matchMedia("(prefers-color-scheme: dark)").matches;
@@ -929,7 +1091,7 @@ document.addEventListener("click", e => {
   if (t.id === "addApp") { const f = $("#addForm"); f.reset(); f.status.innerHTML = STAGES.map(([k, l]) => `<option value="${k}" ${k === "applied" ? "selected" : ""}>${l}</option>`).join(""); return $("#addDlg").showModal(); }
   if (t.id === "phoneBtn") return handoffLink().then(url => {
     // Building the link is async, which uses up the click's clipboard permission, so the copy gets its own button.
-    $("#jobBody").innerHTML = `<button class="icon-btn" data-act="close" aria-label="Close" style="position:absolute;top:14px;right:14px">✕</button>
+    $("#jobBody").innerHTML = `<button class="close" data-act="close" aria-label="Close">✕</button>
       <h2 id="jobTitle">Open on another device</h2>
       <p class="muted" style="margin:0">This link carries your profile and tracker (not your LinkedIn contacts). Open it on your phone or laptop and they merge in. Treat it like a password: anyone with it sees your tracker.</p>
       <input class="t" id="handoffUrl" readonly value="${esc(url)}" aria-label="Link">
@@ -948,11 +1110,13 @@ document.addEventListener("click", e => {
   if (t.dataset.act === "prep") return openPrep(S.apps[t.closest(".app").dataset.url]);
   if (t.dataset.act === "open" && r) return openJob(r);
   if (t.dataset.act === "hide" && r) {
-    S.hidden.push(r.url); save(); $("#jobDlg").close(); render(); landFocus(); return toast("Hidden. You won't see it again.");
+    S.hidden.push(r.url); save(); if ($("#jobDlg").open) $("#jobDlg").close();
+    if (tab === "jobs" && $("#results")) { $("#pane .in")?.dataset.url === r.url && ($("#pane").innerHTML = ""); results(); } else render();
+    landFocus(); return toast("Hidden. You won't see it again.");
   }
   if (t.dataset.act === "save" && r) {
     if (S.apps[r.url]) { tab = "tracker"; return render(); }
-    track(r, "saved"); t.classList.add("on"); t.textContent = "Saved"; toast("Saved to your tracker.");
+    track(r, "saved"); document.querySelectorAll(`[data-url="${CSS.escape(r.url)}"] [data-act=save]`).forEach(b => { b.classList.add("on"); b.textContent = "✓ Saved"; }); toast("Saved to your tracker.");
   }
   if (t.dataset.act === "apply" && r && !S.apps[r.url]) {
     // Opening the form isn't applying; we ask when they come back so the tracker stays honest.
@@ -1006,7 +1170,7 @@ if (S.theme) document.documentElement.dataset.theme = S.theme;
 // Offline + instant load (sw.js). Failure is harmless: the page works the same without it.
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 (async () => {
-  view.innerHTML = `<div class="empty">Loading today's internships…</div>`;
+  view.innerHTML = `<div class="band"><div><span class="eyebrow">Ghostwrite</span><h1>Loading today's internships…</h1></div></div>`;
   await loadFeed(); await importFromHash(); counts(); render(); post({ type: "hello" });
   // Pasting the link into a tab that already has the app open only changes the #fragment.
   window.addEventListener("hashchange", () => importFromHash().then(() => { counts(); render(); }));
