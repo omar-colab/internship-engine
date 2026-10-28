@@ -98,13 +98,6 @@
    "site": "avav"
   },
   {
-   "name": "AeroVironment",
-   "ats": "workday",
-   "tenant": "avav",
-   "wd": "wd1",
-   "site": "AVAV"
-  },
-  {
    "name": "AES",
    "ats": "workday",
    "tenant": "aes",
@@ -255,13 +248,6 @@
    "tenant": "americancentury",
    "wd": "wd5",
    "site": "AmericanCenturyInvestments"
-  },
-  {
-   "name": "American Century Investments",
-   "ats": "workday",
-   "tenant": "americancentury",
-   "wd": "wd5",
-   "site": "americancenturyinvestments"
   },
   {
    "name": "American Electric Power",
@@ -716,13 +702,6 @@
    "ats": "workday",
    "tenant": "bah",
    "wd": "wd1",
-   "site": "bah_jobs"
-  },
-  {
-   "name": "Booz Allen",
-   "ats": "workday",
-   "tenant": "bah",
-   "wd": "wd1",
    "site": "Confidential"
   },
   {
@@ -825,13 +804,6 @@
    "tenant": "caci",
    "wd": "wd1",
    "site": "external"
-  },
-  {
-   "name": "CACI",
-   "ats": "workday",
-   "tenant": "caci",
-   "wd": "wd1",
-   "site": "External"
   },
   {
    "name": "Cadence",
@@ -1028,13 +1000,6 @@
    "site": "cisco_careers"
   },
   {
-   "name": "Cisco",
-   "ats": "workday",
-   "tenant": "cisco",
-   "wd": "wd5",
-   "site": "Cisco_Careers"
-  },
-  {
    "name": "Cisive",
    "ats": "workday",
    "tenant": "cisive",
@@ -1152,13 +1117,6 @@
    "site": "copart"
   },
   {
-   "name": "Copart",
-   "ats": "workday",
-   "tenant": "copart",
-   "wd": "wd12",
-   "site": "Copart"
-  },
-  {
    "name": "Coretek Services",
    "ats": "workable",
    "token": "coretek-services"
@@ -1274,13 +1232,6 @@
    "tenant": "danaher",
    "wd": "wd1",
    "site": "danaherjobs"
-  },
-  {
-   "name": "Danaher Corporation",
-   "ats": "workday",
-   "tenant": "danaher",
-   "wd": "wd1",
-   "site": "DanaherJobs"
   },
   {
    "name": "Dandy",
@@ -1416,13 +1367,6 @@
    "site": "Draper_Careers"
   },
   {
-   "name": "Draper",
-   "ats": "workday",
-   "tenant": "draper",
-   "wd": "wd5",
-   "site": "draper_careers"
-  },
-  {
    "name": "DriveTime",
    "ats": "workday",
    "tenant": "drivetime",
@@ -1532,13 +1476,6 @@
    "tenant": "gnw",
    "wd": "wd1",
    "site": "Enact_MI"
-  },
-  {
-   "name": "Enact Mortgage Insurance",
-   "ats": "workday",
-   "tenant": "gnw",
-   "wd": "wd1",
-   "site": "enact_mi"
   },
   {
    "name": "ENFOS",
@@ -2338,13 +2275,6 @@
    "site": "Itron"
   },
   {
-   "name": "Itron",
-   "ats": "workday",
-   "tenant": "itron",
-   "wd": "wd5",
-   "site": "itron"
-  },
-  {
    "name": "J.M. Smucker",
    "ats": "workday",
    "tenant": "smucker",
@@ -2465,13 +2395,6 @@
    "tenant": "kla",
    "wd": "wd1",
    "site": "Search"
-  },
-  {
-   "name": "KLA",
-   "ats": "workday",
-   "tenant": "kla",
-   "wd": "wd1",
-   "site": "search"
   },
   {
    "name": "KLA Corporation",
@@ -2811,13 +2734,6 @@
    "tenant": "msd",
    "wd": "wd5",
    "site": "SearchJobs"
-  },
-  {
-   "name": "Merck",
-   "ats": "workday",
-   "tenant": "msd",
-   "wd": "wd5",
-   "site": "searchjobs"
   },
   {
    "name": "Mercor",
@@ -3644,13 +3560,6 @@
    "site": "rec_rtx_ext_gateway"
   },
   {
-   "name": "RTX",
-   "ats": "workday",
-   "tenant": "globalhr",
-   "wd": "wd5",
-   "site": "REC_RTX_Ext_Gateway"
-  },
-  {
    "name": "Rugged Robotics",
    "ats": "greenhouse",
    "token": "ruggedrobotics"
@@ -3900,13 +3809,6 @@
    "site": "Sony_Europe_Careers"
   },
   {
-   "name": "Sony",
-   "ats": "workday",
-   "tenant": "sonyglobal",
-   "wd": "wd1",
-   "site": "sonyglobalcareers"
-  },
-  {
    "name": "South Jersey Industries",
    "ats": "workday",
    "tenant": "sjindustries",
@@ -4125,13 +4027,6 @@
    "site": "Tencent_Careers"
   },
   {
-   "name": "Tencent",
-   "ats": "workday",
-   "tenant": "tencent",
-   "wd": "wd1",
-   "site": "tencent_careers"
-  },
-  {
    "name": "Tenet3",
    "ats": "greenhouse",
    "token": "tenet3"
@@ -4187,13 +4082,6 @@
    "tenant": "rb",
    "wd": "wd5",
    "site": "FRS"
-  },
-  {
-   "name": "The Federal Reserve System",
-   "ats": "workday",
-   "tenant": "rb",
-   "wd": "wd5",
-   "site": "frs"
   },
   {
    "name": "The Hartford",
