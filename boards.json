@@ -2,11 +2,21 @@
  "_note": "Company \u2192 job board, found by the resolver. Shared so every engine starts with them.",
  "boards": [
   {
+   "name": "1Password",
+   "ats": "ashby",
+   "token": "1password"
+  },
+  {
    "name": "3M",
    "ats": "workday",
    "tenant": "3m",
    "wd": "wd1",
    "site": "Search"
+  },
+  {
+   "name": "42dot",
+   "ats": "ashby",
+   "token": "42dot"
   },
   {
    "name": "7-Eleven",
@@ -53,6 +63,11 @@
    "site": "CX"
   },
   {
+   "name": "ACLU Kentucky",
+   "ats": "greenhouse",
+   "token": "acluinternships"
+  },
+  {
    "name": "Activision Blizzard",
    "ats": "workday",
    "tenant": "xboxgaming",
@@ -71,6 +86,11 @@
    "ats": "oracle",
    "host": "fa-erqb-saasfaprod1.fa.ocs.oraclecloud.com",
    "site": "CX_1"
+  },
+  {
+   "name": "Aechelon Technology",
+   "ats": "greenhouse",
+   "token": "aechelontechnology"
   },
   {
    "name": "Aerospace Corporation",
@@ -151,9 +171,21 @@
    "site": "careers"
   },
   {
+   "name": "Allegion",
+   "ats": "workday",
+   "tenant": "allegion",
+   "wd": "wd5",
+   "site": "EarlyTalent_Careers"
+  },
+  {
    "name": "Allen Control Systems",
    "ats": "ashby",
    "token": "allen-control-systems"
+  },
+  {
+   "name": "Alliance Laundry Systems",
+   "ats": "icims",
+   "host": "uscareeropenings-alliancelaundry.icims.com"
   },
   {
    "name": "AllianceBernstein",
@@ -257,6 +289,11 @@
    "site": "AEPCareerSite"
   },
   {
+   "name": "American Enterprise Institute",
+   "ats": "icims",
+   "host": "internships-aei.icims.com"
+  },
+  {
    "name": "American Express",
    "ats": "oracle",
    "host": "egug.fa.us2.oraclecloud.com",
@@ -313,6 +350,11 @@
    "token": "analyticpartners"
   },
   {
+   "name": "AnaVation",
+   "ats": "lever",
+   "token": "anavationllc"
+  },
+  {
    "name": "Ancestry",
    "ats": "workday",
    "tenant": "ancestry",
@@ -335,6 +377,18 @@
    "tenant": "ankura",
    "wd": "wd5",
    "site": "ankura"
+  },
+  {
+   "name": "Antares",
+   "ats": "ashby",
+   "token": "antares"
+  },
+  {
+   "name": "Apache Industrial",
+   "ats": "workday",
+   "tenant": "apacheip",
+   "wd": "wd1",
+   "site": "apache_careers"
   },
   {
    "name": "Apera AI",
@@ -378,6 +432,11 @@
    "token": "aramcoservices"
   },
   {
+   "name": "Arango",
+   "ats": "jazzhr",
+   "token": "arangodb"
+  },
+  {
    "name": "Arc",
    "ats": "greenhouse",
    "token": "arcboatcompany"
@@ -393,6 +452,11 @@
    "tenant": "archgroup",
    "wd": "wd1",
    "site": "Careers"
+  },
+  {
+   "name": "Architect Labs",
+   "ats": "ashby",
+   "token": "architect"
   },
   {
    "name": "Arconic",
@@ -411,6 +475,13 @@
    "name": "Armadin",
    "ats": "ashby",
    "token": "armadin"
+  },
+  {
+   "name": "Arrowstreet Capital",
+   "ats": "workday",
+   "tenant": "arrowstreetcapital",
+   "wd": "wd5",
+   "site": "Campus_Careers"
   },
   {
    "name": "ASML",
@@ -440,9 +511,21 @@
    "site": "Assurant_Careers"
   },
   {
+   "name": "Assurant",
+   "ats": "workday",
+   "tenant": "assurant",
+   "wd": "wd1",
+   "site": "External_Limited_Posting"
+  },
+  {
    "name": "Astera Labs",
    "ats": "greenhouse",
    "token": "asteraearlycareer2027"
+  },
+  {
+   "name": "Astera Labs",
+   "ats": "greenhouse",
+   "token": "asteraearlycareer2026"
   },
   {
    "name": "Astranis",
@@ -450,11 +533,35 @@
    "token": "astranis"
   },
   {
+   "name": "AstraZeneca",
+   "ats": "workday",
+   "tenant": "astrazeneca",
+   "wd": "wd3",
+   "site": "Careers"
+  },
+  {
    "name": "Astreya",
    "ats": "workday",
    "tenant": "astreya",
    "wd": "wd5",
    "site": "life-at-astreya-opportunities"
+  },
+  {
+   "name": "Astro Mechanica",
+   "ats": "ashby",
+   "token": "astro-mechanica"
+  },
+  {
+   "name": "Astronics",
+   "ats": "greenhouse",
+   "token": "astronicscorporation"
+  },
+  {
+   "name": "ATC",
+   "ats": "workday",
+   "tenant": "atcllc",
+   "wd": "wd5",
+   "site": "atcllc"
   },
   {
    "name": "Athene",
@@ -532,6 +639,11 @@
    "site": "axcelis"
   },
   {
+   "name": "Axiom Math",
+   "ats": "ashby",
+   "token": "axiommath"
+  },
+  {
    "name": "Axiom Space",
    "ats": "workday",
    "tenant": "axiomspace",
@@ -542,6 +654,13 @@
    "name": "Axon",
    "ats": "greenhouse",
    "token": "axontalentcommunity"
+  },
+  {
+   "name": "Axos Bank",
+   "ats": "workday",
+   "tenant": "axos",
+   "wd": "wd5",
+   "site": "Axos"
   },
   {
    "name": "AXQ Capital",
@@ -568,11 +687,35 @@
    "site": "careers"
   },
   {
+   "name": "Ballotpedia",
+   "ats": "workable",
+   "token": "ballotpedia"
+  },
+  {
+   "name": "Bank of Montreal",
+   "ats": "workday",
+   "tenant": "bmo",
+   "wd": "wd3",
+   "site": "Campus"
+  },
+  {
+   "name": "Bank of Montreal",
+   "ats": "workday",
+   "tenant": "bmo",
+   "wd": "wd3",
+   "site": "Privileged"
+  },
+  {
    "name": "Barclays",
    "ats": "workday",
    "tenant": "barclays",
    "wd": "wd3",
    "site": "External_Career_Site_Barclays"
+  },
+  {
+   "name": "Barrios",
+   "ats": "icims",
+   "host": "careers-barrios.icims.com"
   },
   {
    "name": "Bass Pro Shops",
@@ -630,6 +773,11 @@
    "tenant": "biibhr",
    "wd": "wd3",
    "site": "external"
+  },
+  {
+   "name": "Blackhawk Network",
+   "ats": "icims",
+   "host": "careers-blackhawknetwork.icims.com"
   },
   {
    "name": "BlackRock",
@@ -729,6 +877,25 @@
    "token": "botauto"
   },
   {
+   "name": "Botpress Technologies",
+   "ats": "workable",
+   "token": "botpress"
+  },
+  {
+   "name": "BP",
+   "ats": "workday",
+   "tenant": "bpinternational",
+   "wd": "wd3",
+   "site": "bpEarlyCareers"
+  },
+  {
+   "name": "Bracco",
+   "ats": "workday",
+   "tenant": "bracco",
+   "wd": "wd103",
+   "site": "braccocareers"
+  },
+  {
    "name": "Bracket Bot",
    "ats": "ashby",
    "token": "bracket-bot"
@@ -737,6 +904,11 @@
    "name": "Brain Co.",
    "ats": "ashby",
    "token": "brainco"
+  },
+  {
+   "name": "Braze",
+   "ats": "greenhouse",
+   "token": "braze"
   },
   {
    "name": "Bree",
@@ -759,6 +931,13 @@
    "tenant": "bristolmyerssquibb",
    "wd": "wd5",
    "site": "bms"
+  },
+  {
+   "name": "Broadridge",
+   "ats": "workday",
+   "tenant": "broadridge",
+   "wd": "wd5",
+   "site": "careers"
   },
   {
    "name": "Brookfield",
@@ -799,6 +978,11 @@
    "site": "CHRobinson"
   },
   {
+   "name": "C3.ai",
+   "ats": "greenhouse",
+   "token": "c3ascend"
+  },
+  {
    "name": "CACI",
    "ats": "workday",
    "tenant": "caci",
@@ -832,11 +1016,32 @@
    "site": "career"
   },
   {
+   "name": "CAI",
+   "ats": "workday",
+   "tenant": "cai",
+   "wd": "wd5",
+   "site": "computer_aid"
+  },
+  {
+   "name": "Cambridge Investment Research",
+   "ats": "workday",
+   "tenant": "cir",
+   "wd": "wd108",
+   "site": "CIR_External_Career_Site"
+  },
+  {
    "name": "Campbell Soup Company",
    "ats": "workday",
    "tenant": "campbellsoup",
    "wd": "wd5",
    "site": "externalcareers_globalsite"
+  },
+  {
+   "name": "Capital One",
+   "ats": "workday",
+   "tenant": "capitalone",
+   "wd": "wd12",
+   "site": "Capital_One"
   },
   {
    "name": "Capstone Investment Advisors",
@@ -856,11 +1061,47 @@
    "site": "EXT"
   },
   {
+   "name": "CareSource",
+   "ats": "workday",
+   "tenant": "caresource",
+   "wd": "wd1",
+   "site": "caresource"
+  },
+  {
+   "name": "Carnegie Mellon SEI",
+   "ats": "workday",
+   "tenant": "cmu",
+   "wd": "wd115",
+   "site": "SEI"
+  },
+  {
+   "name": "Carnegie Mellon University",
+   "ats": "workday",
+   "tenant": "cmu",
+   "wd": "wd115",
+   "site": "CMU"
+  },
+  {
    "name": "Carrier Global",
    "ats": "workday",
    "tenant": "carrier",
    "wd": "wd5",
    "site": "jobs"
+  },
+  {
+   "name": "Cartesian Systems",
+   "ats": "greenhouse",
+   "token": "cartesiansystems"
+  },
+  {
+   "name": "Castelion",
+   "ats": "greenhouse",
+   "token": "castelioncorporation"
+  },
+  {
+   "name": "Category Labs",
+   "ats": "ashby",
+   "token": "category-labs"
   },
   {
    "name": "Caterpillar",
@@ -897,11 +1138,23 @@
    "site": "Global"
   },
   {
+   "name": "Cenovus Energy",
+   "ats": "workday",
+   "tenant": "cenovus",
+   "wd": "wd3",
+   "site": "careers"
+  },
+  {
    "name": "Centene",
    "ats": "workday",
    "tenant": "centene",
    "wd": "wd5",
    "site": "Centene_External"
+  },
+  {
+   "name": "Center for AI Safety (CAIS)",
+   "ats": "greenhouse",
+   "token": "centerforartificialintelligencesafetyinc"
   },
   {
    "name": "CenterPoint Energy",
@@ -936,6 +1189,13 @@
    "site": "Charter_Careers"
   },
   {
+   "name": "chathamfinancial",
+   "ats": "workday",
+   "tenant": "chathamfinancial",
+   "wd": "wd501",
+   "site": "chathamfinancial"
+  },
+  {
    "name": "Cheiron",
    "ats": "ashby",
    "token": "cheiron"
@@ -956,6 +1216,12 @@
    "name": "Chicago Trading Company",
    "ats": "greenhouse",
    "token": "ctccampusboard"
+  },
+  {
+   "name": "Chubb",
+   "ats": "oracle",
+   "host": "fa-ewgu-saasfaprod1.fa.ocs.oraclecloud.com",
+   "site": "CX_2001"
   },
   {
    "name": "Church & Dwight",
@@ -993,6 +1259,13 @@
    "site": "cignacareers"
   },
   {
+   "name": "Cincinnati Children\u2019s Hospital and Medical Center",
+   "ats": "workday",
+   "tenant": "cincinnatichildrens",
+   "wd": "wd5",
+   "site": "careersatcincinnatichildrens"
+  },
+  {
    "name": "Cisco",
    "ats": "workday",
    "tenant": "cisco",
@@ -1018,6 +1291,11 @@
    "tenant": "citi",
    "wd": "wd5",
    "site": "2"
+  },
+  {
+   "name": "Citizens Energy Group",
+   "ats": "icims",
+   "host": "careers-citizensenergygroup.icims.com"
   },
   {
    "name": "Clarios",
@@ -1059,6 +1337,13 @@
    "token": "clenera"
   },
   {
+   "name": "CNA Insurance",
+   "ats": "workday",
+   "tenant": "cna",
+   "wd": "wd1",
+   "site": "CNA_Careers"
+  },
+  {
    "name": "Cognex",
    "ats": "workday",
    "tenant": "cognex",
@@ -1078,9 +1363,30 @@
    "token": "collinear-ai"
   },
   {
+   "name": "Colonist",
+   "ats": "ashby",
+   "token": "colonist"
+  },
+  {
+   "name": "Commonwealth Fusion Systems",
+   "ats": "lever",
+   "token": "cfsenergy"
+  },
+  {
    "name": "Compeer Financial",
    "ats": "greenhouse",
    "token": "compeerfinancial"
+  },
+  {
+   "name": "ConductorAI",
+   "ats": "ashby",
+   "token": "conductorai"
+  },
+  {
+   "name": "Conifer Health Solutions",
+   "ats": "oracle",
+   "host": "eodr.fa.us2.oraclecloud.com",
+   "site": "CX"
   },
   {
    "name": "ConnectPrep",
@@ -1110,6 +1416,11 @@
    "host": "americas-cookmedical.icims.com"
   },
   {
+   "name": "Cooper University Health Care",
+   "ats": "icims",
+   "host": "careers-cooperhealth.icims.com"
+  },
+  {
    "name": "Copart",
    "ats": "workday",
    "tenant": "copart",
@@ -1122,6 +1433,11 @@
    "token": "coretek-services"
   },
   {
+   "name": "Corgan",
+   "ats": "icims",
+   "host": "campus-us-corgan.icims.com"
+  },
+  {
    "name": "Cornerstone Advisors",
    "ats": "greenhouse",
    "token": "cornerstone"
@@ -1132,6 +1448,11 @@
    "tenant": "costar",
    "wd": "wd1",
    "site": "Costar_Campus"
+  },
+  {
+   "name": "Cotiviti",
+   "ats": "icims",
+   "host": "careers-cotiviti.icims.com"
   },
   {
    "name": "COUNTRY Financial",
@@ -1170,6 +1491,11 @@
    "token": "cowboyspace"
   },
   {
+   "name": "Creatify Lab",
+   "ats": "ashby",
+   "token": "creatify"
+  },
+  {
    "name": "Creative Artists Agency",
    "ats": "workday",
    "tenant": "caa",
@@ -1180,6 +1506,13 @@
    "name": "Crest Industries",
    "ats": "lever",
    "token": "crestoperations"
+  },
+  {
+   "name": "CrowdStrike",
+   "ats": "workday",
+   "tenant": "crowdstrike",
+   "wd": "wd5",
+   "site": "crowdstrikecareers"
   },
   {
    "name": "Crowe",
@@ -1193,6 +1526,18 @@
    "tenant": "crowe",
    "wd": "wd12",
    "site": "external_careers"
+  },
+  {
+   "name": "Crystal Dynamics",
+   "ats": "greenhouse",
+   "token": "crystaldynamics"
+  },
+  {
+   "name": "CSAA Insurance Group",
+   "ats": "workday",
+   "tenant": "aaaie",
+   "wd": "wd1",
+   "site": "CSAACareers2"
   },
   {
    "name": "Cummins",
@@ -1251,6 +1596,18 @@
    "site": "DataRobot_External_Careers"
   },
   {
+   "name": "DataVisor",
+   "ats": "workable",
+   "token": "datavisor-jobs"
+  },
+  {
+   "name": "David Yurman",
+   "ats": "workday",
+   "tenant": "davidyurman",
+   "wd": "wd1",
+   "site": "DavidYurmanCareers"
+  },
+  {
    "name": "Dayton Freight Lines, Inc.",
    "ats": "icims",
    "host": "careers-daytonfreight.icims.com"
@@ -1264,6 +1621,18 @@
    "name": "Dedalus Labs",
    "ats": "ashby",
    "token": "dedalus-labs"
+  },
+  {
+   "name": "Dee Zee",
+   "ats": "workday",
+   "tenant": "deezee",
+   "wd": "wd108",
+   "site": "DeeZee_Careers"
+  },
+  {
+   "name": "Deeplocal",
+   "ats": "greenhouse",
+   "token": "deeplocal"
   },
   {
    "name": "Delta Dental",
@@ -1309,6 +1678,11 @@
    "tenant": "directv",
    "wd": "wd1",
    "site": "careers"
+  },
+  {
+   "name": "Divergent Technologies",
+   "ats": "greenhouse",
+   "token": "divergent"
   },
   {
    "name": "DocuSign",
@@ -1379,9 +1753,26 @@
    "token": "drivewealth"
   },
   {
+   "name": "DriveWealth",
+   "ats": "ashby",
+   "token": "drivewealth"
+  },
+  {
    "name": "DRW",
    "ats": "greenhouse",
    "token": "drwuniversityjobs"
+  },
+  {
+   "name": "Dryft",
+   "ats": "ashby",
+   "token": "dryft"
+  },
+  {
+   "name": "DuCharme, McMillen & Associates",
+   "ats": "workday",
+   "tenant": "dmainc",
+   "wd": "wd5",
+   "site": "dma"
   },
   {
    "name": "Duke Energy Corporation",
@@ -1406,6 +1797,16 @@
    "token": "dynamiccatholic"
   },
   {
+   "name": "East Penn Manufacturing",
+   "ats": "icims",
+   "host": "careerseast-eastpennmanufacturing.icims.com"
+  },
+  {
+   "name": "East Penn Manufacturing",
+   "ats": "icims",
+   "host": "careers-eastpennmanufacturing.icims.com"
+  },
+  {
    "name": "ECG Management Consultants",
    "ats": "icims",
    "host": "careers-ecgmc.icims.com"
@@ -1414,6 +1815,13 @@
    "name": "Echelon Insights",
    "ats": "jazzhr",
    "token": "echelon"
+  },
+  {
+   "name": "Ecolab",
+   "ats": "workday",
+   "tenant": "ecolab",
+   "wd": "wd1",
+   "site": "ecolab_external"
   },
   {
    "name": "EHC",
@@ -1434,6 +1842,13 @@
    "site": "External_Career"
   },
   {
+   "name": "Element Fleet Management",
+   "ats": "workday",
+   "tenant": "elementfleet",
+   "wd": "wd3",
+   "site": "External_Career_Site"
+  },
+  {
    "name": "Elevance Health",
    "ats": "workday",
    "tenant": "elevancehealth",
@@ -1444,6 +1859,11 @@
    "name": "Elk Valley Resources",
    "ats": "lever",
    "token": "evr"
+  },
+  {
+   "name": "Elucid",
+   "ats": "jazzhr",
+   "token": "elucid"
   },
   {
    "name": "EMC Insurance",
@@ -1469,6 +1889,11 @@
    "ats": "oracle",
    "host": "hdjq.fa.us2.oraclecloud.com",
    "site": "CX_1"
+  },
+  {
+   "name": "empirical",
+   "ats": "icims",
+   "host": "careers-empiricalfoods.icims.com"
   },
   {
    "name": "Enact Mortgage Insurance",
@@ -1509,11 +1934,23 @@
    "site": "entegriscareers"
   },
   {
+   "name": "Enterprise Holdings",
+   "ats": "icims",
+   "host": "us-erac.icims.com"
+  },
+  {
    "name": "Entrust",
    "ats": "workday",
    "tenant": "entrust",
    "wd": "wd1",
    "site": "entrustcareers"
+  },
+  {
+   "name": "Envista Forensics",
+   "ats": "workday",
+   "tenant": "corpartners",
+   "wd": "wd5",
+   "site": "Envista"
   },
   {
    "name": "EQT Corporation",
@@ -1528,6 +1965,16 @@
    "site": "UR_External"
   },
   {
+   "name": "Equitable Bank",
+   "ats": "lever",
+   "token": "eqbank"
+  },
+  {
+   "name": "Etched",
+   "ats": "ashby",
+   "token": "etched"
+  },
+  {
    "name": "Eudia",
    "ats": "greenhouse",
    "token": "eudia"
@@ -1536,6 +1983,20 @@
    "name": "Eulerity",
    "ats": "greenhouse",
    "token": "eulerity"
+  },
+  {
+   "name": "Everest",
+   "ats": "workday",
+   "tenant": "everestre",
+   "wd": "wd5",
+   "site": "careers"
+  },
+  {
+   "name": "Eversource Energy",
+   "ats": "workday",
+   "tenant": "eversource",
+   "wd": "wd1",
+   "site": "ExternalSite"
   },
   {
    "name": "Exa",
@@ -1582,6 +2043,11 @@
    "name": "Faire",
    "ats": "greenhouse",
    "token": "faire"
+  },
+  {
+   "name": "Farmers Mutual Hail",
+   "ats": "greenhouse",
+   "token": "farmersmutualhailinsurancecompany"
   },
   {
    "name": "Federal Express Corporation",
@@ -1632,6 +2098,16 @@
    "token": "figureai"
   },
   {
+   "name": "Filevine",
+   "ats": "lever",
+   "token": "filevine"
+  },
+  {
+   "name": "Firework",
+   "ats": "lever",
+   "token": "fireworkhq"
+  },
+  {
    "name": "First Bank & Trust",
    "ats": "workday",
    "tenant": "bankeasy",
@@ -1649,6 +2125,11 @@
    "name": "Five Rings Capital",
    "ats": "greenhouse",
    "token": "fiveringsllc"
+  },
+  {
+   "name": "Flagship Pioneering",
+   "ats": "greenhouse",
+   "token": "flagshippioneeringinc"
   },
   {
    "name": "Flex",
@@ -1677,9 +2158,21 @@
    "site": "ForestersFinancialCareers"
   },
   {
+   "name": "FormFactor",
+   "ats": "workday",
+   "tenant": "formfactor",
+   "wd": "wd1",
+   "site": "FFI-Careers"
+  },
+  {
    "name": "Four Hands",
    "ats": "greenhouse",
    "token": "fourhands"
+  },
+  {
+   "name": "Framatome",
+   "ats": "icims",
+   "host": "careers-framatome.icims.com"
   },
   {
    "name": "Freeform",
@@ -1692,6 +2185,11 @@
    "token": "freestonecapitalmanagement"
   },
   {
+   "name": "FreshCut Paper",
+   "ats": "workable",
+   "token": "freshcutpaper"
+  },
+  {
    "name": "FTI Consulting",
    "ats": "workday",
    "tenant": "fticonsulting",
@@ -1699,11 +2197,26 @@
    "site": "FTIConsultingCareers"
   },
   {
+   "name": "Fussball Club Cincinnati LLC (\u201cFC Cincinnati\u201d)",
+   "ats": "greenhouse",
+   "token": "fccincinnati"
+  },
+  {
+   "name": "FUTO",
+   "ats": "lever",
+   "token": "futo-org"
+  },
+  {
    "name": "GAF",
    "ats": "workday",
    "tenant": "gafsgi",
    "wd": "wd5",
    "site": "GAF_Careers"
+  },
+  {
+   "name": "Galaxy",
+   "ats": "greenhouse",
+   "token": "galaxydigitalservices"
   },
   {
    "name": "GALLO",
@@ -1715,6 +2228,11 @@
    "name": "Gallup",
    "ats": "greenhouse",
    "token": "gallup"
+  },
+  {
+   "name": "GardaWorld",
+   "ats": "greenhouse",
+   "token": "gardacp"
   },
   {
    "name": "GCM Grosvenor",
@@ -1750,6 +2268,11 @@
    "site": "only_confidential_executive_recruiting"
   },
   {
+   "name": "Gearset",
+   "ats": "ashby",
+   "token": "gearset"
+  },
+  {
    "name": "Gecko Robotics",
    "ats": "ashby",
    "token": "gecko-robotics"
@@ -1781,6 +2304,11 @@
    "host": "careers-gdms.icims.com"
   },
   {
+   "name": "General Intuition & Medal",
+   "ats": "ashby",
+   "token": "generalintuition-medal"
+  },
+  {
    "name": "General Matter",
    "ats": "greenhouse",
    "token": "generalmatter"
@@ -1791,6 +2319,28 @@
    "tenant": "generalmotors",
    "wd": "wd5",
    "site": "Careers_GM"
+  },
+  {
+   "name": "Genesis Molecular AI",
+   "ats": "ashby",
+   "token": "genesis-molecular-ai"
+  },
+  {
+   "name": "Genesys",
+   "ats": "workday",
+   "tenant": "genesys",
+   "wd": "wd1",
+   "site": "2_genesys_jobs"
+  },
+  {
+   "name": "Genius AI",
+   "ats": "ashby",
+   "token": "geniusai"
+  },
+  {
+   "name": "GenMD",
+   "ats": "ashby",
+   "token": "genmd"
   },
   {
    "name": "GenScript",
@@ -1874,6 +2424,11 @@
    "token": "grassrootsanalytics"
   },
   {
+   "name": "GrayMatter Robotics",
+   "ats": "ashby",
+   "token": "graymatter-robotics"
+  },
+  {
    "name": "Great American Insurance Company",
    "ats": "workday",
    "tenant": "gaig",
@@ -1905,6 +2460,11 @@
    "name": "Groma",
    "ats": "greenhouse",
    "token": "groma"
+  },
+  {
+   "name": "Group 1 Automotive",
+   "ats": "icims",
+   "host": "careers-group1auto.icims.com"
   },
   {
    "name": "Grow Therapy",
@@ -1944,9 +2504,20 @@
    "site": "CX_1"
   },
   {
+   "name": "Hadrian",
+   "ats": "ashby",
+   "token": "hadrian-automation"
+  },
+  {
    "name": "Harbinger Motors",
    "ats": "greenhouse",
    "token": "harbingermotors"
+  },
+  {
+   "name": "Harmonic",
+   "ats": "oracle",
+   "host": "egmn.fa.us2.oraclecloud.com",
+   "site": "CX_1"
   },
   {
    "name": "Hasbro",
@@ -1969,6 +2540,11 @@
    "name": "Healthpeak Properties",
    "ats": "jazzhr",
    "token": "healthpeak"
+  },
+  {
+   "name": "Hearst",
+   "ats": "greenhouse",
+   "token": "hearst"
   },
   {
    "name": "Heliux",
@@ -2010,6 +2586,11 @@
    "name": "Hex Technologies",
    "ats": "ashby",
    "token": "hex"
+  },
+  {
+   "name": "Highgate",
+   "ats": "icims",
+   "host": "externalhourly-highgate.icims.com"
   },
   {
    "name": "Highmark Health",
@@ -2061,6 +2642,11 @@
    "name": "Hook Music",
    "ats": "ashby",
    "token": "hookmusic"
+  },
+  {
+   "name": "Hootsuite",
+   "ats": "greenhouse",
+   "token": "hootsuite"
   },
   {
    "name": "Horizon Industries",
@@ -2116,6 +2702,18 @@
    "site": "HyVeeCareers"
   },
   {
+   "name": "Hyphenate",
+   "ats": "ashby",
+   "token": "hyphenate"
+  },
+  {
+   "name": "Hyster-Yale Materials Handling",
+   "ats": "workday",
+   "tenant": "hysteryale",
+   "wd": "wd1",
+   "site": "hyster-yalecareers"
+  },
+  {
    "name": "IAT Insurance Group",
    "ats": "workday",
    "tenant": "iatinsurancegroup",
@@ -2138,6 +2736,11 @@
    "name": "ID.me",
    "ats": "greenhouse",
    "token": "idmeuniversityrecruiting"
+  },
+  {
+   "name": "IDeaS",
+   "ats": "icims",
+   "host": "ideas-sas.icims.com"
   },
   {
    "name": "IDEMIA North America",
@@ -2177,6 +2780,11 @@
    "token": "inferact"
   },
   {
+   "name": "Infleqtion",
+   "ats": "workable",
+   "token": "coldquanta"
+  },
+  {
    "name": "Ingredion",
    "ats": "workday",
    "tenant": "ingredion",
@@ -2208,6 +2816,11 @@
    "site": "NSP"
   },
   {
+   "name": "Instead",
+   "ats": "greenhouse",
+   "token": "instead"
+  },
+  {
    "name": "Insulet",
    "ats": "workday",
    "tenant": "insulet",
@@ -2225,11 +2838,21 @@
    "token": "integrainterns"
   },
   {
+   "name": "Integrate",
+   "ats": "ashby",
+   "token": "integrate"
+  },
+  {
    "name": "Intel",
    "ats": "workday",
    "tenant": "intel",
    "wd": "wd1",
    "site": "External"
+  },
+  {
+   "name": "Intercontinental Exchange",
+   "ats": "icims",
+   "host": "careers-ice.icims.com"
   },
   {
    "name": "International Rescue Committee",
@@ -2254,11 +2877,35 @@
    "token": "inversionspace"
   },
   {
+   "name": "Invesco",
+   "ats": "workday",
+   "tenant": "invesco",
+   "wd": "wd1",
+   "site": "IVZearlycareers"
+  },
+  {
+   "name": "Invesco",
+   "ats": "workday",
+   "tenant": "invesco",
+   "wd": "wd1",
+   "site": "IVZ"
+  },
+  {
+   "name": "Invitation-charter",
+   "ats": "icims",
+   "host": "invitation-charter.icims.com"
+  },
+  {
    "name": "iRhythm Technologies",
    "ats": "workday",
    "tenant": "irhythmtech",
    "wd": "wd5",
    "site": "irhythm"
+  },
+  {
+   "name": "Iridium Communications",
+   "ats": "icims",
+   "host": "careers-iridium.icims.com"
   },
   {
    "name": "Itron",
@@ -2273,6 +2920,16 @@
    "tenant": "itron",
    "wd": "wd5",
    "site": "Itron"
+  },
+  {
+   "name": "ITT",
+   "ats": "icims",
+   "host": "careersenus-itt-inc.icims.com"
+  },
+  {
+   "name": "Ixian Robotics",
+   "ats": "ashby",
+   "token": "ixianrobotics"
   },
   {
    "name": "J.M. Smucker",
@@ -2303,11 +2960,23 @@
    "site": "jmfamily_external"
   },
   {
+   "name": "John D. and Catherine T. MacArthur Foundation",
+   "ats": "workday",
+   "tenant": "macfound",
+   "wd": "wd1",
+   "site": "MAC_FOUND_EXT_CAREERS"
+  },
+  {
    "name": "Johnson & Johnson",
    "ats": "workday",
    "tenant": "jj",
    "wd": "wd5",
    "site": "JJ"
+  },
+  {
+   "name": "Jomboy Media",
+   "ats": "greenhouse",
+   "token": "jomboymedia"
   },
   {
    "name": "JP Morgan Chase",
@@ -2333,6 +3002,11 @@
    "token": "k2spacecorporation"
   },
   {
+   "name": "Kabam",
+   "ats": "lever",
+   "token": "kabam"
+  },
+  {
    "name": "Kastle",
    "ats": "ashby",
    "token": "kastle"
@@ -2343,6 +3017,11 @@
    "tenant": "kbr",
    "wd": "wd5",
    "site": "KBR_Careers"
+  },
+  {
+   "name": "Kensington",
+   "ats": "lever",
+   "token": "kepler"
   },
   {
    "name": "Ketjen",
@@ -2357,6 +3036,18 @@
    "tenant": "keybank",
    "wd": "wd5",
    "site": "External_Career_Site"
+  },
+  {
+   "name": "Keyrock",
+   "ats": "ashby",
+   "token": "keyrock"
+  },
+  {
+   "name": "Kimball Electronics",
+   "ats": "workday",
+   "tenant": "kei",
+   "wd": "wd1",
+   "site": "GlobalKimballCareers"
   },
   {
    "name": "Kinaxis",
@@ -2431,11 +3122,23 @@
    "site": "KyndrylEarlyCareers"
   },
   {
+   "name": "L.L.Bean",
+   "ats": "workday",
+   "tenant": "llbean",
+   "wd": "wd1",
+   "site": "llbean_careers"
+  },
+  {
    "name": "LabCorp",
    "ats": "workday",
    "tenant": "labcorp",
    "wd": "wd1",
    "site": "external"
+  },
+  {
+   "name": "Laminar",
+   "ats": "ashby",
+   "token": "laminar-jobs"
   },
   {
    "name": "Later",
@@ -2446,6 +3149,12 @@
    "name": "Legend Biotech",
    "ats": "greenhouse",
    "token": "legendcareers"
+  },
+  {
+   "name": "Legrand",
+   "ats": "oracle",
+   "host": "iadugs.fa.ocs.oraclecloud.com",
+   "site": "CX_1001"
   },
   {
    "name": "Leidos",
@@ -2460,11 +3169,21 @@
    "token": "lendable"
   },
   {
+   "name": "Lennox International",
+   "ats": "icims",
+   "host": "uscareers-lennox.icims.com"
+  },
+  {
    "name": "LexisNexis Risk Solutions",
    "ats": "workday",
    "tenant": "relx",
    "wd": "wd3",
    "site": "RiskSolutions"
+  },
+  {
+   "name": "Liberty Mutual",
+   "ats": "icims",
+   "host": "campus-libertymutual.icims.com"
   },
   {
    "name": "Life Fitness",
@@ -2474,9 +3193,21 @@
    "site": "searchLFN"
   },
   {
+   "name": "Light & Wonder",
+   "ats": "workday",
+   "tenant": "lnw",
+   "wd": "wd5",
+   "site": "LightWonderExternalCareers"
+  },
+  {
    "name": "Lightmatter",
    "ats": "greenhouse",
    "token": "lightmatter"
+  },
+  {
+   "name": "Lila Sciences",
+   "ats": "greenhouse",
+   "token": "lilasciences"
   },
   {
    "name": "Linkup",
@@ -2484,11 +3215,28 @@
    "token": "linkup"
   },
   {
+   "name": "Little Caesars Enterprises",
+   "ats": "workday",
+   "tenant": "ilitch",
+   "wd": "wd5",
+   "site": "lc"
+  },
+  {
    "name": "Loblaw Companies",
    "ats": "workday",
    "tenant": "myview",
    "wd": "wd3",
    "site": "paradox_careers"
+  },
+  {
+   "name": "Loft Orbital",
+   "ats": "lever",
+   "token": "loftorbital"
+  },
+  {
+   "name": "Logiqal",
+   "ats": "ashby",
+   "token": "logiqal"
   },
   {
    "name": "Louisiana Blue",
@@ -2509,6 +3257,11 @@
    "tenant": "lowes",
    "wd": "wd5",
    "site": "LWS_External_CS"
+  },
+  {
+   "name": "lowRISC CIC",
+   "ats": "jazzhr",
+   "token": "lowrisc"
   },
   {
    "name": "LPL Financial Holdings",
@@ -2537,6 +3290,11 @@
    "tenant": "lumentum",
    "wd": "wd5",
    "site": "LITE"
+  },
+  {
+   "name": "Lunar Energy",
+   "ats": "greenhouse",
+   "token": "lunarenergy"
   },
   {
    "name": "M&T Bank",
@@ -2581,6 +3339,12 @@
    "site": "campus"
   },
   {
+   "name": "Manitowoc",
+   "ats": "oracle",
+   "host": "fda.fa.us1.oraclecloud.com",
+   "site": "CX_1"
+  },
+  {
    "name": "Manulife Financial",
    "ats": "workday",
    "tenant": "manulife",
@@ -2614,6 +3378,13 @@
    "tenant": "marmon",
    "wd": "wd501",
    "site": "Marmon_Careers"
+  },
+  {
+   "name": "Marriott Vacations Worldwide",
+   "ats": "workday",
+   "tenant": "mymvw",
+   "wd": "wd5",
+   "site": "mvw"
   },
   {
    "name": "Marsh",
@@ -2682,6 +3453,11 @@
    "site": "Campus"
   },
   {
+   "name": "Match Group",
+   "ats": "lever",
+   "token": "matchgroup"
+  },
+  {
    "name": "Mayo Clinic",
    "ats": "oracle",
    "host": "fa-euwp-saasfaprod1.fa.ocs.oraclecloud.com",
@@ -2705,6 +3481,20 @@
    "name": "Medpace",
    "ats": "icims",
    "host": "uscareers-medpace.icims.com"
+  },
+  {
+   "name": "Medtronic",
+   "ats": "workday",
+   "tenant": "medtronic",
+   "wd": "wd1",
+   "site": "MedtronicCareers"
+  },
+  {
+   "name": "Medtronic",
+   "ats": "workday",
+   "tenant": "medtronic",
+   "wd": "wd1",
+   "site": "redeploymentmedtroniccareers"
   },
   {
    "name": "MegazoneCloud",
@@ -2751,6 +3541,16 @@
    "token": "metamorphic"
   },
   {
+   "name": "METECS",
+   "ats": "jazzhr",
+   "token": "metecs"
+  },
+  {
+   "name": "Metova Federal",
+   "ats": "icims",
+   "host": "jobs-cesi.icims.com"
+  },
+  {
    "name": "Metropolitan Transportation Authority",
    "ats": "jobvite",
    "token": "metropolitantransportationauthority"
@@ -2767,6 +3567,13 @@
    "ats": "workday",
    "tenant": "microchiphr",
    "wd": "wd5",
+   "site": "External"
+  },
+  {
+   "name": "Micron Technology",
+   "ats": "workday",
+   "tenant": "micron",
+   "wd": "wd1",
    "site": "External"
   },
   {
@@ -2813,6 +3620,12 @@
    "site": "ModMed12"
   },
   {
+   "name": "Molina Healthcare",
+   "ats": "oracle",
+   "host": "hckd.fa.us2.oraclecloud.com",
+   "site": "CX_1"
+  },
+  {
    "name": "Moment Energy",
    "ats": "greenhouse",
    "token": "momentenergy"
@@ -2832,11 +3645,22 @@
    "site": "MPS_Careers"
   },
   {
+   "name": "Moody's",
+   "ats": "successfactors",
+   "host": "career8.successfactors.com",
+   "company": "MoodysProd"
+  },
+  {
    "name": "Moog",
    "ats": "workday",
    "tenant": "moog",
    "wd": "wd5",
    "site": "moog_external_career_site"
+  },
+  {
+   "name": "Morph Labs",
+   "ats": "greenhouse",
+   "token": "morph"
   },
   {
    "name": "Motorola",
@@ -2885,6 +3709,13 @@
    "token": "testnisc"
   },
   {
+   "name": "National Interstate Insurance",
+   "ats": "workday",
+   "tenant": "gaig",
+   "wd": "wd1",
+   "site": "summit_external"
+  },
+  {
    "name": "National Laboratory of the Rockies",
    "ats": "greenhouse",
    "token": "national"
@@ -2922,6 +3753,11 @@
    "site": "ext_intern"
   },
   {
+   "name": "Nebo",
+   "ats": "jazzhr",
+   "token": "neboagency"
+  },
+  {
    "name": "Neighbor",
    "ats": "lever",
    "token": "neighbor"
@@ -2953,6 +3789,11 @@
    "token": "neuralink"
   },
   {
+   "name": "New York ISO",
+   "ats": "greenhouse",
+   "token": "nyisointernships"
+  },
+  {
    "name": "New York Mets",
    "ats": "workday",
    "tenant": "sterlingmets",
@@ -2970,6 +3811,18 @@
    "name": "NewsBreak",
    "ats": "greenhouse",
    "token": "newsbreak"
+  },
+  {
+   "name": "NewYork-Presbyterian",
+   "ats": "workday",
+   "tenant": "nyp",
+   "wd": "wd1",
+   "site": "nypcareers"
+  },
+  {
+   "name": "Nex",
+   "ats": "greenhouse",
+   "token": "nex"
   },
   {
    "name": "Niantic Spatial",
@@ -3056,6 +3909,16 @@
    "token": "novatechengineering"
   },
   {
+   "name": "Novelis",
+   "ats": "icims",
+   "host": "careers-novelis.icims.com"
+  },
+  {
+   "name": "NRDC",
+   "ats": "icims",
+   "host": "careers-nrdc.icims.com"
+  },
+  {
    "name": "Nuovo Photography",
    "ats": "workable",
    "token": "nuovophotography"
@@ -3078,6 +3941,11 @@
    "token": "oak"
   },
   {
+   "name": "Obsidian Entertainment",
+   "ats": "jazzhr",
+   "token": "obsidian"
+  },
+  {
    "name": "OCC",
    "ats": "workday",
    "tenant": "theocc",
@@ -3097,6 +3965,11 @@
    "site": "CX_3001"
   },
   {
+   "name": "Odys Aviation",
+   "ats": "ashby",
+   "token": "odys-aviation"
+  },
+  {
    "name": "Old Mission",
    "ats": "ashby",
    "token": "old-mission-capital"
@@ -3105,6 +3978,21 @@
    "name": "ONE Finance",
    "ats": "ashby",
    "token": "oneapp"
+  },
+  {
+   "name": "One Robot",
+   "ats": "ashby",
+   "token": "onerobot"
+  },
+  {
+   "name": "OneEthos",
+   "ats": "greenhouse",
+   "token": "oneethos"
+  },
+  {
+   "name": "onepot",
+   "ats": "ashby",
+   "token": "onepot"
   },
   {
    "name": "onsemi",
@@ -3148,6 +4036,12 @@
    "company": "paccarinc"
   },
   {
+   "name": "Paccar",
+   "ats": "successfactors",
+   "host": "career5.successfactors.eu",
+   "company": "paccarinc"
+  },
+  {
    "name": "Pace",
    "ats": "ashby",
    "token": "withpace"
@@ -3163,6 +4057,11 @@
    "tenant": "pacificlife",
    "wd": "wd1",
    "site": "PacificLifeCareers"
+  },
+  {
+   "name": "Palantir Technologies",
+   "ats": "lever",
+   "token": "palantir"
   },
   {
    "name": "PanAgora",
@@ -3194,14 +4093,36 @@
    "token": "parallelwireless"
   },
   {
+   "name": "ParetoHealth",
+   "ats": "greenhouse",
+   "token": "paretocaptiveservicesllc"
+  },
+  {
    "name": "Parker Hannifin",
    "ats": "ashby",
    "token": "parker"
   },
   {
+   "name": "Parsons",
+   "ats": "workday",
+   "tenant": "parsons",
+   "wd": "wd5",
+   "site": "Search"
+  },
+  {
+   "name": "Parspec",
+   "ats": "ashby",
+   "token": "parspec"
+  },
+  {
    "name": "Patreon",
    "ats": "ashby",
    "token": "patreon"
+  },
+  {
+   "name": "Pattern",
+   "ats": "lever",
+   "token": "pattern"
   },
   {
    "name": "PDT Partners",
@@ -3242,6 +4163,13 @@
    "name": "Peraton",
    "ats": "icims",
    "host": "careers-peraton.icims.com"
+  },
+  {
+   "name": "Pernod Ricard, cr\u00e9ateurs de convivialit\u00e9",
+   "ats": "workday",
+   "tenant": "pernodricard",
+   "wd": "wd3",
+   "site": "pernod-ricard"
   },
   {
    "name": "Perpay",
@@ -3291,6 +4219,13 @@
    "token": "pluralis-research"
   },
   {
+   "name": "Plusgrade",
+   "ats": "workday",
+   "tenant": "plusgrade",
+   "wd": "wd10",
+   "site": "Plusgrade_External_Site"
+  },
+  {
    "name": "PNC Financial Services",
    "ats": "workday",
    "tenant": "pnc",
@@ -3310,6 +4245,11 @@
    "token": "point72"
   },
   {
+   "name": "Powertown",
+   "ats": "ashby",
+   "token": "powertown"
+  },
+  {
    "name": "Primer",
    "ats": "ashby",
    "token": "primer"
@@ -3325,6 +4265,23 @@
    "name": "Profluent",
    "ats": "greenhouse",
    "token": "profluent"
+  },
+  {
+   "name": "Prologis",
+   "ats": "workday",
+   "tenant": "prologis",
+   "wd": "wd5",
+   "site": "Prologis_External_Careers"
+  },
+  {
+   "name": "Prospect Equities",
+   "ats": "jazzhr",
+   "token": "prospectequities"
+  },
+  {
+   "name": "Protagonist",
+   "ats": "greenhouse",
+   "token": "protagonist"
   },
   {
    "name": "Protective Life",
@@ -3372,9 +4329,24 @@
    "site": "qts"
   },
   {
+   "name": "Quadric",
+   "ats": "ashby",
+   "token": "quadric"
+  },
+  {
    "name": "Quadrillion Labs",
    "ats": "ashby",
    "token": "quadrillion-labs"
+  },
+  {
+   "name": "QuantCo",
+   "ats": "lever",
+   "token": "quantco-"
+  },
+  {
+   "name": "Quantiq",
+   "ats": "greenhouse",
+   "token": "quantiq"
   },
   {
    "name": "Quantum Signal AI",
@@ -3397,6 +4369,11 @@
    "token": "qumulo"
   },
   {
+   "name": "Rackner",
+   "ats": "greenhouse",
+   "token": "rackner"
+  },
+  {
    "name": "Radiance Technologies",
    "ats": "workday",
    "tenant": "radiancetech",
@@ -3409,14 +4386,39 @@
    "token": "radixuniversity"
   },
   {
+   "name": "Raft Company Website",
+   "ats": "greenhouse",
+   "token": "raft"
+  },
+  {
    "name": "Ragle Inc",
    "ats": "jazzhr",
    "token": "ragleinc"
   },
   {
+   "name": "Rambus",
+   "ats": "icims",
+   "host": "careers-rambus.icims.com"
+  },
+  {
+   "name": "Ramp",
+   "ats": "ashby",
+   "token": "ramp"
+  },
+  {
+   "name": "Range",
+   "ats": "ashby",
+   "token": "range"
+  },
+  {
    "name": "RAVE Aerospace",
    "ats": "workable",
    "token": "raveaerospace"
+  },
+  {
+   "name": "Realm",
+   "ats": "ashby",
+   "token": "realmalliance"
   },
   {
    "name": "Realty Income",
@@ -3455,6 +4457,16 @@
    "token": "relaypro"
   },
   {
+   "name": "Relling",
+   "ats": "ashby",
+   "token": "relling"
+  },
+  {
+   "name": "Rendezvous Robotics",
+   "ats": "greenhouse",
+   "token": "rendezvousrobotics"
+  },
+  {
    "name": "Replit",
    "ats": "ashby",
    "token": "replit"
@@ -3467,9 +4479,34 @@
    "site": "External_Career_Site"
   },
   {
+   "name": "Resideo",
+   "ats": "oracle",
+   "host": "ehtl.fa.us6.oraclecloud.com",
+   "site": "CX"
+  },
+  {
+   "name": "Resonetics",
+   "ats": "icims",
+   "host": "careers-resonetics.icims.com"
+  },
+  {
+   "name": "Revantage Corporate Services",
+   "ats": "workday",
+   "tenant": "revantage",
+   "wd": "wd1",
+   "site": "Revantage"
+  },
+  {
    "name": "Revel",
    "ats": "ashby",
    "token": "revel"
+  },
+  {
+   "name": "Revvity",
+   "ats": "workday",
+   "tenant": "revvity",
+   "wd": "wd103",
+   "site": "External"
   },
   {
    "name": "RF-SMART",
@@ -3482,6 +4519,12 @@
    "token": "rhoda-ai"
   },
   {
+   "name": "Ricoh",
+   "ats": "oracle",
+   "host": "cbha.fa.us2.oraclecloud.com",
+   "site": "CX_1"
+  },
+  {
    "name": "Rilla",
    "ats": "ashby",
    "token": "rilla"
@@ -3492,6 +4535,21 @@
    "tenant": "risepoint",
    "wd": "wd503",
    "site": "Risepoint"
+  },
+  {
+   "name": "Ritual",
+   "ats": "greenhouse",
+   "token": "ritual"
+  },
+  {
+   "name": "Riverside Research",
+   "ats": "icims",
+   "host": "careers-riversideresearch.icims.com"
+  },
+  {
+   "name": "RoboForce",
+   "ats": "greenhouse",
+   "token": "roboforce"
   },
   {
    "name": "Roche",
@@ -3513,6 +4571,12 @@
    "token": "rocketlab"
   },
   {
+   "name": "Rockland Trust",
+   "ats": "oracle",
+   "host": "eehb.fa.us2.oraclecloud.com",
+   "site": "CX_2005"
+  },
+  {
    "name": "Rockwell Automation",
    "ats": "workday",
    "tenant": "rockwellautomation",
@@ -3527,6 +4591,11 @@
    "site": "External_Rockwell_Automation"
   },
   {
+   "name": "Rodan Energy Solutions",
+   "ats": "jazzhr",
+   "token": "rodanenergysolutionsinc"
+  },
+  {
    "name": "Rolls-Royce",
    "ats": "workday",
    "tenant": "rollsroyce",
@@ -3534,9 +4603,35 @@
    "site": "Intern_Graduate"
   },
   {
+   "name": "RosaicLabs",
+   "ats": "lever",
+   "token": "rosaiclabs"
+  },
+  {
    "name": "Rothesay",
    "ats": "greenhouse",
    "token": "rothesaygraduates"
+  },
+  {
+   "name": "Royal Bank of Canada",
+   "ats": "workday",
+   "tenant": "rbc",
+   "wd": "wd3",
+   "site": "RBCEARLYTALENT1"
+  },
+  {
+   "name": "Royal Bank of Canada",
+   "ats": "workday",
+   "tenant": "rbc",
+   "wd": "wd3",
+   "site": "rbcglobal1"
+  },
+  {
+   "name": "Royal Bank of Canada",
+   "ats": "workday",
+   "tenant": "rbc",
+   "wd": "wd3",
+   "site": "ExternalPrivatePostingStudents"
   },
   {
    "name": "RSM US LLP",
@@ -3584,10 +4679,24 @@
    "site": "Students-Graduates"
   },
   {
+   "name": "Ryder System",
+   "ats": "workday",
+   "tenant": "ryder",
+   "wd": "wd5",
+   "site": "RyderCareers"
+  },
+  {
    "name": "S&C Electric Company",
    "ats": "oracle",
    "host": "ejia.fa.us6.oraclecloud.com",
    "site": "CX_1001"
+  },
+  {
+   "name": "S&P Global",
+   "ats": "workday",
+   "tenant": "spgi",
+   "wd": "wd5",
+   "site": "SPGI_Careers"
   },
   {
    "name": "Saab",
@@ -3611,6 +4720,23 @@
    "site": "Futureforce_Internships"
   },
   {
+   "name": "Samsung",
+   "ats": "workday",
+   "tenant": "sec",
+   "wd": "wd3",
+   "site": "Samsung_Careers"
+  },
+  {
+   "name": "Samsung Research America",
+   "ats": "greenhouse",
+   "token": "samsungresearchamericainternship"
+  },
+  {
+   "name": "Samsung Semiconductor",
+   "ats": "greenhouse",
+   "token": "samsungsemiconductor"
+  },
+  {
    "name": "Sanofi",
    "ats": "workday",
    "tenant": "sanofi",
@@ -3631,6 +4757,11 @@
    "name": "SAS",
    "ats": "icims",
    "host": "globalcareers-sas.icims.com"
+  },
+  {
+   "name": "SAS",
+   "ats": "icims",
+   "host": "careers-sas.icims.com"
   },
   {
    "name": "Saviynt",
@@ -3660,6 +4791,11 @@
    "token": "scientech-research"
   },
   {
+   "name": "SCM",
+   "ats": "greenhouse",
+   "token": "scmaea"
+  },
+  {
    "name": "SCOR",
    "ats": "oracle",
    "host": "fa-errt-saasfaprod1.fa.ocs.oraclecloud.com",
@@ -3674,6 +4810,11 @@
    "name": "Scout Clean Energy",
    "ats": "workable",
    "token": "scout-clean-energy"
+  },
+  {
+   "name": "Scout Motors Inc.",
+   "ats": "greenhouse",
+   "token": "scoutmotors"
   },
   {
    "name": "Selective Insurance",
@@ -3703,6 +4844,11 @@
    "token": "sep"
   },
   {
+   "name": "SESCO",
+   "ats": "greenhouse",
+   "token": "sesco"
+  },
+  {
    "name": "Seven Research, LLC",
    "ats": "greenhouse",
    "token": "sevenresearch"
@@ -3713,14 +4859,40 @@
    "token": "sharkninjaoperatingllc"
   },
   {
+   "name": "Sharp Electronics",
+   "ats": "greenhouse",
+   "token": "sharpelectronics"
+  },
+  {
+   "name": "Sherwin-Williams",
+   "ats": "oracle",
+   "host": "ejhp.fa.us6.oraclecloud.com",
+   "site": "CX_2"
+  },
+  {
+   "name": "Shield",
+   "ats": "ashby",
+   "token": "shield"
+  },
+  {
    "name": "Shield AI",
    "ats": "lever",
    "token": "shieldai"
   },
   {
+   "name": "Shield AI",
+   "ats": "ashby",
+   "token": "f7d8749a-72d6-407c-bf98-292ea630c73a"
+  },
+  {
    "name": "ShopBack",
    "ats": "lever",
    "token": "shopback-2"
+  },
+  {
+   "name": "Shure",
+   "ats": "icims",
+   "host": "careersus-shure.icims.com"
   },
   {
    "name": "Sierra Nevada Corporation",
@@ -3733,6 +4905,13 @@
    "name": "Sigma Computing",
    "ats": "greenhouse",
    "token": "sigmacomputing"
+  },
+  {
+   "name": "Signet Jewelers",
+   "ats": "workday",
+   "tenant": "signetjewelers",
+   "wd": "wd1",
+   "site": "SignetCorporateCareers"
   },
   {
    "name": "Signify",
@@ -3756,14 +4935,29 @@
    "site": "Simon"
   },
   {
+   "name": "SimVentions",
+   "ats": "icims",
+   "host": "careers-simventions.icims.com"
+  },
+  {
    "name": "SingleStore",
    "ats": "greenhouse",
    "token": "singlestore"
   },
   {
+   "name": "SiTime",
+   "ats": "greenhouse",
+   "token": "sitimecorporation"
+  },
+  {
    "name": "SK Hynix Memory Solution",
    "ats": "greenhouse",
    "token": "skhynixmemorysolutionsamericainc"
+  },
+  {
+   "name": "Skydio",
+   "ats": "ashby",
+   "token": "skydio"
   },
   {
    "name": "Smartly.io",
@@ -3795,6 +4989,13 @@
    "token": "solopulseco"
   },
   {
+   "name": "Sonos",
+   "ats": "workday",
+   "tenant": "sonos",
+   "wd": "wd1",
+   "site": "Sonos"
+  },
+  {
    "name": "Sony",
    "ats": "workday",
    "tenant": "sonyglobal",
@@ -3807,6 +5008,11 @@
    "tenant": "sonyglobal",
    "wd": "wd1",
    "site": "Sony_Europe_Careers"
+  },
+  {
+   "name": "Sophinea",
+   "ats": "workable",
+   "token": "sophinea"
   },
   {
    "name": "South Jersey Industries",
@@ -3859,6 +5065,16 @@
    "token": "src-inc"
   },
   {
+   "name": "SRI International",
+   "ats": "icims",
+   "host": "careers-sri.icims.com"
+  },
+  {
+   "name": "Stand Together",
+   "ats": "lever",
+   "token": "standtogether"
+  },
+  {
    "name": "Standard Aero",
    "ats": "oracle",
    "host": "cva.fa.us1.oraclecloud.com",
@@ -3891,6 +5107,11 @@
    "site": "ext"
   },
   {
+   "name": "stealth-startup-community",
+   "ats": "ashby",
+   "token": "resurgent-industries"
+  },
+  {
    "name": "Steel",
    "ats": "ashby",
    "token": "steel"
@@ -3906,6 +5127,26 @@
    "host": "careers-stifel.icims.com"
   },
   {
+   "name": "Stoke Space",
+   "ats": "greenhouse",
+   "token": "stokespacetechnologies"
+  },
+  {
+   "name": "Strada",
+   "ats": "ashby",
+   "token": "stradahq"
+  },
+  {
+   "name": "Strada Education Foundation",
+   "ats": "lever",
+   "token": "stradaeducation"
+  },
+  {
+   "name": "Stratolaunch",
+   "ats": "greenhouse",
+   "token": "stratolaunch"
+  },
+  {
    "name": "Stripe",
    "ats": "greenhouse",
    "token": "stripe"
@@ -3916,6 +5157,11 @@
    "tenant": "stryker",
    "wd": "wd1",
    "site": "StrykerCareers"
+  },
+  {
+   "name": "Subtotal",
+   "ats": "ashby",
+   "token": "subtotal"
   },
   {
    "name": "Sun Life",
@@ -3944,6 +5190,11 @@
    "site": "swbccareers"
   },
   {
+   "name": "Sycamore",
+   "ats": "ashby",
+   "token": "sycamore"
+  },
+  {
    "name": "Symbotic",
    "ats": "workday",
    "tenant": "symbotic",
@@ -3956,6 +5207,16 @@
    "tenant": "synchronyfinancial",
    "wd": "wd5",
    "site": "University"
+  },
+  {
+   "name": "Synthesis",
+   "ats": "workable",
+   "token": "synthesisim"
+  },
+  {
+   "name": "Syntiant",
+   "ats": "workable",
+   "token": "syntiant"
   },
   {
    "name": "Systems Planning & Analysis",
@@ -4027,6 +5288,26 @@
    "site": "Tencent_Careers"
   },
   {
+   "name": "Tencent",
+   "ats": "workday",
+   "tenant": "tencent",
+   "wd": "wd1",
+   "site": "Lightspeed"
+  },
+  {
+   "name": "Tencent",
+   "ats": "workday",
+   "tenant": "tencent",
+   "wd": "wd1",
+   "site": "OA_Huoshui_Platform"
+  },
+  {
+   "name": "Tenet Healthcare",
+   "ats": "oracle",
+   "host": "eodr.fa.us2.oraclecloud.com",
+   "site": "CX_1001"
+  },
+  {
    "name": "Tenet3",
    "ats": "greenhouse",
    "token": "tenet3"
@@ -4040,6 +5321,16 @@
    "name": "Tenstorrent",
    "ats": "greenhouse",
    "token": "tenstorrentuniversity"
+  },
+  {
+   "name": "Terranova",
+   "ats": "ashby",
+   "token": "terranova"
+  },
+  {
+   "name": "Tevora",
+   "ats": "lever",
+   "token": "tevora"
   },
   {
    "name": "Texas Instruments",
@@ -4072,6 +5363,16 @@
    "token": "thebrattlegroup"
   },
   {
+   "name": "The Cary Company",
+   "ats": "jazzhr",
+   "token": "thecarycompany"
+  },
+  {
+   "name": "The Design Rules Company",
+   "ats": "ashby",
+   "token": "designrulesco"
+  },
+  {
    "name": "The Exploration Company",
    "ats": "ashby",
    "token": "the-exploration-company"
@@ -4094,6 +5395,18 @@
    "name": "The MJ Companies",
    "ats": "greenhouse",
    "token": "themjcos"
+  },
+  {
+   "name": "The Mosaic Company",
+   "ats": "workday",
+   "tenant": "mosaic",
+   "wd": "wd5",
+   "site": "mosaic"
+  },
+  {
+   "name": "The New York Times",
+   "ats": "greenhouse",
+   "token": "thenewyorktimes"
   },
   {
    "name": "The Nuclear Company",
@@ -4146,9 +5459,38 @@
    "site": "external"
   },
   {
+   "name": "Titan Materials Group",
+   "ats": "icims",
+   "host": "careers-usa-titanmaterials.icims.com"
+  },
+  {
+   "name": "TMX Group",
+   "ats": "workday",
+   "tenant": "tmx",
+   "wd": "wd3",
+   "site": "TMX_Careers"
+  },
+  {
    "name": "Together AI",
    "ats": "greenhouse",
    "token": "togetherai"
+  },
+  {
+   "name": "Tokyo Electron",
+   "ats": "workday",
+   "tenant": "tel",
+   "wd": "wd3",
+   "site": "tel-careers"
+  },
+  {
+   "name": "Toshiba Global Commerce Solutions",
+   "ats": "greenhouse",
+   "token": "toshibaglobalcommercesolutions"
+  },
+  {
+   "name": "Toshiba International Corporation",
+   "ats": "jazzhr",
+   "token": "taec"
   },
   {
    "name": "Toyota",
@@ -4198,6 +5540,11 @@
    "site": "CX"
   },
   {
+   "name": "Trajectory",
+   "ats": "ashby",
+   "token": "trajectory"
+  },
+  {
    "name": "Trane Technologies",
    "ats": "workday",
    "tenant": "tranetechnologies",
@@ -4224,6 +5571,11 @@
    "tenant": "travelers",
    "wd": "wd5",
    "site": "External"
+  },
+  {
+   "name": "Trilogy Innovations",
+   "ats": "jazzhr",
+   "token": "trilogyinnovations"
   },
   {
    "name": "Trimble",
@@ -4266,6 +5618,18 @@
    "site": "CX_1"
   },
   {
+   "name": "Uhaul",
+   "ats": "workday",
+   "tenant": "uhaul",
+   "wd": "wd1",
+   "site": "UhaulJobs"
+  },
+  {
+   "name": "UiPath",
+   "ats": "ashby",
+   "token": "uipath"
+  },
+  {
    "name": "UL Solutions",
    "ats": "oracle",
    "host": "fa-eups-saasfaprod1.fa.ocs.oraclecloud.com",
@@ -4286,11 +5650,30 @@
    "site": "Search"
   },
   {
+   "name": "United Wholesale Mortgage",
+   "ats": "icims",
+   "host": "careers-uwmcareers.icims.com"
+  },
+  {
    "name": "Unity",
    "ats": "workday",
    "tenant": "unitytech",
    "wd": "wd1",
    "site": "Unity"
+  },
+  {
+   "name": "University Corporation for Atmospheric Research",
+   "ats": "workday",
+   "tenant": "ucar",
+   "wd": "wd5",
+   "site": "UCAR_Careers"
+  },
+  {
+   "name": "University of Miami",
+   "ats": "workday",
+   "tenant": "umiami",
+   "wd": "wd1",
+   "site": "UMCareerStaff"
   },
   {
    "name": "University of Texas at Austin",
@@ -4312,6 +5695,11 @@
    "token": "upscale-ai"
   },
   {
+   "name": "USAFacts",
+   "ats": "greenhouse",
+   "token": "usafacts"
+  },
+  {
    "name": "USG Insurance Services, Inc.",
    "ats": "jazzhr",
    "token": "usginsurance"
@@ -4322,6 +5710,11 @@
    "tenant": "valmont",
    "wd": "wd1",
    "site": "ValmontCareers"
+  },
+  {
+   "name": "Valon",
+   "ats": "ashby",
+   "token": "valon"
   },
   {
    "name": "Vanguard",
@@ -4338,6 +5731,13 @@
    "site": "contractors_restricted"
   },
   {
+   "name": "Vantor",
+   "ats": "workday",
+   "tenant": "maxar",
+   "wd": "wd1",
+   "site": "Vantor"
+  },
+  {
    "name": "Varda Space",
    "ats": "greenhouse",
    "token": "vardaspace"
@@ -4350,6 +5750,11 @@
    "site": "SHSJB"
   },
   {
+   "name": "Vatic Investments",
+   "ats": "greenhouse",
+   "token": "vaticlabs"
+  },
+  {
    "name": "Veeda AI",
    "ats": "ashby",
    "token": "veeda-ai"
@@ -4358,6 +5763,11 @@
    "name": "Vercel",
    "ats": "greenhouse",
    "token": "vercel"
+  },
+  {
+   "name": "Verition Group",
+   "ats": "greenhouse",
+   "token": "veritiongroupllcinternships"
   },
   {
    "name": "Verkada",
@@ -4383,6 +5793,11 @@
    "ats": "oracle",
    "host": "egup.fa.us2.oraclecloud.com",
    "site": "CX"
+  },
+  {
+   "name": "Vestmark",
+   "ats": "greenhouse",
+   "token": "internrecruiting"
   },
   {
    "name": "Veterans United Home Loans",
@@ -4438,6 +5853,13 @@
    "token": "vital-lyfe"
   },
   {
+   "name": "Vizient",
+   "ats": "workday",
+   "tenant": "vizient",
+   "wd": "wd1",
+   "site": "Vizient_Careers"
+  },
+  {
    "name": "Voloridge",
    "ats": "greenhouse",
    "token": "voloridgeinvestmentmanagement"
@@ -4448,9 +5870,19 @@
    "token": "voyagertechnologiesinc"
   },
   {
+   "name": "W.R. Berkley",
+   "ats": "icims",
+   "host": "careers-berkley.icims.com"
+  },
+  {
    "name": "Waabi",
    "ats": "lever",
    "token": "waabi"
+  },
+  {
+   "name": "Waggoner Financial",
+   "ats": "workable",
+   "token": "waggoner-financial"
   },
   {
    "name": "Walmart",
@@ -4463,6 +5895,11 @@
    "name": "Walrus",
    "ats": "ashby",
    "token": "walrusfi"
+  },
+  {
+   "name": "Waterworth",
+   "ats": "workable",
+   "token": "waterworth"
   },
   {
    "name": "Watts Water",
@@ -4491,6 +5928,11 @@
    "site": "Campus"
   },
   {
+   "name": "West Bend Insurance",
+   "ats": "icims",
+   "host": "careers-thesilverlining.icims.com"
+  },
+  {
    "name": "West Monroe",
    "ats": "greenhouse",
    "token": "westmonroe4"
@@ -4499,6 +5941,18 @@
    "name": "Western & Southern Financial Group",
    "ats": "icims",
    "host": "careers-westernsouthern.icims.com"
+  },
+  {
+   "name": "Western Alliance Bancorporation",
+   "ats": "workday",
+   "tenant": "westernalliancebank",
+   "wd": "wd5",
+   "site": "WAB"
+  },
+  {
+   "name": "Western Magnetics",
+   "ats": "ashby",
+   "token": "westmag"
   },
   {
    "name": "WeVote",
@@ -4535,6 +5989,11 @@
    "site": "CR_Career_Site"
   },
   {
+   "name": "Wolf & Company",
+   "ats": "icims",
+   "host": "career-portal-wolfandco.icims.com"
+  },
+  {
    "name": "Workday",
    "ats": "workday",
    "tenant": "workday",
@@ -4545,6 +6004,11 @@
    "name": "Workshop",
    "ats": "greenhouse",
    "token": "workshop"
+  },
+  {
+   "name": "WorldEngine AI",
+   "ats": "ashby",
+   "token": "worldengine"
   },
   {
    "name": "WSFS Bank",
@@ -4577,6 +6041,11 @@
    "site": "External"
   },
   {
+   "name": "Xcimer Energy",
+   "ats": "lever",
+   "token": "xcimer"
+  },
+  {
    "name": "XPENG Motors",
    "ats": "greenhouse",
    "token": "xpengmotors"
@@ -4603,11 +6072,33 @@
    "site": "Zillow_Group_External"
   },
   {
+   "name": "ZipRecruiter",
+   "ats": "greenhouse",
+   "token": "ziprecruiter"
+  },
+  {
+   "name": "Zoetis",
+   "ats": "workday",
+   "tenant": "zoetis",
+   "wd": "wd5",
+   "site": "zoetis"
+  },
+  {
+   "name": "Zoox",
+   "ats": "lever",
+   "token": "zoox"
+  },
+  {
    "name": "Zurn Elkay Water Solutions",
    "ats": "workday",
    "tenant": "elkay",
    "wd": "wd1",
    "site": "Elkay_External"
+  },
+  {
+   "name": "Zus Health",
+   "ats": "ashby",
+   "token": "zus-health"
   }
  ]
 }
